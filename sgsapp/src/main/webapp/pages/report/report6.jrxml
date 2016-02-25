@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report6" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="fechaInicio" class="java.lang.String"/>
+	<parameter name="fechaFin" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+        segdetinspre0_.V_ACC_TOMADAS,
+        segdetarea1_.V_DESCRIPCION AS AREA,
+        segdetinspre0_.N_ANALISIS,
+        segdetcarg2_.V_DESCRIPCION AS CARGO,
+        segdetinspre0_.N_COD_INSPRESENCIAL,
+        segdetinspre0_.V_DESCRIPCION,
+        segdetinspre0_.V_DESC_BREVE,
+        segdetmaes3_.V_DESCRIPCION AS ESTADO,
+        to_char(segdetinspre0_.D_FEC_CREACION,
+        'dd/mm/yyyy hh24:mi:ss') as D_FEC_CREACION,
+        to_char(segdetinspre0_.D_FEC_MODIFICACION,
+        'dd/mm/yyyy hh24:mi:ss') as D_FEC_MODIFICACION,
+        segdetinspre0_.V_IP_CREACION,
+        to_char(segdetinspre0_.D_FEC_HORA,
+        'dd/mm/yyyy hh24:mi:ss') as D_FEC_HORA,
+        segdetinspre0_.V_IP_MODIFICACION,
+        segdetloca4_.V_DESCRIPCION AS LOCAL,
+        segcabempr5_.V_RAZON_SOCIAL AS EMPRESA,
+        segdetluga6_.V_DESCRIPCION AS LUGAR,
+        segdetresp7_.V_NOMBRES||' '||segdetresp7_.V_APELLIDOS as V_NOMBRECOMPLETO,
+        segdetinspre0_.N_ACTIVO,
+        segdetinspre0_.N_PERSONA,
+        segdetinspre0_.N_PROCESO,
+        segdetinspre0_.N_SEGUIMIENTO,
+        segdetmaes8_.V_DESCRIPCION as TIPO_INSPECCION,
+        segdetinspre0_.V_USU_CREACION,
+        segdetinspre0_.V_USU_MODIFICACION 
+    from
+        SGSWEB.SEG_DET_INS_PRESENCIAL segdetinspre0_,
+        SGSWEB.SEG_DET_AREA segdetarea1_,
+        SGSWEB.SEG_DET_CARGO segdetcarg2_,
+        SGSWEB.SEG_DET_MAESTRODETALLE segdetmaes3_,
+        SGSWEB.SEG_DET_LOCAL segdetloca4_,
+        SGSWEB.SEG_CAB_EMPRESA segcabempr5_,
+        SGSWEB.SEG_DET_LUGAR segdetluga6_,
+        SGSWEB.SEG_DET_RESPONSABLE segdetresp7_,
+        SGSWEB.SEG_DET_MAESTRODETALLE segdetmaes8_ 
+    where segdetarea1_.N_COD_AREA=segdetinspre0_.N_AREA 
+        and segdetcarg2_.N_COD_CARGO=segdetinspre0_.N_CARGO 
+        and segdetmaes3_.N_COD_MAESTRODETALLE=segdetinspre0_.N_ESTADO 
+        and segdetloca4_.N_COD_LOCAL=segdetinspre0_.N_LOCAL 
+        and segdetinspre0_.N_COD_EMPRESA=segcabempr5_.N_COD_EMPRESA 
+        and segdetluga6_.N_COD_LUGAR=segdetinspre0_.N_LUGAR 
+        and segdetresp7_.N_COD_RESPONSABLE=segdetinspre0_.N_RESPONSABLE 
+        and segdetmaes8_.N_COD_MAESTRODETALLE=segdetinspre0_.N_TIPO_INSPECCION
+        and TO_CHAR(segdetinspre0_.D_FEC_HORA,'YYYY/MM/DD') >= $P{fechaInicio} 
+        and TO_CHAR(segdetinspre0_.D_FEC_HORA,'YYYY/MM/DD') <= $P{fechaFin}]]>
+	</queryString>
+	<field name="V_ACC_TOMADAS" class="java.lang.String"/>
+	<field name="AREA" class="java.lang.String"/>
+	<field name="N_ANALISIS" class="java.math.BigDecimal"/>
+	<field name="CARGO" class="java.lang.String"/>
+	<field name="N_COD_INSPRESENCIAL" class="java.math.BigDecimal"/>
+	<field name="V_DESCRIPCION" class="java.lang.String"/>
+	<field name="V_DESC_BREVE" class="java.lang.String"/>
+	<field name="ESTADO" class="java.lang.String"/>
+	<field name="D_FEC_CREACION" class="java.lang.String"/>
+	<field name="D_FEC_MODIFICACION" class="java.lang.String"/>
+	<field name="V_IP_CREACION" class="java.lang.String"/>
+	<field name="D_FEC_HORA" class="java.lang.String"/>
+	<field name="V_IP_MODIFICACION" class="java.lang.String"/>
+	<field name="LOCAL" class="java.lang.String"/>
+	<field name="EMPRESA" class="java.lang.String"/>
+	<field name="LUGAR" class="java.lang.String"/>
+	<field name="V_NOMBRECOMPLETO" class="java.lang.String"/>
+	<field name="N_ACTIVO" class="java.math.BigDecimal"/>
+	<field name="N_PERSONA" class="java.math.BigDecimal"/>
+	<field name="N_PROCESO" class="java.math.BigDecimal"/>
+	<field name="N_SEGUIMIENTO" class="java.math.BigDecimal"/>
+	<field name="TIPO_INSPECCION" class="java.lang.String"/>
+	<field name="V_USU_CREACION" class="java.lang.String"/>
+	<field name="V_USU_MODIFICACION" class="java.lang.String"/>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band height="72">
+			<frame>
+				<reportElement mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699"/>
+				<staticText>
+					<reportElement x="20" y="49" width="555" height="43" forecolor="#FFFFFF"/>
+					<textElement verticalAlignment="Middle">
+						<font size="28" isBold="true"/>
+					</textElement>
+					<text><![CDATA[INSPECCIONES PRESENCIALES]]></text>
+				</staticText>
+				<image>
+					<reportElement x="21" y="11" width="157" height="27"/>
+					<imageExpression><![CDATA["C:\\segrop\\sgs\\file\\20516811421\\logo.png"]]></imageExpression>
+				</image>
+				<textField pattern="EEEEE, dd &apos;de&apos; MMMMM &apos;del&apos; yyyy" isBlankWhenNull="false">
+					<reportElement x="383" y="11" width="192" height="13" forecolor="#FFFFFF"/>
+					<textElement textAlignment="Right">
+						<font size="10" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</title>
+	<pageHeader>
+		<band/>
+	</pageHeader>
+	<columnHeader>
+		<band height="39">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="18" width="44" height="20" backcolor="#99CCFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CÓDIGO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="44" y="18" width="140" height="20" backcolor="#99CCFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NOMBRE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="184" y="18" width="100" height="20" backcolor="#99CCFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LOCAL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="284" y="18" width="100" height="20" backcolor="#99CCFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LUGAR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="384" y="18" width="77" height="20" backcolor="#99CCFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ESTADO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="461" y="18" width="94" height="20" backcolor="#99CCFF"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FECHA Y HORA]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="1" width="44" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{N_COD_INSPRESENCIAL}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="44" y="1" width="140" height="15"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{V_DESC_BREVE}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="184" y="1" width="100" height="15"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{LOCAL}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="284" y="1" width="100" height="15"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{LUGAR}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="384" y="1" width="77" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ESTADO}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="461" y="1" width="94" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{D_FEC_HORA}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+	<pageFooter>
+		<band height="17">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="4" width="515" height="13" backcolor="#E6E6E6"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Página "+$V{PAGE_NUMBER}+" de"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="515" y="4" width="40" height="13" backcolor="#E6E6E6"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band/>
+	</summary>
+	<noData>
+		<band height="50">
+			<staticText>
+				<reportElement x="1" y="0" width="554" height="50"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Ninguna inspección presencial encontrada.]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>

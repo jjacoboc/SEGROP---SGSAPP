@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 21-feb-2012 0:26:49 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegDetResponsable" table="SEG_DET_RESPONSABLE" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegDetResponsableId">
+            <key-property name="NCodResponsable" type="big_decimal">
+                <column name="N_COD_RESPONSABLE" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodArea" type="big_decimal">
+                <column name="N_COD_AREA" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodLocal" type="big_decimal">
+                <column name="N_COD_LOCAL" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodEmpresa" type="big_decimal">
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+        <many-to-one name="segDetArea" class="pe.com.segrop.sgsapp.domain.SegDetArea" update="false" insert="false" fetch="select">
+            <column name="N_COD_AREA" precision="22" scale="0" not-null="true" />
+            <column name="N_COD_LOCAL" precision="22" scale="0" not-null="true" />
+            <column name="N_COD_EMPRESA" precision="22" scale="0" not-null="true" />
+        </many-to-one>
+        <property name="NCodResponsable" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_RESPONSABLE" precision="22" scale="0" />
+        </property>
+        <property name="NCodArea" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_AREA" precision="22" scale="0" />
+        </property>
+        <property name="NCodLocal" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_LOCAL" precision="22" scale="0" />
+        </property>
+        <property name="NCodEmpresa" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_EMPRESA" precision="22" scale="0" />
+        </property>
+        <property name="VNombres" type="string">
+            <column name="V_NOMBRES" length="100" />
+        </property>
+        <property name="VApellidos" type="string">
+            <column name="V_APELLIDOS" length="100" />
+        </property>
+        <property name="VNombrecompleto" type="string">
+            <column name="V_NOMBRECOMPLETO" length="200" />
+        </property>
+        <property name="NFlgActivo" type="big_decimal">
+            <column name="N_FLG_ACTIVO" precision="22" scale="0" />
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+    </class>
+</hibernate-mapping>

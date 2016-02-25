@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subreport10" pageWidth="534" pageHeight="30" columnWidth="270" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.3310000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="N_COD_INSTELEFONICA" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[SELECT
+     SEG_DET_PREGUNTA.N_COD_PREGUNTA AS N_COD_PREGUNTA,
+     SEG_DET_PREGUNTA.N_COD_EMPRESA AS N_COD_EMPRESA,
+     SEG_DET_PREGUNTA.V_DESCRIPCION AS V_DESCRIPCION,
+     SEG_DET_PREGUNTA.N_FLG_ACTIVO AS N_FLG_ACTIVO,
+     SEG_DET_PREGUNTA.V_USU_CREACION AS V_USU_CREACION,
+     to_char(SEG_DET_PREGUNTA.D_FEC_CREACION,
+        'dd/mm/yyyy hh24:mi:ss') AS D_FEC_CREACION,
+     SEG_DET_PREGUNTA.V_IP_CREACION AS V_IP_CREACION,
+     SEG_DET_PREGUNTA.V_USU_MODIFICACION AS V_USU_MODIFICACION,
+     to_char(SEG_DET_PREGUNTA.D_FEC_MODIFICACION,
+        'dd/mm/yyyy hh24:mi:ss') AS D_FEC_MODIFICACION,
+     SEG_DET_PREGUNTA.V_IP_MODIFICACION AS V_IP_MODIFICACION     
+FROM
+     SGSWEB.SEG_DET_PREGUNTA SEG_DET_PREGUNTA,
+     SGSWEB.SEG_REL_CUESTIONARIO SEG_REL_CUESTIONARIO
+WHERE
+     SEG_REL_CUESTIONARIO.N_COD_PREGUNTA = SEG_DET_PREGUNTA.N_COD_PREGUNTA
+AND  SEG_REL_CUESTIONARIO.N_COD_EMPRESA = SEG_DET_PREGUNTA.N_COD_EMPRESA
+AND  SEG_REL_CUESTIONARIO.N_COD_INSTELEFONICA=$P{N_COD_INSTELEFONICA}
+ORDER BY SEG_DET_PREGUNTA.N_COD_PREGUNTA]]>
+	</queryString>
+	<field name="N_COD_PREGUNTA" class="java.math.BigDecimal"/>
+	<field name="N_COD_EMPRESA" class="java.math.BigDecimal"/>
+	<field name="V_DESCRIPCION" class="java.lang.String"/>
+	<field name="N_FLG_ACTIVO" class="java.math.BigDecimal"/>
+	<field name="D_FEC_CREACION" class="java.lang.String"/>
+	<field name="V_USU_CREACION" class="java.lang.String"/>
+	<field name="V_IP_CREACION" class="java.lang.String"/>
+	<field name="D_FEC_MODIFICACION" class="java.lang.String"/>
+	<field name="V_USU_MODIFICACION" class="java.lang.String"/>
+	<field name="V_IP_MODIFICACION" class="java.lang.String"/>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band height="15">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="534" height="15"/>
+				<staticText>
+					<reportElement mode="Opaque" x="0" y="0" width="534" height="15" forecolor="#000000" backcolor="#99CCFF"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ PREGUNTAS]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</title>
+	<detail>
+		<band height="15">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="24" y="0" width="510" height="15"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{V_DESCRIPCION}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="24" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

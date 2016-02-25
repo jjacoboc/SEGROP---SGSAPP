@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-reverse-engineering-3.0.dtd">
+<hibernate-reverse-engineering>
+  <schema-selection match-catalog="sgsweb" match-schema="sgsweb"/>
+  <table-filter match-name="seg_det_historial"/>
+  <table-filter match-name="seg_det_exportdetalle"/>
+  <table-filter match-name="seg_cab_entidad"/>
+  <table-filter match-name="seg_det_ins_presencial"/>
+  <table-filter match-name="seg_rel_usuarioperfil"/>
+  <table-filter match-name="seg_det_ins_telefonica"/>
+  <table-filter match-name="seg_det_lugar"/>
+  <table-filter match-name="seg_det_inspreeval_detalle"/>
+  <table-filter match-name="seg_det_clave"/>
+  <table-filter match-name="seg_cab_responsable"/>
+  <table-filter match-name="seg_det_maestrodetalle"/>
+  <table-filter match-name="seg_det_capacitacion"/>
+  <table-filter match-name="seg_det_noveval_detalle"/>
+  <table-filter match-name="seg_det_objeto"/>
+  <table-filter match-name="seg_det_inspre_acciones"/>
+  <table-filter match-name="seg_cab_usuario"/>
+  <table-filter match-name="seg_cab_maestro"/>
+  <table-filter match-name="seg_det_respuesta"/>
+  <table-filter match-name="seg_rel_permiso"/>
+  <table-filter match-name="seg_cab_empresa"/>
+  <table-filter match-name="seg_det_criteria"/>
+  <table-filter match-name="seg_det_export"/>
+  <table-filter match-name="seg_det_atributo"/>
+  <table-filter match-name="seg_det_novedad"/>
+  <table-filter match-name="seg_det_local"/>
+  <table-filter match-name="seg_det_cargo"/>
+  <table-filter match-name="seg_det_acciones"/>
+  <table-filter match-name="seg_det_responsable"/>
+  <table-filter match-name="seg_det_documento"/>
+  <table-filter match-name="seg_det_inspre_evaluacion"/>
+  <table-filter match-name="seg_det_nov_evaluacion"/>
+  <table-filter match-name="seg_rel_cuestionario"/>
+  <table-filter match-name="seg_det_area"/>
+  <table-filter match-name="seg_cab_cargo"/>
+  <table-filter match-name="seg_cab_lugar"/>
+  <table-filter match-name="seg_det_lugar_capacitacion"/>
+  <table-filter match-name="seg_det_pregunta"/>
+  <table-filter match-name="seg_det_participante"/>
+  <table-filter match-name="seg_det_perfil"/>
+  <table-filter match-name="seg_det_tipo_documento"/>
+</hibernate-reverse-engineering>

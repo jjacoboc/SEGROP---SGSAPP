@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 08-abr-2012 18:19:11 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegDetNovevalDetalle" table="SEG_DET_NOVEVAL_DETALLE" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegDetNovevalDetalleId">
+            <key-property name="NCodDetalle" type="big_decimal">
+                <column name="N_COD_DETALLE" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodEvaluacion" type="big_decimal">
+                <column name="N_COD_EVALUACION" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodNovedad" type="big_decimal">
+                <column name="N_COD_NOVEDAD" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodEmpresa" type="big_decimal">
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+        <many-to-one name="segDetNovEvaluacion" class="pe.com.segrop.sgsapp.domain.SegDetNovEvaluacion" update="false" insert="false" fetch="select">
+            <column name="N_COD_EVALUACION" precision="22" scale="0" not-null="true" />
+            <column name="N_COD_NOVEDAD" precision="22" scale="0" not-null="true" />
+            <column name="N_COD_EMPRESA" precision="22" scale="0" not-null="true" />
+        </many-to-one>
+        <property name="NCodDetalle" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_DETALLE" precision="22" scale="0" />
+        </property>
+        <property name="NCodEvaluacion" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_EVALUACION" precision="22" scale="0" />
+        </property>
+        <property name="NCodNovedad" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_NOVEDAD" precision="22" scale="0" />
+        </property>
+        <property name="NCodEmpresa" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_EMPRESA" precision="22" scale="0" />
+        </property>
+        <property name="VDiagnostico" type="string">
+            <column name="V_DIAGNOSTICO" />
+        </property>
+        <property name="DFechora" type="timestamp">
+            <column name="D_FECHORA" />
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+        <property name="VRecomendacion" type="string">
+            <column name="V_RECOMENDACION" />
+        </property>
+    </class>
+</hibernate-mapping>

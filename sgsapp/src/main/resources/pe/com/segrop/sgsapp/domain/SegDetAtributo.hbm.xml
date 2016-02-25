@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 27-ene-2012 2:54:48 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegDetAtributo" table="SEG_DET_ATRIBUTO" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegDetAtributoId">
+            <key-property name="NCodEntidad" type="big_decimal">
+                <column name="N_COD_ENTIDAD" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodAtributo" type="big_decimal">
+                <column name="N_COD_ATRIBUTO" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+        <many-to-one name="segCabEntidad" class="pe.com.segrop.sgsapp.domain.SegCabEntidad" update="false" insert="false" fetch="select">
+            <column name="N_COD_ENTIDAD" precision="22" scale="0" not-null="true" />
+        </many-to-one>
+        <property name="NCodEntidad" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_ENTIDAD" precision="22" scale="0" />
+        </property>
+        <property name="NCodAtributo" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_ATRIBUTO" precision="22" scale="0" />
+        </property>
+        <property name="VNombre" type="string">
+            <column name="V_NOMBRE" length="50"/>
+        </property>
+        <property name="VNombreApp" type="string">
+            <column name="V_NOMBRE_APP" length="50"/>
+        </property>
+        <property name="VDescripcion" type="string">
+            <column name="V_DESCRIPCION" length="50"/>
+        </property>
+        <property name="VComentario" type="string">
+            <column name="V_COMENTARIO" length="255"/>
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+    </class>
+</hibernate-mapping>

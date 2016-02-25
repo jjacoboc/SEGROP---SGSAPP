@@ -1,0 +1,415 @@
+body {
+    background-color: silver;
+    /*background-image: url(../images/text31990983.png);*/
+}
+
+.Estilo0 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    color: #FFFFFF;
+}
+
+.Titulo {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.Titulo1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.Titulo2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.Titulo3 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+    color: white;
+    background-color: #006699;
+}
+
+.Titulo4 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+    color: #006699;
+}
+
+.Titulo5 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+    color: #004276;
+}
+
+.Titulo6 {
+    font-family: Serif, Helvetica, sans-serif;
+    font-size: 40px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+    color: #04386C;
+}
+
+.Titulo7 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 26px;
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+    color: #000000;
+}
+
+.Etiqueta1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.Etiqueta2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #FFFFFF;
+}
+
+.TextoJustificado {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    text-align: justify;
+}
+
+.casilla{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+}
+
+.casillaDerecha{
+    float:right;
+    font-size:8pt;
+    font-family:Arial;
+}
+
+.casillaDatos{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 150px;
+}
+
+.casillaNro{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 50px;
+    text-align:right;
+}
+
+.casillaEMail{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 190px;
+}
+
+.casillaDoc{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 90px;
+}
+
+.casillaFecha{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 60px;
+}
+
+.casillaLarga{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 300px;
+}
+
+.casillaExtraLarga{
+    float:left;
+    font-size:8pt;
+    font-family:Arial;
+    width: 500px;
+}
+
+.columnRed{
+    background-color: #FF0A14;
+    width: 50px;
+    height: 36px;
+}
+
+.columnBlue{
+    background-color: #04386C;
+    height: 36px;
+}
+
+.columnWhite{
+    background-color: #FFFFFF;
+    width: 209px;
+    height: 36px;
+}
+
+.ui-dialog-titlebar{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-dialog-content{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker-header{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker td{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker th{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    width: 15%;
+}
+
+.ui-datepicker-table{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker-current{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker-buttonpane{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-datepicker-close{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-timepicker{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-timepicker-div{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-autocomplete{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-autocomplete-input{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-autocomplete {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-autocomplete-panel{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-autocomplete-items{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-growl .ui-growl-message .ui-growl-title{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-growl-message p{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-growl-image{
+    width: 16px;
+    height: 16px;
+}
+
+.ui-selectonemenu{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-selectonemenu-panel{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-selectonemenu-items{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.ui-growl{
+    position: fixed;
+    left: 40%;
+    top: 20%;
+}
+
+.ui-growl-item{
+    background-color: #04386C;
+    color: #FFFFFF;
+}
+
+.ap-rola-list-column{
+    vertical-align: top;
+}
+
+.ap-rols-list-column{
+    vertical-align: top;
+}
+
+.ap-buttons-column{
+    vertical-align: middle;
+    /*width: 10px;*/
+    width: 10%;
+}
+
+.chartClass {
+    width:340px;
+}
+
+.tooltip{
+    background-color: #F9E4E4;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    border: 1px solid #900000;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.tooltip-text {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    color: #000000;
+    font-weight: bold;
+}
+
+.msgError {
+    border: 1px solid #b00d15;
+    background-color:#FFBABA;
+    padding: 5px 5px 5px 5px;
+}
+
+.msgLabelError {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: #b00d15;
+}
+
+.msgInfo {
+    background-color: #BDE5F8;
+    border: 1px solid #00529B;
+    padding: 5px 5px 5px 5px;
+}
+
+.msgLabelInfo {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: #00529B;
+}
+
+.columnLbl {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    width: 160px;
+}
+
+.columnTxt {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+.columnLbl1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    width: 130px;
+}
+
+.columnTxt1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+}
+
+#content {
+    font-size: 9px;
+}
+
+.bgH{
+    border-color: #777777;
+    background-image: url(images/letra-H.png);
+    background-position: center;
+}
+
+.bgE{
+    border-color: #777777;
+    background-image: url(images/letra-E.png);
+    background-position: center;
+}
+
+.bgM{
+    border-color: #777777;
+    background-image: url(images/letra-M.png);
+    background-position: center;
+}
+
+.bgL{
+    border-color: #777777;
+    background-image: url(images/letra-L.png);
+    background-position: center;
+}

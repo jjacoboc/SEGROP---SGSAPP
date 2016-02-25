@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 27-ene-2012 2:54:48 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegCabEmpresa" table="SEG_CAB_EMPRESA" schema="SGSWEB">
+        <id name="NCodEmpresa" type="big_decimal">
+            <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            <generator class="assigned" />
+        </id>
+        <property name="VRuc" type="string">
+            <column name="V_RUC" length="20" />
+        </property>
+        <property name="VRazonSocial" type="string">
+            <column name="V_RAZON_SOCIAL" length="150" />
+        </property>
+        <property name="VDireccion" type="string">
+            <column name="V_DIRECCION" length="150" />
+        </property>
+        <property name="VTelefono" type="string">
+            <column name="V_TELEFONO" length="20" />
+        </property>
+        <property name="VRutaLogo" type="string">
+            <column name="V_RUTA_LOGO" length="150" />
+        </property>
+        <property name="NFlgActivo" type="big_decimal">
+            <column name="N_FLG_ACTIVO" precision="22" scale="0" />
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+        <set name="segCabUsuarios" inverse="true">
+            <key>
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key>
+            <one-to-many class="pe.com.segrop.sgsapp.domain.SegCabUsuario" />
+        </set>
+        <set name="segDetPerfils" inverse="true">
+            <key>
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key>
+            <one-to-many class="pe.com.segrop.sgsapp.domain.SegDetPerfil" />
+        </set>
+        <set name="segDetDocumentos" inverse="true">
+            <key>
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key>
+            <one-to-many class="pe.com.segrop.sgsapp.domain.SegDetDocumento" />
+        </set>
+    </class>
+</hibernate-mapping>

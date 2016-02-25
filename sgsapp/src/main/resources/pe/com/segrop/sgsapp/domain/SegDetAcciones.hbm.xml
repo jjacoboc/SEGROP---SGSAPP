@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 12-mar-2012 0:45:47 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegDetAcciones" table="SEG_DET_ACCIONES" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegDetAccionesId">
+            <key-property name="NCodAccion" type="big_decimal">
+                <column name="N_COD_ACCION" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodNovedad" type="big_decimal">
+                <column name="N_COD_NOVEDAD" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodEmpresa" type="big_decimal">
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+        <many-to-one name="segDetNovedad" class="pe.com.segrop.sgsapp.domain.SegDetNovedad" update="false" insert="false" fetch="select">
+            <column name="N_COD_NOVEDAD" precision="22" scale="0" not-null="true" />
+            <column name="N_COD_EMPRESA" precision="22" scale="0" not-null="true" />
+        </many-to-one>
+        <property name="NCodAccion" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_ACCION" precision="22" scale="0" />
+        </property>
+        <property name="NCodNovedad" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_NOVEDAD" precision="22" scale="0" />
+        </property>
+        <property name="NCodEmpresa" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_EMPRESA" precision="22" scale="0" />
+        </property>
+        <property name="VDescripcion" type="string">
+            <column name="V_DESCRIPCION" />
+        </property>
+        <property name="DFecHora" type="timestamp">
+            <column name="D_FEC_HORA" />
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 27-mar-2012 23:46:11 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegRelCuestionario" table="SEG_REL_CUESTIONARIO" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegRelCuestionarioId">
+            <key-property name="NCodEmpresa" type="big_decimal">
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodPregunta" type="big_decimal">
+                <column name="N_COD_PREGUNTA" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodInstelefonica" type="big_decimal">
+                <column name="N_COD_INSTELEFONICA" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+    </class>
+</hibernate-mapping>

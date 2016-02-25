@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report4_2" language="groovy" pageWidth="265" pageHeight="595" columnWidth="265" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.3310000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="N_COD_NOVEDAD" class="java.math.BigDecimal"/>
+	<queryString>
+		<![CDATA[SELECT
+     SEG_DET_NOVEVAL_DETALLE.N_COD_NOVEDAD AS N_COD_NOVEDAD,
+     SEG_DET_NOVEVAL_DETALLE.N_COD_EVALUACION AS N_COD_EVALUACION,
+     SEG_DET_NOVEVAL_DETALLE.N_COD_EMPRESA AS N_COD_EMPRESA,
+     SEG_DET_NOVEVAL_DETALLE.N_COD_DETALLE AS N_COD_DETALLE,
+     SEG_DET_NOVEVAL_DETALLE.V_DIAGNOSTICO AS V_DIAGNOSTICO,
+     SEG_DET_NOVEVAL_DETALLE.V_RECOMENDACION AS V_RECOMENDACION,
+     to_char(SEG_DET_NOVEVAL_DETALLE.D_FECHORA,
+        'dd/mm/yyyy hh24:mi:ss') AS D_FECHORA,
+     SEG_DET_NOVEVAL_DETALLE.V_USU_CREACION AS V_USU_CREACION,
+     to_char(SEG_DET_NOVEVAL_DETALLE.D_FEC_CREACION,
+        'dd/mm/yyyy hh24:mi:ss') AS D_FEC_CREACION,
+     SEG_DET_NOVEVAL_DETALLE.V_IP_CREACION AS V_IP_CREACION,
+     SEG_DET_NOVEVAL_DETALLE.V_USU_MODIFICACION AS V_USU_MODIFICACION,
+     to_char(SEG_DET_NOVEVAL_DETALLE.D_FEC_MODIFICACION,
+        'dd/mm/yyyy hh24:mi:ss') AS D_FEC_MODIFICACION,
+     SEG_DET_NOVEVAL_DETALLE.V_IP_MODIFICACION AS V_IP_MODIFICACION
+FROM
+     SGSWEB.SEG_DET_NOVEVAL_DETALLE SEG_DET_NOVEVAL_DETALLE
+WHERE
+     SEG_DET_NOVEVAL_DETALLE.N_COD_NOVEDAD=$P{N_COD_NOVEDAD}]]>
+	</queryString>
+	<field name="N_COD_NOVEDAD" class="java.math.BigDecimal"/>
+	<field name="N_COD_EMPRESA" class="java.math.BigDecimal"/>
+	<field name="N_COD_DETALLE" class="java.math.BigDecimal"/>
+	<field name="N_COD_EVALUACION" class="java.math.BigDecimal"/>
+	<field name="V_DIAGNOSTICO" class="java.lang.String"/>
+	<field name="V_RECOMENDACION" class="java.lang.String"/>
+	<field name="D_FECHORA" class="java.lang.String"/>
+	<field name="D_FEC_CREACION" class="java.lang.String"/>
+	<field name="V_USU_CREACION" class="java.lang.String"/>
+	<field name="V_IP_CREACION" class="java.lang.String"/>
+	<field name="D_FEC_MODIFICACION" class="java.lang.String"/>
+	<field name="V_USU_MODIFICACION" class="java.lang.String"/>
+	<field name="V_IP_MODIFICACION" class="java.lang.String"/>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band height="15">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="265" height="15"/>
+				<staticText>
+					<reportElement mode="Opaque" x="0" y="0" width="265" height="15" forecolor="#000000" backcolor="#99CCFF"/>
+					<textElement verticalAlignment="Middle">
+						<font size="8" isBold="true"/>
+					</textElement>
+					<text><![CDATA[RECOMENDACIÓN]]></text>
+				</staticText>
+			</frame>
+		</band>
+	</title>
+	<detail>
+		<band height="15">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="70" y="0" width="195" height="15"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{V_RECOMENDACION}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="70" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{D_FECHORA}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

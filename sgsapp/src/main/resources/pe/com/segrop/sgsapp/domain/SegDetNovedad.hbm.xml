@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 12-mar-2012 0:45:47 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegDetNovedad" table="SEG_DET_NOVEDAD" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegDetNovedadId">
+            <key-property name="NCodNovedad" type="big_decimal">
+                <column name="N_COD_NOVEDAD" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodEmpresa" type="big_decimal">
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+        <property name="NCodNovedad" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_NOVEDAD" precision="22" scale="0" />
+        </property>
+        <property name="NCodEmpresa" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_EMPRESA" precision="22" scale="0" />
+        </property>
+        <property name="NTipoNovedad" type="big_decimal">
+            <column name="N_TIPO_NOVEDAD" precision="22" scale="0" />
+        </property>
+        <property name="NTipoEvento" type="big_decimal">
+            <column name="N_TIPO_EVENTO" precision="22" scale="0" />
+        </property>
+        <property name="NPersona" type="big_decimal">
+            <column name="N_PERSONA" precision="22" scale="0" />
+        </property>
+        <property name="NActivo" type="big_decimal">
+            <column name="N_ACTIVO" precision="22" scale="0" />
+        </property>
+        <property name="NProceso" type="big_decimal">
+            <column name="N_PROCESO" precision="22" scale="0" />
+        </property>
+        <property name="DFecHora" type="timestamp">
+            <column name="D_FEC_HORA" />
+        </property>
+        <property name="VDescBreve" type="string">
+            <column name="V_DESC_BREVE" length="150" />
+        </property>
+        <property name="VDescripcion" type="string">
+            <column name="V_DESCRIPCION" />
+        </property>
+        <property name="NLocal" type="big_decimal">
+            <column name="N_LOCAL" precision="22" scale="0" />
+        </property>
+        <property name="NArea" type="big_decimal">
+            <column name="N_AREA" precision="22" scale="0" />
+        </property>
+        <property name="NLugar" type="big_decimal">
+            <column name="N_LUGAR" precision="22" scale="0" />
+        </property>
+        <property name="NResponsable" type="big_decimal">
+            <column name="N_RESPONSABLE" precision="22" scale="0" />
+        </property>
+        <property name="NCargo" type="big_decimal">
+            <column name="N_CARGO" precision="22" scale="0" />
+        </property>
+        <property name="VAccTomadas" type="string">
+            <column name="V_ACC_TOMADAS" />
+        </property>
+        <property name="NAnalisis" type="big_decimal">
+            <column name="N_ANALISIS" precision="22" scale="0" />
+        </property>
+        <property name="NSeguimiento" type="big_decimal">
+            <column name="N_SEGUIMIENTO" precision="22" scale="0" />
+        </property>
+        <property name="NEstado" type="big_decimal">
+            <column name="N_ESTADO" precision="22" scale="0" />
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+        <set name="segDetAccioneses" inverse="true">
+            <key>
+                <column name="N_COD_NOVEDAD" precision="22" scale="0" not-null="true" />
+                <column name="N_COD_EMPRESA" precision="22" scale="0" not-null="true" />
+            </key>
+            <one-to-many class="pe.com.segrop.sgsapp.domain.SegDetAcciones" />
+        </set>
+    </class>
+</hibernate-mapping>

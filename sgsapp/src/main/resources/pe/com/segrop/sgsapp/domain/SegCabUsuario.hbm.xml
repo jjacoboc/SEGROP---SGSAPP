@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 15-jul-2012 21:05:22 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="pe.com.segrop.sgsapp.domain.SegCabUsuario" table="SEG_CAB_USUARIO" schema="SGSWEB">
+        <composite-id name="id" class="pe.com.segrop.sgsapp.domain.SegCabUsuarioId">
+            <key-property name="NCodUsuario" type="big_decimal">
+                <column name="N_COD_USUARIO" precision="22" scale="0" />
+            </key-property>
+            <key-property name="NCodEmpresa" type="big_decimal">
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key-property>
+        </composite-id>
+        <property name="NCodUsuario" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_USUARIO" precision="22" scale="0" />
+        </property>
+        <property name="NCodEmpresa" type="big_decimal" insert="false" update="false">
+            <column name="N_COD_EMPRESA" precision="22" scale="0" />
+        </property>
+        <property name="VNombres" type="string">
+            <column name="V_NOMBRES" length="100" />
+        </property>
+        <property name="VApellidos" type="string">
+            <column name="V_APELLIDOS" length="100" />
+        </property>
+        <property name="VUsuario" type="string">
+            <column name="V_USUARIO" length="45" />
+        </property>
+        <property name="VCorreo" type="string">
+            <column name="V_CORREO" length="100" />
+        </property>
+        <property name="VMovil" type="string">
+            <column name="V_MOVIL" length="45" />
+        </property>
+        <property name="NFlgActivo" type="big_decimal">
+            <column name="N_FLG_ACTIVO" precision="22" scale="0" />
+        </property>
+        <property name="VUsuCreacion" type="string">
+            <column name="V_USU_CREACION" length="45" />
+        </property>
+        <property name="DFecCreacion" type="timestamp">
+            <column name="D_FEC_CREACION" />
+        </property>
+        <property name="VIpCreacion" type="string">
+            <column name="V_IP_CREACION" length="20" />
+        </property>
+        <property name="VUsuModificacion" type="string">
+            <column name="V_USU_MODIFICACION" length="45" />
+        </property>
+        <property name="DFecModificacion" type="timestamp">
+            <column name="D_FEC_MODIFICACION" />
+        </property>
+        <property name="VIpModificacion" type="string">
+            <column name="V_IP_MODIFICACION" length="20" />
+        </property>
+        <property name="NTipNumDocumento" type="big_decimal">
+            <column name="N_TIP_NUM_DOCUMENTO" precision="22" scale="0" />
+        </property>
+        <property name="VNumDocumento" type="string">
+            <column name="V_NUM_DOCUMENTO" length="20" />
+        </property>
+        <property name="NFlgClave" type="big_decimal">
+            <column name="N_FLG_CLAVE" precision="22" scale="0" />
+        </property>
+        <property name="NFlgCambioclave" type="big_decimal">
+            <column name="N_FLG_CAMBIOCLAVE" precision="22" scale="0" />
+        </property>
+        <set name="segRelUsuarioperfils" inverse="true">
+            <key>
+                <column name="N_COD_USUARIO" precision="22" scale="0" not-null="true" />
+                <column name="N_COD_EMPRESA" precision="22" scale="0" not-null="true" />
+            </key>
+            <one-to-many class="pe.com.segrop.sgsapp.domain.SegRelUsuarioperfil" />
+        </set>
+        <set name="segDetClaves" inverse="true">
+            <key>
+                <column name="N_COD_USUARIO" precision="22" scale="0" not-null="true" />
+                <column name="N_COD_EMPRESA" precision="22" scale="0" />
+            </key>
+            <one-to-many class="pe.com.segrop.sgsapp.domain.SegDetClave" />
+        </set>
+    </class>
+</hibernate-mapping>

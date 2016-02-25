@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions">
+    <h:head>
+        <title></title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet name="css/mycss.css" />
+    </h:head>
+    <h:body>
+        <f:view>
+            <h:form>
+                <h:panelGrid columns="1" width="100%" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:panelGrid columns="2" width="100%" cellpadding="0" cellspacing="0" >
+                            <p:graphicImage value="#{loginMB.file}"  />
+                            <p:graphicImage library="images" name="norton_secured.png" style="border: 0;float: right" alt="VeriSign Secured" title="VeriSign Secured"/>
+                        </h:panelGrid>
+                        <h:panelGrid columns="2" width="100%" cellpadding="0" cellspacing="0" >
+                            <h:panelGroup>
+                                <h:outputText value="Bienvenido " style="font-size: 11px;font-weight: bold;"/>
+                                <h:outputText value="#{loginMB.usuarioSession.VNombres} " style="font-size: 11px;font-weight: bold;"/>
+                                <h:outputText value="#{loginMB.usuarioSession.VApellidos}" style="font-size: 11px;font-weight: bold;"/>
+                                <h:outputText value=" - " style="font-size: 11px;font-weight: bold;"/>
+                                <h:outputText value="#{loginMB.perfilSession.VNombre} " style="font-size: 11px;font-weight: bold;"/>
+                            </h:panelGroup>
+                            <h:panelGroup style="float: right;">
+                                <h:commandLink action="bienvenida">
+                                    <p:graphicImage library="images" name="house.png" style="border: 0;" alt="ir a inicio" title="ir a inicio"/>
+                                </h:commandLink>
+                                <p:spacer width="10"/>
+                                <p:commandLink id="keyLink" >
+                                    <p:graphicImage library="images" name="key_go.png" style="border: 0;" alt="cambio de contraseña" title="cambio de contraseña"/>
+                                </p:commandLink>
+                                <p:spacer width="10"/>
+                                <h:commandLink action="#{loginMB.cerrarSesion}">
+                                    <p:graphicImage library="images" name="power.png" style="border: 0;" alt="cerrar sesión" title="cerrar sesión"/>
+                                </h:commandLink>
+                                <p:spacer width="10"/>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </h:form>
+        </f:view>
+    </h:body>
+</html>

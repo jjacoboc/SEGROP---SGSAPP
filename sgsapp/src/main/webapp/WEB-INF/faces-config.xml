@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<faces-config version="2.0" 
+    xmlns="http://java.sun.com/xml/ns/javaee" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_0.xsd">
+
+    <!--
+    <component>
+        <component-type>net.sf.jsfcomp.chartcreator.UIChart</component-type>
+        <component-class>net.sf.jsfcomp.chartcreator.component.UIChart</component-class>
+    </component>
+    <component>
+        <component-type>net.sf.jsfcomp.chartcreator.UIChartAxis</component-type>
+        <component-class>net.sf.jsfcomp.chartcreator.component.UIChartAxis</component-class>
+    </component>
+    
+    <view-handler>pe.com.segrop.sgs.web.common.CustomViewHandler</view-handler>
+
+    <render-kit>
+    	<renderer>
+    	    <component-family>net.sf.jsfcomp.chartcreator.UIChart</component-family>
+    	    <renderer-type>net.sf.jsfcomp.chartcreator.ChartRenderer</renderer-type>
+            <renderer-class>net.sf.jsfcomp.chartcreator.renderkit.ChartRenderer</renderer-class>
+    	</renderer>
+    </render-kit>
+
+    <lifecycle>
+    	<phase-listener>net.sf.jsfcomp.chartcreator.ChartListener</phase-listener>
+    </lifecycle>
+
+-->
+
+    <application>
+        <locale-config>
+            <default-locale>en</default-locale>
+        </locale-config>
+        <message-bundle>pe.com.segrop.sgsapp.resources.messages</message-bundle>
+    </application>
+    
+</faces-config>
+

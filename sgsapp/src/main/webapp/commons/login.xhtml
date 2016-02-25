@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3c.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>Autenticación</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link rel="shortcut icon" type="image/x-icon" href="#{resource['images/favicon.ico']}"/>
+        <h:outputStylesheet name="css/mycss.css" />
+    </h:head>
+    <h:body>
+        <f:view>
+            <h:form>
+                <center>
+                    <p:spacer height="250"/>
+                    <p:panel id="pnl" header="LOGIN" style="font-size: 13px;width: 400px;text-align: left;" >
+                        <p:messages showSummary="true" showDetail="true">
+                            <f:facet name="errorMarker">
+                                <h:graphicImage style="border: 0;" url="/commons/images/messagebox_critical.png"/>
+                            </f:facet>
+                            <f:facet name="infoMarker">
+                                <h:graphicImage style="border: 0;" url="/commons/images/messagebox_info.png"/>
+                            </f:facet>
+                            <f:facet name="warnMarker">
+                                <h:graphicImage style="border: 0;" url="/commons/images/messagebox_warning.png"/>
+                            </f:facet>
+                        </p:messages>
+                        <h:panelGrid columns="2" width="100%" style="font-size: 11px;">
+                            <h:panelGrid columns="2">
+                                <h:outputText value="Empresa: " styleClass="Etiqueta1" />
+                                <p:autoComplete id="razSoc" value="#{loginMB.selectedEmpresa}" completeMethod="#{loginMB.complete}" panelStyle="font-size: 10px;"
+                                                var="p" itemLabel="#{p.VRazonSocial}" itemValue="#{p}" converter="cEmpresaLogin" forceSelection="true" size="40">
+                                    <f:facet name="itemtip">
+                                        <p:panelGrid>
+                                            <p:row>
+                                                <p:column colspan="2" style="text-align: center;"><h:graphicImage value="/pages/images/noimage.png"  /></p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column><h:outputText value="RUC: " styleClass="Etiqueta1" /></p:column>
+                                                <p:column><h:outputText value="#{p.VRuc}" style="font-size: 11px;text-transform: uppercase;" /></p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column><h:outputText value="Razón Social: " styleClass="Etiqueta1" /></p:column>
+                                                <p:column><h:outputText value="#{p.VRazonSocial}" style="font-size: 11px;text-transform: uppercase;white-space: nowrap;" /></p:column>
+                                            </p:row>
+                                        </p:panelGrid>
+                                    </f:facet>
+                                </p:autoComplete>
+
+                                <h:outputText value="Usuario: " styleClass="Etiqueta1" />
+                                <p:inputText id="user" value="#{loginMB.usuario}" style="float: left;font-size: 11px"/>
+
+                                <h:outputText value="Clave: " styleClass="Etiqueta1"/>
+                                <p:password id="clave" value="#{loginMB.clave}" maxlength="8" style="float: left;font-size: 11px;" />
+
+                                <h:outputText id="txt" value="Confirmación: " styleClass="Etiqueta1" rendered="#{loginMB.flgClave}" />
+                                <p:password id="claveSecundaria" value="#{loginMB.claveSecundaria}" maxlength="8" style="float: left;font-size: 11px;" rendered="#{loginMB.flgClave}" />
+                            </h:panelGrid>
+                            <p:graphicImage library="images" name="sgs_logo.png" style="border: 0;float: right;"/>
+                        </h:panelGrid>
+                        <h:panelGrid columns="1" width="100%" style="text-align: center;">
+                            <p:commandLink id="dlgLink" oncomplete="PF('dlgClave').show()">
+                                <h:outputText value="Olvidó su clave?" styleClass="Etiqueta1" style="font-weight: bold;font-size: 11px;"/>
+                            </p:commandLink>
+                            <p:commandButton value="Ingresar" action="#{loginMB.login}" style="font-size: 11px;height: 2em" />
+                        </h:panelGrid>
+                    </p:panel>
+                </center>
+            </h:form>
+            <p:dialog id="dlgClave" header="Olvidó su clave?" height="120" closable="true" resizable="false" draggable="false">
+                <h:form id="dlgClaveForm">
+                    <h:panelGrid columns="1">
+                        <h:outputText value="Su clave será reseteada y enviada a su correo registrado." styleClass="Etiqueta1" />
+                        <h:outputText value="Desea Continuar?" styleClass="Etiqueta1" />
+                        <p:spacer/>
+                    </h:panelGrid>
+                    <h:panelGroup>
+                        <p:commandButton id="btnClave" value="Resetear Clave" actionListener="#{loginMB.resetearClave}" oncomplete="PF('dlgClave').hide()" style="font-size: 11px;height: 2em" />
+                        <p:commandButton id="btn" value="Cancelar" oncomplete="PF('dlgClave').hide()" style="font-size: 11px;height: 2em"/>
+                    </h:panelGroup>
+                </h:form>
+            </p:dialog>
+        </f:view>
+    </h:body>
+</html>

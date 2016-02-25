@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/applicationContext-hibernate.xml</param-value>
+    </context-param>
+    <context-param>
+        <param-name>javax.faces.PROJECT_STAGE</param-name>
+        <param-value>Production</param-value>
+    </context-param>
+    <context-param>
+        <param-name>javax.faces.DATETIMECONVERTER_DEFAULT_TIMEZONE_IS_SYSTEM_TIMEZONE</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.THEME</param-name>
+        <param-value>redmond</param-value>
+    </context-param>
+  
+    <error-page>
+        <exception-type>404</exception-type>
+        <location>/commons/pageNotFound.jsf</location>
+    </error-page>
+    <error-page>
+        <exception-type>505</exception-type>
+        <location>/commons/pageNotFound.jsf</location>
+    </error-page>
+    
+    <error-page>
+        <exception-type>javax.faces.application.ViewExpiredException</exception-type>
+        <location>/commons/sessionexpired.jsp</location>
+    </error-page>
+    <!--
+    <filter>
+        <filter-name>ForcedLoginFilter</filter-name>
+        <filter-class>pe.com.segrop.sgsapp.web.common.ForcedLoginFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>ForcedLoginFilter</filter-name>
+        <url-pattern>/pages/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+    -->
+    
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    
+    <!--
+    <servlet>
+        <servlet-name>Chartlet</servlet-name>
+        <servlet-class>net.sf.jsfcomp.chartcreator.Chartlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Chartlet</servlet-name>
+        <url-pattern>*.chart</url-pattern>
+    </servlet-mapping>
+    -->
+    
+    <servlet>
+        <servlet-name>log4j-init</servlet-name>
+        <servlet-class>pe.com.segrop.sgsapp.web.common.Log4jInit</servlet-class>
+        <init-param>
+            <param-name>log4j-init-file</param-name>
+            <param-value>/WEB-INF/log4j.properties</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>LoadRiskServlet</servlet-name>
+        <servlet-class>pe.com.segrop.sgsapp.web.ui.LoadRisk</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoadRiskServlet</servlet-name>
+        <url-pattern>/loadRisk</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>*.htm</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>/faces/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+    
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+    
+    <welcome-file-list>
+        <!--<welcome-file>commons/login.jsf</welcome-file>-->
+        <welcome-file>commons/login.xhtml</welcome-file>
+    </welcome-file-list>
+</web-app>
