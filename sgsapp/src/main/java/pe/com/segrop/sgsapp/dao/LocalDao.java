@@ -14,13 +14,13 @@ import pe.com.segrop.sgsapp.domain.SegDetLocal;
  */
 public interface LocalDao {
     
-    public Long nextSequenceValue();    
-    public List<SegDetLocal> buscarLocales(SegDetLocal local);    
-    public List<SegDetLocal> obtenerListaLocales();
-    public List<SegDetLocal> obtenerListaLocalesByEmpresa(SegCabEmpresa empresa);
-    public List<SegDetLocal> obtenerListaLocalesActivos();
-    public List<SegDetLocal> obtenerListaLocalesActivosByEmpresa(SegCabEmpresa empresa);
-    public SegDetLocal obtenerLocalByDescripcion(SegDetLocal local);
-    public void registrarLocal(SegDetLocal local);
-    public void eliminarLocal(SegDetLocal local);
+    Long nextSequenceValue();    
+    List<SegDetLocal> buscarLocales(SegDetLocal local);    
+    List<SegDetLocal> obtenerListaLocales();
+    List<SegDetLocal> obtenerListaLocalesByEmpresa(SegCabEmpresa empresa);
+    List<SegDetLocal> obtenerListaLocalesActivos();
+    List<SegDetLocal> obtenerListaLocalesActivosByEmpresa(SegCabEmpresa empresa);
+    SegDetLocal obtenerLocalByDescripcion(SegDetLocal local);
+    void registrarLocal(SegDetLocal local);
+    void eliminarLocal(SegDetLocal local);
 }

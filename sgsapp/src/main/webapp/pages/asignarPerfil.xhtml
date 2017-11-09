@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - AsignaciÃ³n de Perfiles al Usuario</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="ASIGNAR PERFILES AL USUARIO" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de BÃºsqueda</legend>
+                                <h:panelGrid columns="2" width="100%" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{usuarioPerfilMB.flag}"/>
+                                    <p:selectOneMenu value="#{usuarioPerfilMB.searchEmpresa}" style="font-size: 11px" rendered="#{usuarioPerfilMB.flag}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Tipo de Documento: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{usuarioPerfilMB.searchNumTipoDocumento}" style="font-size: 11px" >
+                                        <f:selectItems value="#{listasSessionMB.listaTipoNumDocumento}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="NÃºmero de Documento: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{usuarioPerfilMB.searchNumDocumento}" size="15" maxlength="15" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                    <h:outputText value="Nombres: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{usuarioPerfilMB.searchNombre}" size="100" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                    <h:outputText value="Apellidos: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{usuarioPerfilMB.searchApellido}" size="100" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{usuarioPerfilMB.buscarUsuario}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Usuarios</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{usuarioPerfilMB.listaUsuario}" rows="10" rowIndexVar="rowIndex" paginator="true" paginatorPosition="top" style="font-size: 11px;">
+                                    <p:column rendered="#{usuarioPerfilMB.flag}">
+                                        <f:facet name="header">
+                                            <h:outputText value="EMPRESA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodEmpresa}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEmpresa"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 12%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="NÃšMERO DOCUMENTO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNumDocumento}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombres}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="APELLIDOS" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VApellidos}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="width: 8%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="USUARIO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VUsuario}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 7%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ASIGNAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink actionListener="#{usuarioPerfilMB.handleSelectedUsuario}" oncomplete="PF('dlg').show();" update=":dlgForm:hd, :dlgForm:pg">
+                                            <f:param name="rowkey" value="#{rowIndex}"/>
+                                            <h:graphicImage library="images" name="contact_new.png" alt="asignar perfil" title="asignar perfil"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="90%" >
+                        <f:facet id="header" name="header">
+                            <h:outputText value="ASIGNACIÓN DE PERFILES" style="font-size: 11px;font-weight: bold;"></h:outputText>
+                        </f:facet>
+                        <h:form id="dlgForm">
+                            <h:panelGrid id="hd" columns="1">
+                                <h:outputText value="EMPRESA: #{usuarioPerfilMB.selectedUsuario.NCodEmpresa}" rendered="#{usuarioPerfilMB.flag}" style="font-size: 11px;font-weight: bold;">
+                                    <f:converter converterId="converterEmpresa"/>
+                                </h:outputText>
+                                <h:outputText value="USUARIO: #{usuarioPerfilMB.selectedUsuario.VUsuario}" style="font-size: 11px;font-weight: bold;"></h:outputText>
+                            </h:panelGrid>
+                            <h:panelGrid id="pg" columns="2">
+                                <p:dataTable id="source" var="s" value="#{usuarioPerfilMB.source}" rows="10" paginator="true" selectionMode="single" 
+                                             selection="#{usuarioPerfilMB.selectedPerfil}" rowKey="#{s.NCodPerfil}" style="font-size: 11px;">
+                                    <f:facet name="header">
+                                        <h:outputText value="PERFILES NO ASIGNADOS" />
+                                    </f:facet>
+                                    <p:column>
+                                        <h:outputText value="#{s.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:ajax listener="#{usuarioPerfilMB.onRowSourceSelected}" event="rowSelect" update=":dlgForm:pg">
+                                        <f:setPropertyActionListener value="#{s}" target="#{usuarioPerfilMB.selectedPerfil}"/>
+                                    </p:ajax>
+                                </p:dataTable>
+                                <p:dataTable id="target" var="t" value="#{usuarioPerfilMB.target}" rows="10" paginator="true" selectionMode="single" 
+                                             selection="#{usuarioPerfilMB.selectedPerfil}" rowKey="#{t.NCodPerfil}" style="font-size: 11px;">
+                                    <f:facet name="header">
+                                        <h:outputText value="PERFILES ASIGNADOS" />
+                                    </f:facet>
+                                    <p:column>
+                                        <h:outputText value="#{t.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:ajax listener="#{usuarioPerfilMB.onRowTargetSelected}" event="rowSelect" update=":dlgForm:pg">
+                                        <f:setPropertyActionListener value="#{t}" target="#{usuarioPerfilMB.selectedPerfil}"/>
+                                    </p:ajax>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

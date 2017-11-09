@@ -21,6 +21,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.PreguntaDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetInsTelefonica;
@@ -160,11 +161,13 @@ public class PreguntaDaoHibernate extends HibernateDaoSupport implements Pregunt
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarPregunta(SegDetPregunta pregunta) {
         getHibernateTemplate().saveOrUpdate(pregunta);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarPregunta(SegDetPregunta pregunta) {
         getHibernateTemplate().delete(pregunta);
     }

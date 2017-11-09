@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.AccionDao;
 import pe.com.segrop.sgsapp.domain.SegDetAcciones;
 import pe.com.segrop.sgsapp.domain.SegDetNovedad;
@@ -63,6 +64,7 @@ public class AccionDaoHibernate extends HibernateDaoSupport implements AccionDao
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarAccion(SegDetAcciones accion) {
         getHibernateTemplate().saveOrUpdate(accion);
     }

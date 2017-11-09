@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.TipoDocumentoDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetTipoDocumento;
@@ -81,11 +82,13 @@ public class TipoDocumentoDaoHibernate extends HibernateDaoSupport implements Ti
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarTipoDocumento(SegDetTipoDocumento tipoDocumento) {
         getHibernateTemplate().saveOrUpdate(tipoDocumento);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void eliminarTipoDocumento(SegDetTipoDocumento tipoDocumento) {
         getHibernateTemplate().delete(tipoDocumento);
     }

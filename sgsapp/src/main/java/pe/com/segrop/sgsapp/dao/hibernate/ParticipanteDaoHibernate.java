@@ -17,6 +17,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ParticipanteDao;
 import pe.com.segrop.sgsapp.domain.SegDetCapacitacion;
 import pe.com.segrop.sgsapp.domain.SegDetParticipante;
@@ -77,11 +78,13 @@ public class ParticipanteDaoHibernate extends HibernateDaoSupport implements Par
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarParticipante(SegDetParticipante participante) {
         getHibernateTemplate().saveOrUpdate(participante);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarParticipante(SegDetParticipante participante){
         getHibernateTemplate().delete(participante);
     }

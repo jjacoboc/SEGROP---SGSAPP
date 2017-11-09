@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.InsPreAccionDao;
 import pe.com.segrop.sgsapp.domain.SegDetInsPresencial;
 import pe.com.segrop.sgsapp.domain.SegDetInspreAcciones;
@@ -61,6 +62,7 @@ public class InsPreAccionDaoHibernate extends HibernateDaoSupport implements Ins
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarAccion(SegDetInspreAcciones accion) {
         getHibernateTemplate().saveOrUpdate(accion);
     }

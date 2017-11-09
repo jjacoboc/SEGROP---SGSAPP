@@ -19,7 +19,9 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.UsuarioDao;
+import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 
@@ -120,6 +122,25 @@ public class UsuarioDaoHibernate extends HibernateDaoSupport implements UsuarioD
     }
     
     @Override
+    public List<SegCabUsuario> obtenerListaUsuariosByEmpresa(SegCabEmpresa segCabEmpresa) {
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegCabUsuario.class);
+        criteria.add(Restrictions.eq("NCodEmpresa", segCabEmpresa.getNCodEmpresa()));
+        criteria.addOrder(Order.asc("VNombres"));
+        criteria.addOrder(Order.asc("VApellidos"));
+        return (List<SegCabUsuario>) getHibernateTemplate().findByCriteria(criteria);
+    }
+    
+    @Override
+    public List<SegCabUsuario> obtenerListaUsuariosActivosByEmpresa(SegCabEmpresa segCabEmpresa) {
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegCabUsuario.class);
+        criteria.add(Restrictions.eq("NCodEmpresa", segCabEmpresa.getNCodEmpresa()));
+        criteria.add(Restrictions.eq("NFlgActivo", BigDecimal.ONE));
+        criteria.addOrder(Order.asc("VNombres"));
+        criteria.addOrder(Order.asc("VApellidos"));
+        return (List<SegCabUsuario>) getHibernateTemplate().findByCriteria(criteria);
+    }
+    
+    @Override
     public SegCabUsuario obtenerUsuarioByUser(SegCabUsuario usuario){
         DetachedCriteria criteria = DetachedCriteria.forClass(SegCabUsuario.class);
         criteria.add(Restrictions.eq("NCodEmpresa", usuario.getId().getNCodEmpresa()));
@@ -136,6 +157,7 @@ public class UsuarioDaoHibernate extends HibernateDaoSupport implements UsuarioD
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarUsuario(SegCabUsuario usuario) {
         getHibernateTemplate().saveOrUpdate(usuario);
     }

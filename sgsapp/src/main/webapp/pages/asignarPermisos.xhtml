@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Asignación de Permisos al Perfil</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="ASIGNAR PERMISOS AL PERFIL" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid columns="2" width="100%" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{permisoMB.flag}"/>
+                                    <p:selectOneMenu value="#{permisoMB.searchEmpresa}" style="font-size: 11px" rendered="#{permisoMB.flag}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                    </p:selectOneMenu>
+                                    
+                                    <h:outputText value="Nombres: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{permisoMB.searchNombre}" size="100" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{permisoMB.buscarPerfil}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Perfiles</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{permisoMB.listaPerfil}" rows="10" rowIndexVar="rowIndex" paginator="true" paginatorPosition="top" style="font-size: 11px;">
+                                    <p:column rendered="#{permisoMB.flag}">
+                                        <f:facet name="header">
+                                            <h:outputText value="EMPRESA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodEmpresa}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEmpresa"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="DESCRIPCIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>                            
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACTIVO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NFlgActivo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 7%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ASIGNAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink actionListener="#{permisoMB.handleSelectedPerfil}" oncomplete="PF('dlg').show();" update=":dlgForm:hd, :dlgForm:pg">
+                                            <f:param name="rowkey" value="#{rowIndex}"/>
+                                            <h:graphicImage library="images" name="contact_new.png" alt="asignar permisos" title="asignar permisos"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="90%" >
+                        <f:facet id="header" name="header">
+                            <h:outputText value="ASIGNACIÓN DE PERMISOS" style="font-size: 11px;font-weight: bold;"></h:outputText>
+                        </f:facet>
+                        <h:form id="dlgForm">
+                            <h:panelGrid id="hd" columns="1">
+                                <h:outputText value="EMPRESA: #{permisoMB.selectedPerfil.NCodEmpresa}" rendered="#{permisoMB.flag}" style="font-size: 11px;font-weight: bold;">
+                                    <f:converter converterId="converterEmpresa"/>
+                                </h:outputText>
+                                <h:outputText value="PERFIL: #{permisoMB.selectedPerfil.VNombre}" style="font-size: 11px;font-weight: bold;"></h:outputText>
+                            </h:panelGrid>
+                            <h:panelGrid id="pg" columns="2">
+                                <p:dataTable id="source" var="s" value="#{permisoMB.source}" rows="10" paginator="true" selectionMode="single" 
+                                             selection="#{permisoMB.selectedObjeto}" rowKey="#{s.NCodObjeto}" style="font-size: 11px;">
+                                    <f:facet name="header">
+                                        <h:outputText value="PERMISOS NO ASIGNADOS" />
+                                    </f:facet>
+                                    <p:column>
+                                        <h:outputText value="#{s.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:ajax listener="#{permisoMB.onRowSourceSelected}" event="rowSelect" update=":dlgForm:pg">
+                                        <f:setPropertyActionListener value="#{s}" target="#{permisoMB.selectedObjeto}"/>
+                                    </p:ajax>
+                                </p:dataTable>
+                                <p:dataTable id="target" var="t" value="#{permisoMB.target}" rows="10" paginator="true" selectionMode="single" 
+                                             selection="#{permisoMB.selectedObjeto}" rowKey="#{t.NCodObjeto}" style="font-size: 11px;">
+                                    <f:facet name="header">
+                                        <h:outputText value="PERMISOS ASIGNADOS" />
+                                    </f:facet>
+                                    <p:column>
+                                        <h:outputText value="#{t.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:ajax listener="#{permisoMB.onRowTargetSelected}" event="rowSelect" update=":dlgForm:pg">
+                                        <f:setPropertyActionListener value="#{t}" target="#{permisoMB.selectedObjeto}"/>
+                                    </p:ajax>
+                                </p:dataTable>
+                            </h:panelGrid>
+                            <p:commandButton value="Asignar Perfiles" actionListener="#{permisoMB.registrarPermisos}" oncomplete="PF('dlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:dialog>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

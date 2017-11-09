@@ -28,7 +28,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import pe.com.segrop.sgsapp.dao.ExportDao;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
@@ -195,12 +195,12 @@ public class ReporteMB implements Serializable{
         JRPdfExporter pdfExporter = null;
         try{
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-            reportPath =  BaseBean.getServletContext().getRealPath("/pages/report/".concat(fileName));
+            reportPath =  JSFUtils.getServletContext().getRealPath("/pages/report/".concat(fileName));
             HashMap<String, Object> parametros = new HashMap<String, Object>();
             parametros.put("fechaInicio", sdf.format(this.getFechaInicio()));
             parametros.put("fechaFin", sdf.format(this.getFechaFin()));
             jasperPrint = JasperFillManager.fillReport(reportPath, parametros, this.conexion);
-            httpServletResponse = BaseBean.getResponse();
+            httpServletResponse = JSFUtils.getResponse();
             httpServletResponse.setContentType("application/octet-stream");
             httpServletResponse.addHeader("Content-disposition", "attachment; filename=report.pdf");
             servletOutputStream = httpServletResponse.getOutputStream();
@@ -226,12 +226,12 @@ public class ReporteMB implements Serializable{
         JRDocxExporter docxExporter = null;
         try{
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-            reportPath =  BaseBean.getServletContext().getRealPath("/pages/report/".concat(fileName));
+            reportPath =  JSFUtils.getServletContext().getRealPath("/pages/report/".concat(fileName));
             HashMap<String, Object> parametros = new HashMap<String, Object>();
             parametros.put("fechaInicio", sdf.format(this.getFechaInicio()));
             parametros.put("fechaFin", sdf.format(this.getFechaFin()));
             jasperPrint = JasperFillManager.fillReport(reportPath, parametros, this.conexion);
-            httpServletResponse = BaseBean.getResponse();
+            httpServletResponse = JSFUtils.getResponse();
             httpServletResponse.addHeader("Content-disposition", "attachment; filename=report.docx");
             servletOutputStream = httpServletResponse.getOutputStream();
             docxExporter = new JRDocxExporter();

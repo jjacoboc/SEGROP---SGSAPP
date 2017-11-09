@@ -1,0 +1,1116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Gestión de Inspecciones Presenciales</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <script type="text/javascript">
+        window.onload = function WindowLoad(event) {
+            var value = document.getElementById('hiddenForm:action').value;
+            if (value !== '') {
+                document.getElementById('hiddenForm:invisibleButton').click();
+                document.getElementById('hiddenForm:action').value = '';
+            }
+        };
+        function backToMatrix() {
+            document.getElementById('hiddenForm:hiddenBtn').click();
+        }
+    </script>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="GESTION DE INSPECCIONES PRESENCIALES" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid id="pnlSearch" columns="2" width="100%" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{presencialMB.flag}"/>
+                                    <p:selectOneMenu value="#{presencialMB.searchEmpresa}" style="font-size: 11px" rendered="#{presencialMB.flag}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLocalByEmpresa}" update=":f:searchLocal"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Tipo de Inspección: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{presencialMB.searchTipoInspeccion}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaTipoInspeccion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Novedad: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{presencialMB.searchNovedad}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaTipoEvento}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchLocal" value="#{presencialMB.searchLocal}" style="font-size: 11px"> 
+                                        <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaAreaByLocal}" update=":f:searchArea"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Area: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchArea" value="#{presencialMB.searchArea}" style="font-size: 11px"> 
+                                        <f:selectItems value="#{listasSessionMB.listaAreaActivaByLocal}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLugarByArea}" update=":f:searchLugar, :f:searchResponsable"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchLugar" value="#{presencialMB.searchLugar}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaLugarActivoByArea}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchResponsable" value="#{presencialMB.searchResponsable}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaResponsableActivoByArea}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchCargo" value="#{presencialMB.searchCargo}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaCargoActivoByEmpresa}"/>
+                                    </p:selectOneMenu>
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <h:panelGroup>
+                                        <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{presencialMB.buscarInspeccionPresencial}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                        <p:commandButton id="btnNuevo" value="Nuevo" actionListener="#{presencialMB.toRegistrar}" oncomplete="PF('dlg').show();" update=":dlgForm:pnlNew" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Inspecciones Presenciales</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{presencialMB.listaInsPresencial}" rows="10" rowIndexVar="rowIndexVar" paginator="true"
+                                             paginatorPosition="top" emptyMessage="Ningún registro encontrado." style="font-size: 11px;">
+                                    <p:column rendered="#{presencialMB.flag}">
+                                        <f:facet name="header">
+                                            <h:outputText value="EMPRESA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodEmpresa}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEmpresa"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="TIPO DE INSPECCIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NTipoInspeccion}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterTipoInspeccion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="DESCRIPCIÓN BREVE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescBreve}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LOCAL" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NLocal}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterLocal"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="RESPONSABLE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NResponsable}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterResponsable"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="CARGO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NCargo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterCargo"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA Y HORA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFecHora}" style="font-size: 11px;font-weight: normal;">
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ESTADO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NEstado}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEstadoInspeccion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 7%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="vlink" actionListener="#{presencialMB.toVer}" oncomplete="PF('verDlg').show();" update=":verDlgForm:verPanel">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="magnifier.png" alt="ver inspección" title="ver inspección"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="elink" actionListener="#{presencialMB.toEdit}" oncomplete="PF('editDlg').show();" update=":editDlgForm:pnlEdit">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="pencil.png" alt="editar inspección" title="editar inspección"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="slink" actionListener="#{presencialMB.toSeguimiento}" oncomplete="PF('segDlg').show();" update=":segDlgForm:segPanel, :segDlgForm:repeat, :segDlgForm:pnlAccionTomada" rendered="#{row.NSeguimiento != 0}">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="date_go.png" alt="seguimiento de inspección" title="seguimiento de inspección"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="date_go_disabled.png" alt="seguimiento de inspección cerrado" title="seguimiento de inspección cerrado" rendered="#{row.NSeguimiento == 0}"/>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="alink" actionListener="#{presencialMB.toEvaluacion}" oncomplete="PF('evalDlg').show();" update=":evalDlgForm:novPanel, :evalDlgForm:evalPanel" rendered="#{row.NAnalisis != 0}">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="table_edit.png" alt="evaluar inspección" title="evaluar inspección"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="table_edit_disabled.png" alt="evaluación de inspección cerrada" title="evaluación de inspección cerrada" rendered="#{row.NAnalisis == 0}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="NUEVA INSPECCIÓN"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:473px;">
+                            <h:form id="dlgForm">
+                                <p:messages id="dlgMsgs" showDetail="true" closable="true" />
+                                <h:panelGrid id="pnlNew" columns="2" columnClasses="columnLbl, columnTxt">
+                                    <h:outputText value="Se Controló: " styleClass="Etiqueta1" />
+                                    <h:panelGroup>
+                                        <p:selectBooleanCheckbox id="chkpersona" value="#{presencialMB.persona}" itemLabel="Personas" style="font-size: 11px"/>
+                                        <p:spacer width="20"/>
+                                        <p:selectBooleanCheckbox id="chkactivo" value="#{presencialMB.activo}" itemLabel="Activos" style="font-size: 11px"/>
+                                        <p:spacer width="20"/>
+                                        <p:selectBooleanCheckbox id="chkproceso" value="#{presencialMB.proceso}" itemLabel="Procesos" style="font-size: 11px"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Tipo de Inspección: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{presencialMB.tipoInspeccion}" style="font-size: 11px"> 
+                                        <f:selectItems value="#{listasSessionMB.listaTipoInspeccion}"/>
+                                        <p:ajax event="change" listener="#{presencialMB.handleSelectTipoInspeccion}" update=":dlgForm:pnlNew" />
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{lugarMB.flag}"/>
+                                    <h:panelGroup rendered="#{presencialMB.flag}">
+                                        <p:selectOneMenu value="#{presencialMB.empresa}" style="font-size: 11px" >
+                                            <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                            <p:ajax event="change" listener="#{presencialMB.handleChangeEmpresa}" update=":dlgForm:novedad, :dlgForm:groupLocal"/>
+                                        </p:selectOneMenu>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Novedad: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="novedad" value="#{presencialMB.novedad}" disabled="#{presencialMB.disabledNovedad}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaNovedad}"/>
+                                        <p:ajax event="change" listener="#{presencialMB.handleSelectNovedad}" update=":dlgForm:pnlNew"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputLabel value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                    <p:calendar value="#{presencialMB.fechaHora}" pattern="dd/M/yyyy hh:mm a" locale="es" size="20" style="font-size: 11px"/>
+
+                                    <h:outputLabel value="Descripción Breve:" styleClass="Etiqueta1"/>
+                                    <p:inputText value="#{presencialMB.descBreve}" size="50" maxlength="100" style="font-size: 11px;text-transform: uppercase;" />
+
+                                    <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                    <p:inputTextarea value="#{presencialMB.descripcion}" cols="50" rows="3" style="font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupLocal">
+                                        <p:selectOneMenu id="local" value="#{presencialMB.local}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                            <p:ajax event="change" update=":dlgForm:groupArea" listener="#{presencialMB.handleChangeLocalValue}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarLocales}" oncomplete="PF('dlgLocal').show();" update=":dlgLocalForm:pnlLocal">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir local"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Area: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupArea">
+                                        <p:selectOneMenu id="area" value="#{presencialMB.area}" style="font-size: 11px" disabled="#{presencialMB.disabledArea}">
+                                            <f:selectItems value="#{listasSessionMB.listaAreaActivaByLocal}"/>
+                                            <p:ajax event="change" listener="#{presencialMB.handleChangeAreaValue}" update=":dlgForm:groupLugar, :dlgForm:groupResponsable"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarAreas}" oncomplete="PF('dlgArea').show();" update=":dlgAreaForm:pnlArea" rendered="#{presencialMB.renderedArea}">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir area"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="textfield-add.png" title="añadir area" rendered="#{!presencialMB.renderedArea}"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupLugar">
+                                        <p:selectOneMenu id="lugar" value="#{presencialMB.lugar}" style="font-size: 11px" disabled="#{presencialMB.disabledLugar}">
+                                            <f:selectItems value="#{listasSessionMB.listaLugarActivoByArea}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarLugares}" oncomplete="PF('dlgLugar').show();" update=":dlgLugarForm:pnlLugar" rendered="#{presencialMB.renderedLugar}">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir lugar"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="textfield-add.png" title="añadir lugar" alt="añadir lugar" rendered="#{!presencialMB.renderedLugar}"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupResponsable">
+                                        <p:selectOneMenu id="responsable" value="#{presencialMB.responsable}" style="font-size: 11px" disabled="#{presencialMB.disabledResponsable}">
+                                            <f:selectItems value="#{listasSessionMB.listaResponsableActivoByArea}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarResponsables}" oncomplete="PF('dlgResponsable').show();" update=":dlgResponsableForm:pnlResponsable" rendered="#{presencialMB.renderedResponsable}">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir responsable" alt="añadir responsable"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="textfield-add.png" title="añadir responsable" alt="añadir responsable" rendered="#{!presencialMB.renderedResponsable}"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupCargo">
+                                        <p:selectOneMenu id="cargo" value="#{presencialMB.cargo}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaCargoActivoByEmpresa}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarCargos}" oncomplete="PF('dlgCargo').show();" update=":dlgCargoForm:pnlCargo">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir cargo" alt="añadir cargo"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+
+                                    <h:outputLabel value="Acción Tomada:" styleClass="Etiqueta1"/>
+                                    <p:inputTextarea value="#{presencialMB.accionTomada}" cols="50" rows="3" style="font-size: 11px;text-transform: uppercase;"/>
+                                </h:panelGrid>
+                                <h:panelGrid id="outputpanel1" columns="2" columnClasses="columnLbl, columnTxt">
+                                    <h:outputLabel value="Cumple Controles:" styleClass="Etiqueta1"/>
+                                    <p:selectOneRadio value="#{presencialMB.cumpleControles}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                    </p:selectOneRadio>
+
+                                    <h:outputLabel value="Necesita Control Adicional:" style="width: 150px" styleClass="Etiqueta1"/>
+                                    <p:selectOneRadio value="#{presencialMB.controlAdicional}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                        <p:ajax event="change" listener="#{presencialMB.handleSelectControlAdicional}" update=":dlgForm:outputpanel2"/>
+                                    </p:selectOneRadio>
+                                </h:panelGrid>
+                                <h:panelGrid id="outputpanel2" columns="2" columnClasses="columnLbl, columnTxt" style="margin-bottom:10px">
+                                    <h:outputLabel value="Controles Adicionales:" styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                    <p:inputTextarea value="#{presencialMB.controlesAdicionales}" cols="50" rows="3" style="font-size: 11px;text-transform: uppercase;" rendered="#{presencialMB.visualizar}"/>
+
+                                    <h:outputLabel value="Análisis de Riesgo:" styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                    <p:selectOneRadio value="#{presencialMB.analisis}" style="font-size: 11px" rendered="#{presencialMB.visualizar}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                    </p:selectOneRadio>
+
+                                    <h:outputLabel value="Necesita Seguimiento:" styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                    <p:selectOneRadio value="#{presencialMB.seguimiento}" style="font-size: 11px" rendered="#{presencialMB.visualizar}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                    </p:selectOneRadio>
+                                </h:panelGrid>
+
+                                <h:panelGroup>
+                                    <p:commandButton id="submitButton" value="Grabar" onclick="PF('confirmDlg').show();" style="font-size: 11px;height: 2em" />
+                                    <p:commandButton id="cancelButton" value="Cancelar" onclick="PF('dlg').hide();" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDlg" widgetVar="confirmDlg" header="Confirmación" message="Se procederá a registrar la inspección. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :dlgForm:dlgMsgs" actionListener="#{presencialMB.registrarInspeccionPresencial}" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="editDlg" widgetVar="editDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="ACTUALIZAR INSPECCIÓN"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:473px;">
+                            <h:form id="editDlgForm">
+                                <p:messages id="editDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                                <h:panelGrid id="pnlEdit" columns="2" columnClasses="columnLbl, columnTxt">
+                                    <h:outputText value="Se Controló: " styleClass="Etiqueta1" />
+                                    <h:panelGroup>
+                                        <h:outputLabel for="chkpersona" value="Personas" styleClass="Etiqueta1" />
+                                        <p:selectBooleanCheckbox id="chkpersona" value="#{presencialMB.selectedInsPresencial.BPersona}" style="font-size: 11px"/>
+                                        <p:spacer width="20"/>
+                                        <h:outputLabel for="chkactivo" value="Activos" styleClass="Etiqueta1" />
+                                        <p:selectBooleanCheckbox id="chkactivo" value="#{presencialMB.selectedInsPresencial.BActivo}" style="font-size: 11px"/>
+                                        <p:spacer width="20"/>
+                                        <h:outputLabel for="chkproceso" value="Procesos" styleClass="Etiqueta1" />
+                                        <p:selectBooleanCheckbox id="chkproceso" value="#{presencialMB.selectedInsPresencial.BProceso}" style="font-size: 11px"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Tipo de Inspección: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{presencialMB.selectedInsPresencial.NTipoInspeccion}" style="font-size: 11px"> 
+                                        <f:selectItems value="#{listasSessionMB.listaTipoInspeccion}"/>
+                                        <p:ajax event="change" listener="#{presencialMB.handleSelectTipoInspeccion}" update=":editDlgForm:pnlEdit" />
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{lugarMB.flag}"/>
+                                    <h:panelGroup rendered="#{presencialMB.flag}">
+                                        <p:selectOneMenu value="#{presencialMB.selectedInsPresencial.NCodEmpresa}" style="font-size: 11px" >
+                                            <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                            <p:ajax event="change" listener="#{presencialMB.handleChangeEmpresa}" update=":editDlgForm:editNovedad, :editDlgForm:groupEditSelLocal"/>
+                                        </p:selectOneMenu>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Novedad: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="editNovedad" value="#{presencialMB.selectedInsPresencial.NCodNovedad}" valueChangeListener="#{presencialMB.handleSelectNovedad}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaNovedad}"/>
+                                        <p:ajax event="change" listener="#{presencialMB.handleSelectNovedad}" update=":editDlgForm:pnlEdit"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputLabel value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                    <p:calendar value="#{presencialMB.selectedInsPresencial.DFecHora}" pattern="dd/M/yyyy hh:mm a" locale="es" size="20" style="font-size: 11px"/>
+
+                                    <h:outputLabel value="Descripción Breve:" styleClass="Etiqueta1"/>
+                                    <p:inputText value="#{presencialMB.selectedInsPresencial.VDescBreve}" size="50" maxlength="100" style="font-size: 11px;text-transform: uppercase;" />
+
+                                    <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                    <p:inputTextarea value="#{presencialMB.selectedInsPresencial.VDescripcion}" cols="50" rows="3" style="font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupEditSelLocal">
+                                        <p:selectOneMenu id="editSelLocal" value="#{presencialMB.selectedInsPresencial.NLocal}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                            <p:ajax event="change" update=":editDlgForm:groupEditSelArea" listener="#{presencialMB.handleChangeLocalValue}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarLocales}" oncomplete="PF('dlgLocal').show();" update=":dlgLocalForm:pnlLocal">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir local"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Area: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupEditSelArea">
+                                        <p:selectOneMenu id="editSelArea" value="#{presencialMB.selectedInsPresencial.NArea}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaAreaActivaByLocal}"/>
+                                            <p:ajax event="change" listener="#{presencialMB.handleChangeAreaValue}" update=":editDlgForm:groupEditSelLugar, :editDlgForm:groupEditSelResponsable"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarAreas}" oncomplete="PF('dlgArea').show();" update=":dlgAreaForm:pnlArea" rendered="#{presencialMB.renderedArea}">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir area"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="textfield-add.png" title="añadir area" rendered="#{!presencialMB.renderedArea}"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupEditSelLugar">
+                                        <p:selectOneMenu id="editSelLugar" value="#{presencialMB.selectedInsPresencial.NLugar}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaLugarActivoByArea}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarLugares}" oncomplete="PF('dlgLugar').show();" update=":dlgLugarForm:pnlLugar" rendered="#{presencialMB.renderedLugar}">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir lugar"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="textfield-add.png" title="añadir lugar" alt="añadir lugar" rendered="#{!presencialMB.renderedLugar}"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupEditSelResponsable">
+                                        <p:selectOneMenu id="editSelResponsable" value="#{presencialMB.selectedInsPresencial.NResponsable}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaResponsableActivoByArea}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarResponsables}" oncomplete="PF('dlgResponsable').show();" update=":dlgResponsableForm:pnlResponsable" rendered="#{presencialMB.renderedResponsable}">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir responsable" alt="añadir responsable"/>
+                                        </p:commandLink>
+                                        <h:graphicImage library="images" name="textfield-add.png" title="añadir responsable" alt="añadir responsable" rendered="#{!presencialMB.renderedResponsable}"/>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                    <h:panelGroup id="groupEditSelCargo">
+                                        <p:selectOneMenu id="editSelCargo" value="#{presencialMB.selectedInsPresencial.NCargo}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaCargoActivoByEmpresa}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{presencialMB.listarCargos}" oncomplete="PF('dlgCargo').show();" update=":dlgCargoForm:pnlCargo">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir cargo" alt="añadir cargo"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+
+                                    <h:outputLabel value="Acción Tomada:" styleClass="Etiqueta1"/>
+                                    <p:inputTextarea value="#{presencialMB.selectedInsPresencial.VAccTomadas}" cols="50" rows="3" style="font-size: 11px;text-transform: uppercase;"/>
+                                </h:panelGrid>
+                                <h:panelGrid id="panelgrid1" columns="2" columnClasses="columnLbl, columnTxt">    
+                                    <h:outputLabel value="Cumple Controles:" styleClass="Etiqueta1"/>
+                                    <p:selectOneRadio value="#{presencialMB.selectedInsPresencial.NCumpleControl}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                    </p:selectOneRadio>
+
+                                    <h:outputLabel value="Necesita Control Adicional:" styleClass="Etiqueta1"/>
+                                    <p:selectOneRadio value="#{presencialMB.selectedInsPresencial.NControlAdicional}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                        <p:ajax event="change" listener="#{presencialMB.handleSelectControlAdicional}" update=":editDlgForm:panelgrid2"/>
+                                    </p:selectOneRadio>
+                                </h:panelGrid>
+                                <h:panelGrid id="panelgrid2" columns="2" columnClasses="columnLbl, columnTxt" style="margin-bottom:10px">
+                                    <h:outputLabel value="Controles Adicionales:" styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                    <p:inputTextarea value="#{presencialMB.selectedInsPresencial.VControlAdicional}" cols="50" rows="3" style="font-size: 11px;text-transform: uppercase;" rendered="#{presencialMB.visualizar}"/>
+
+                                    <h:outputLabel value="Análisis de Riesgo:" styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                    <p:selectOneRadio value="#{presencialMB.selectedInsPresencial.NAnalisis}" style="font-size: 11px" rendered="#{presencialMB.visualizar}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                    </p:selectOneRadio>
+
+                                    <h:outputLabel value="Necesita Seguimiento:" styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                    <p:selectOneRadio value="#{presencialMB.selectedInsPresencial.NSeguimiento}" style="font-size: 11px" rendered="#{presencialMB.visualizar}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                    </p:selectOneRadio>
+                                </h:panelGrid>
+
+                                <h:panelGroup>
+                                    <p:commandButton id="submitButton" value="Grabar" onclick="PF('confirmEditDlg').show();" style="font-size: 11px;height: 2em" />
+                                    <p:commandButton id="cancelButton" value="Cancelar" onclick="PF('editDlg').hide();" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmEditDlg" widgetVar="confirmEditDlg" header="Confirmación" message="Se procederá con la actualización de la inspección. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEditDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :editDlgForm:editDlgMsgs" actionListener="#{presencialMB.editarInspeccionPresencial}" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="verDlg" widgetVar="verDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="VER INSPECCIÓN"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:473px;">
+                            <h:form id="verDlgForm">
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Inspección Presencial</legend>
+                                    <h:panelGrid id="verPanel" columns="2" columnClasses="columnLbl1, columnTxt1">
+
+                                        <h:outputText value="Tipo de Inspección: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NTipoInspeccion}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterTipoInspeccion"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Novedad: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCodNovedad}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterNovedad"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.DFecHora}" style="font-size: 11px"> 
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Descripción Breve:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VDescBreve}" style="font-size: 11px;"/>
+
+                                        <h:outputText value="Descripción:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VDescripcion}" style="font-size: 11px;"/>
+
+                                        <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NLocal}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterLocal"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Area: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NArea}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterArea"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NLugar}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterLugar"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NResponsable}" style="font-size: 11px">
+                                            <f:converter converterId="converterResponsable"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCargo}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterCargo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Acción Tomada:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VAccTomadas}" style="font-size: 11px;"/>
+
+                                        <h:outputText value="Cumple Controles: " styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCumpleControl}" style="font-size: 11px">
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Necesita Control Adicional: " styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NControlAdicional}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Controles Adicionales: " styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VControlAdicional}" style="font-size: 11px;" rendered="#{presencialMB.visualizar}"/>
+
+                                        <h:outputText value="Análisis de Riesgo: " styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NAnalisis}" style="font-size: 11px" rendered="#{presencialMB.visualizar}"> 
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Necesita Seguimiento: " styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NSeguimiento}" style="font-size: 11px" rendered="#{presencialMB.visualizar}"> 
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+                                    </h:panelGrid>
+                                </fieldset>
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Seguimiento</legend>
+                                    <p:dataTable id="vrepeat" value="#{presencialMB.listaInspreAcciones}" var="table" style="font-size: 11px;" 
+                                                 emptyMessage="Ningún seguimiento para mostrar.">
+                                        <p:column>
+                                            <h:panelGroup>
+                                                <h:outputText value="#{table.DFecHora}" style="font-size: 11px;font-weight: bold;"> 
+                                                    <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss a"/>
+                                                </h:outputText>
+                                                <p:spacer width="5"/>
+                                                <h:outputText value="#{table.VDescripcion}" style="font-size: 11px;"/>
+                                            </h:panelGroup>
+                                        </p:column>
+                                    </p:dataTable>
+                                </fieldset>
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Evaluación</legend>
+                                    <h:panelGrid id="vevalPanel" columns="1" width="100%">
+                                        <h:panelGrid columns="2" cellpadding="0" width="55%" cellspacing="0" rendered="#{not empty presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}">
+                                            <h:outputLabel value="Ocurrencia: " style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                            <h:outputText value="#{presencialMB.inspeccionEvaluacion.NOcurrencia}" style="font-size: 11px"> 
+                                                <f:converter converterId="converterOcurrencia"/>
+                                            </h:outputText>
+                                            <p:spacer height="5px;"/><p:spacer height="5px;"/>
+                                            <h:outputLabel value="Impacto: " style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                            <h:outputText value="#{presencialMB.inspeccionEvaluacion.NImpacto}" style="font-size: 11px"> 
+                                                <f:converter converterId="converterImpacto"/>
+                                            </h:outputText>
+                                        </h:panelGrid>
+                                        <h:outputLabel value="Explicación:" style="font-weight: bold;" styleClass="Etiqueta1" rendered="#{not empty presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}"/>
+                                        <p:dataTable value="#{presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}" var="row" style="font-size: 11px;" 
+                                                     emptyMessage="Ninguna explicación para mostrar.">
+                                            <p:column>
+                                                <h:panelGroup>
+                                                    <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;"> 
+                                                        <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss a"/>
+                                                    </h:outputText>
+                                                    <p:spacer width="5"/>
+                                                    <h:outputText value="#{row.VDiagnostico}" style="font-size: 11px;font-weight: normal;"/>
+                                                </h:panelGroup>
+                                            </p:column>
+                                        </p:dataTable>
+                                        <h:outputLabel value="Recomendaciones:" style="font-weight: bold;" styleClass="Etiqueta1" rendered="#{not empty presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}"/>
+                                        <p:dataTable value="#{presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}" var="row" style="font-size: 11px;" 
+                                                     emptyMessage="Ninguna recomendación para mostrar.">
+                                            <p:column>
+                                                <h:panelGroup>
+                                                    <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;">
+                                                        <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss a"/>
+                                                    </h:outputText>
+                                                    <p:spacer width="5"/>
+                                                    <h:outputText value="#{row.VRecomendacion}" style="font-size: 11px;font-weight: normal;"/>
+                                                </h:panelGroup>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </h:panelGrid>
+                                </fieldset>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:dialog id="segDlg" widgetVar="segDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="SEGUIMIENTO DE LA INSPECCIÓN PRESENCIAL"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:438px;">
+                            <h:form id="segDlgForm">
+                                <p:messages id="segDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Inspección Presencial</legend>
+                                    <h:panelGrid id="segPanel" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                        <h:outputText value="Tipo de Inspección: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NTipoInspeccion}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterTipoInspeccion"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Novedad: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCodNovedad}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterNovedad"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.DFecHora}" style="font-size: 11px"> 
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Descripción Breve:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VDescBreve}" style="font-size: 11px;"/>
+
+                                        <h:outputText value="Descripción:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VDescripcion}" style="font-size: 11px;"/>
+
+                                        <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NLocal}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterLocal"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Area: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NArea}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterArea"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NLugar}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterLugar"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NResponsable}" style="font-size: 11px">
+                                            <f:converter converterId="converterResponsable"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCargo}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterCargo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Acción Tomada:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VAccTomadas}" style="font-size: 11px;"/>
+
+                                        <h:outputText value="Cumple Controles: " styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCumpleControl}" style="font-size: 11px">
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Necesita Control Adicional: " styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NControlAdicional}" style="font-size: 11px"> 
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+
+                                        <h:outputText value="Controles Adicionales: " styleClass="Etiqueta1" rendered="#{presencialMB.visualizar}"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VControlAdicional}" style="font-size: 11px;" rendered="#{presencialMB.visualizar}"/>
+
+                                        <h:outputLabel value="Seguimiento:" styleClass="Etiqueta1" rendered="#{not presencialMB.listaAccionesVacia}"/>
+                                        <p:spacer rendered="#{not presencialMB.listaAccionesVacia}"/>
+                                    </h:panelGrid>
+                                </fieldset>
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Seguimiento</legend>
+                                    <h:panelGrid id="repeat" columns="1" width="100%" cellpadding="0" cellspacing="0">
+                                        <p:dataTable value="#{presencialMB.listaInspreAcciones}" var="table" style="font-size: 11px;" rendered="#{not presencialMB.listaAccionesVacia}">
+                                            <p:column>
+                                                <h:panelGroup>
+                                                    <h:outputText value="#{table.DFecHora}" style="font-size: 11px;font-weight: bold;"> 
+                                                        <f:convertDateTime type="date" locale="es" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss a"/>
+                                                    </h:outputText>
+                                                    <p:spacer width="5"/>
+                                                    <h:outputText value="#{table.VDescripcion}" style="font-size: 11px;"/>
+                                                </h:panelGroup>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </h:panelGrid>
+                                    <h:panelGrid id="pnlAccionTomada" columns="1">
+                                        <h:outputLabel value="Nueva Acción a Tomar:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:inputTextarea value="#{presencialMB.accionTomada}" cols="81" rows="3" style="font-size: 11px;text-transform: uppercase;"/>
+                                        <p:spacer/>
+                                    </h:panelGrid>
+                                </fieldset>
+                                <h:panelGroup>
+                                    <p:commandButton value="Grabar Seguimiento" onclick="PF('confirmSegDlg').show();" style="font-size: 11px;height: 2em" />
+                                    <p:commandButton value="Grabar y Cerrar Seguimiento" onclick="PF('confirmSegCerDlg').show();" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmSegDlg" widgetVar="confirmSegDlg" header="Confirmación" message="Se procederá con la grabar el seguimiento de la inspección. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmSegDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :segDlgForm:segDlgMsgs" actionListener="#{presencialMB.registrarSeguimiento}" oncomplete="PF('confirmSegDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmSegDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="confirmSegCerDlg" widgetVar="confirmSegCerDlg" header="Confirmación" message="Se procederá con la grabar y cerrar el seguimiento de la inspección. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmSegCerDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :segDlgForm:segDlgMsgs" actionListener="#{presencialMB.registrarCerrarSeguimiento}" oncomplete="PF('confirmSegCerDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmSegCerDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="evalDlg" widgetVar="evalDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EVALUACIÓN DE LA INSPECCIÓN PRESENCIAL"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:500px;">
+                            <h:form id="evalDlgForm">
+                                <p:messages id="evalDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Inspección Presencial</legend>
+                                    <h:panelGrid id="novPanel" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                        <h:outputLabel value="Código:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NCodInspresencial}" style="font-size: 11px;font-weight: normal;"/>
+
+                                        <h:outputLabel value="Nombre:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VDescBreve}" style="font-size: 11px;font-weight: normal;"/>
+
+                                        <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.NLugar}" style="font-size: 11px;font-weight: normal;"> 
+                                            <f:converter converterId="converterLugar"/>
+                                        </h:outputText>
+
+                                        <h:outputLabel value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.DFecHora}" style="font-size: 11px;font-weight: normal;"> 
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                        </h:outputText>
+
+                                        <h:outputLabel value="Estado:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.inspeccionEvaluacion.NEstado}" style="font-size: 11px;font-weight: normal;"
+                                                      rendered="#{presencialMB.inspeccionEvaluacion.NEstado!=null}">
+                                            <f:converter converterId="converterEstadoEvaluacion"/>
+                                        </h:outputText>
+                                        <h:outputText value="PENDIENTE DE ANALISIS" style="font-size: 11px;font-weight: normal;" rendered="#{presencialMB.inspeccionEvaluacion.NEstado==null}"/>
+
+                                        <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                        <h:outputText value="#{presencialMB.selectedInsPresencial.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </h:panelGrid>
+                                </fieldset>
+                                <fieldset>
+                                    <legend style="font-size: 11px;font-weight: bold;">Evaluación</legend>
+                                    <h:panelGrid id="evalPanel" columns="1" >
+                                        <h:outputLabel value="Cuál es la probabilidad de ocurrencia?" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:selectOneRadio id="ocurrencia" value="#{presencialMB.inspeccionEvaluacion.NOcurrencia}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaOcurrencia}"/>
+                                        </p:selectOneRadio>
+                                        <p:spacer/>
+                                        <h:outputLabel value="Cuál es el impacto?" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:selectOneRadio id="impacto" value="#{presencialMB.inspeccionEvaluacion.NImpacto}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaImpacto}"/>
+                                        </p:selectOneRadio>
+                                        <p:spacer/>
+                                        <h:outputLabel value="Explicación:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:dataTable id="diagnostico" value="#{presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}" var="row" style="font-size: 11px;" rendered="#{not empty presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}">
+                                            <p:column>
+                                                <h:panelGroup>
+                                                    <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;"> 
+                                                        <f:convertDateTime type="date" locale="es" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss a"/>
+                                                    </h:outputText>
+                                                    <p:spacer width="5"/>
+                                                    <h:outputText value="#{row.VDiagnostico}" style="font-size: 11px;font-weight: normal;"/>
+                                                </h:panelGroup>
+                                            </p:column>
+                                        </p:dataTable>
+                                        <p:inputTextarea value="#{presencialMB.diagnostico}" rows="3" cols="81" style="font-size: 11px;font-weight: normal;text-transform: uppercase;"/>
+                                        <p:spacer/>
+                                        <h:outputLabel value="Recomendaciones:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:dataTable id="recomendacion" value="#{presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}" var="row" style="font-size: 11px;" rendered="#{not empty presencialMB.inspeccionEvaluacion.segDetInspreevalDetalles}">
+                                            <p:column>
+                                                <h:panelGroup>
+                                                    <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;">
+                                                        <f:convertDateTime type="date" locale="es" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss a"/>
+                                                    </h:outputText>
+                                                    <p:spacer width="5"/>
+                                                    <h:outputText value="#{row.VRecomendacion}" style="font-size: 11px;font-weight: normal;"/>
+                                                </h:panelGroup>
+                                            </p:column>
+                                        </p:dataTable>
+                                        <p:inputTextarea value="#{presencialMB.recomendacion}" rows="3" cols="81" style="font-size: 11px;font-weight: normal;text-transform: uppercase;"/>
+                                    </h:panelGrid>
+                                </fieldset>
+                                <h:panelGrid columns="1">
+                                    <h:panelGroup>
+                                        <p:commandButton value="Grabar Evaluación" onclick="PF('confirmEvalDlg').show();" style="font-size: 11px;height: 2em" />
+                                        <p:commandButton value="Grabar y Cerrar Evaluación" onclick="PF('confirmEvalCerDlg').show();" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmEvalDlg" widgetVar="confirmEvalDlg" header="Confirmación" message="Se procederá con la grabar la evaluación de la inspección presencial. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEvalDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :evalDlgForm:evalDlgMsgs" actionListener="#{presencialMB.registrarEvaluacion}" oncomplete="PF('confirmEvalDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEvalDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="confirmEvalCerDlg" widgetVar="confirmEvalCerDlg" header="Confirmación" message="Se procederá con la grabar y cerrar la evaluación de la inspección presencial. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEvalCerDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :evalDlgForm:evalDlgMsgs" actionListener="#{presencialMB.registrarCerrarEvaluacion}" oncomplete="PF('confirmEvalCerDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEvalCerDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgLocal" widgetVar="dlgLocal" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR LOCAL"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgLocalForm">
+                            <p:messages id="dlgLocalMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlLocal" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Local : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtlocal" size="95" maxlength="150" value="#{presencialMB.descripcionLocal}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{presencialMB.registrarLocal}" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgLocalForm:dlgLocalMsgs, :dlgLocalForm:pnlLocal">
+                                        <h:graphicImage library="images" name="add.png" title="añadir local" alt="añadir local"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="locales" var="row" rowIndexVar="rowkey" value="#{presencialMB.listaLocales}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LOCAL" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 5%;">
+                                        <p:commandLink onclick="PF('confirmDelLocalDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{presencialMB.selectedLocal}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar local" title="eliminar local"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelLocalDlg" widgetVar="confirmDelLocalDlg" header="Confirmación" message="Se procederá a eliminar el local. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelLocalDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{presencialMB.eliminarLocal}" oncomplete="PF('confirmDelLocalDlg').hide();" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgLocalForm:dlgLocalMsgs, :dlgLocalForm:pnlLocal" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelLocalDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgArea" widgetVar="dlgArea" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR ÁREA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgAreaForm">
+                            <p:messages id="dlgAreaMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlArea" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Area : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtarea" size="95" maxlength="150" value="#{presencialMB.descripcionArea}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{presencialMB.registrarArea}" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgAreaForm:dlgAreaMsgs, :dlgAreaForm:pnlArea">
+                                        <h:graphicImage library="images" name="add.png" title="añadir area" alt="añadir area"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="areas" var="row" rowIndexVar="rowkey" value="#{presencialMB.listaAreas}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="AREA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 5%;">
+                                        <p:commandLink onclick="PF('confirmDelAreaDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{presencialMB.selectedArea}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar area" title="eliminar area"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelAreaDlg" widgetVar="confirmDelAreaDlg" header="Confirmación" message="Se procederá a eliminar el área. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelAreaDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{presencialMB.eliminarArea}" oncomplete="PF('confirmDelAreaDlg').hide();" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgAreaForm:dlgAreaMsgs, :dlgAreaForm:pnlArea" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelAreaDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgLugar" widgetVar="dlgLugar" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR LUGAR"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgLugarForm">
+                            <p:messages id="dlgLugarMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlLugar" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Lugar : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtlugar" size="95" maxlength="150" value="#{presencialMB.descripcionLugar}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{presencialMB.registrarLugar}" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgLugarForm:dlgLugarMsgs, :dlgLugarForm:pnlLugar">
+                                        <h:graphicImage library="images" name="add.png" title="añadir lugar" alt="añadir lugar"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="lugares" var="row" rowIndexVar="rowkey" value="#{presencialMB.listaLugares}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LUGAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 5%;">
+                                        <p:commandLink onclick="PF('confirmDelLugarDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{presencialMB.selectedLugar}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar lugar" title="eliminar lugar"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelLugarDlg" widgetVar="confirmDelLugarDlg" header="Confirmación" message="Se procederá a eliminar el lugar. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelLugarDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{presencialMB.eliminarLugar}" oncomplete="PF('confirmDelLugarDlg').hide();" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgLugarForm:dlgLugarMsgs, :dlgLugarForm:pnlLugar" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelLugarDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgResponsable" widgetVar="dlgResponsable" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR RESPONSABLE"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgResponsableForm">
+                            <p:messages id="dlgResponsableMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlResponsable" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Responsable : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtnombre" size="48" maxlength="90" value="#{presencialMB.nombreResponsable}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:inputText id="txtapellido" size="48" maxlength="90" value="#{presencialMB.apellidoResponsable}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{presencialMB.registrarResponsable}" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgResponsableForm:dlgResponsableMsgs, :dlgResponsableForm:pnlResponsable">
+                                        <h:graphicImage library="images" name="add.png" title="añadir responsable" alt="añadir responsable"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="responsables" var="row" rowIndexVar="rowkey" value="#{presencialMB.listaResponsables}" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombres}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="APELLIDOS" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VApellidos}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 5%;">
+                                        <p:commandLink onclick="PF('confirmDelResponsableDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{presencialMB.selectedResponsable}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar responsable" title="eliminar responsable"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelResponsableDlg" widgetVar="confirmDelResponsableDlg" header="Confirmación" message="Se procederá a eliminar el responsable. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelResponsableDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{presencialMB.eliminarResponsable}" oncomplete="PF('confirmDelResponsableDlg').hide();" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgResponsableForm:dlgResponsableMsgs, :dlgResponsableForm:pnlResponsable" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelResponsableDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgCargo" widgetVar="dlgCargo" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR CARGO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgCargoForm">
+                            <p:messages id="dlgCargoMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlCargo" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Cargo : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtcargo" size="95" maxlength="150" value="#{presencialMB.descripcionCargo}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{presencialMB.registrarCargo}" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgCargoForm:dlgCargoMsgs, :dlgCargoForm:pnlCargo">
+                                        <h:graphicImage library="images" name="add.png" title="añadir cargo" alt="añadir cargo"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="cargos" var="row" rowIndexVar="rowkey" value="#{presencialMB.listaCargos}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="CARGO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width:5%;">
+                                        <p:commandLink onclick="PF('confirmDelCargoDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{presencialMB.selectedCargo}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar cargo" title="eliminar cargo"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelCargoDlg" widgetVar="confirmDelCargoDlg" header="Confirmación" message="Se procederá a eliminar el cargo. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelCargoDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{presencialMB.eliminarCargo}" oncomplete="PF('confirmDelCargoDlg').hide();" update=":f:pnlSearch, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgCargoForm:dlgCargoMsgs, :dlgCargoForm:pnlCargo" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelCargoDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <h:form id="hiddenForm" style="display: none;">
+                        <h:inputHidden id="action" value="#{presencialMB.actionOnLoad}" />
+                        <p:commandButton process="@form" id="invisibleButton" onclick="#{presencialMB.actionOnLoad}"/>
+                        <p:commandButton process="@form" id="hiddenBtn" actionListener="#{menuMB.toMatrizRiesgo}" action="matriz" />
+                    </h:form>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

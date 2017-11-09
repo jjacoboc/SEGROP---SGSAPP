@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Gestión de Empresas</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="GESTION DE EMPRESAS" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid columns="2" width="100%" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="RUC: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{empresaMB.searchRuc}" size="12" maxlength="11" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                    <h:outputText value="Razón Social: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{empresaMB.searchRazonSocial}" size="100" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <h:panelGroup>
+                                        <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{empresaMB.buscarEmpresa}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                        <p:commandButton id="btnNuevo" value="Nuevo" actionListener="#{empresaMB.toRegistrar}" oncomplete="PF('dlg').show();" update=":dlgForm:dlgMsgs :dlgForm:pg" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Empresas</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{empresaMB.listaEmpresa}" rows="10" rowIndexVar="rowIndex" paginator="true" paginatorPosition="top" style="font-size: 11px;">
+                                    <p:column style="text-align: center; width: 7%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="RUC" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VRuc}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="RAZÓN SOCIAL" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VRazonSocial}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="DIRECCIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDireccion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 8%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="TELÉFONO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VTelefono}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 11%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA REGISTRO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFecCreacion}" style="font-size: 11px;font-weight: normal;">
+                                            <f:convertDateTime type="both" locale="es" pattern="dd/MM/yyyy HH:mm:ss"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 6%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACTIVO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NFlgActivo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 7%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="elink" actionListener="#{empresaMB.toEditar}" update=":dlgEditForm:gridEdit" oncomplete="PF('dlgEdit').show();">
+                                            <f:param name="rowKey" value="#{rowIndex}"/>
+                                            <h:graphicImage library="images" name="pencil.png" alt="editar empresa" title="editar empresa"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="dlink" rendered="#{row.NFlgActivo eq 1}" oncomplete="PF('cdlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{empresaMB.selectedEmpresa}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="desactivar empresa" title="desactivar empresa"/>
+                                        </p:commandLink>
+                                        <p:commandLink id="alink" rendered="#{row.NFlgActivo eq 0}" oncomplete="PF('cadlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{empresaMB.selectedEmpresa}"/>
+                                            <h:graphicImage library="images" name="tick.png" alt="activar empresa" title="activar empresa"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" >
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="NUEVA EMPRESA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgForm">
+                            <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pg" columns="2" style="margin-bottom:10px">
+                                <h:outputText value="Ruc: " styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.ruc}" size="12" maxlength="11" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Razón Social: " styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.razonSocial}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Dirección: " styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.direccion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Teléfono: " styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.telefono}" size="15" maxlength="15" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Logo:" styleClass="Etiqueta1"/>
+                                <h:panelGrid id="media" columns="1" cellpadding="0" cellspacing="0">
+                                    <p:fileUpload value="#{empresaMB.file}" fileUploadListener="#{empresaMB.handleFileUpload}" update=":dlgForm:media, dlgForm:dlgMsgs"
+                                                  cancelLabel="Cancelar" uploadLabel="Cargar" label="Examinar" />
+                                    <p:graphicImage cache="false" value="#{empresaMB.content}" />
+                                </h:panelGrid>
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton value="Grabar" oncomplete="PF('confirmDlg').show();" style="font-size: 11px;height: 2em"/>
+                                <p:commandButton value="Cancelar" oncomplete="PF('dlg').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDlg" widgetVar="confirmDlg" header="Confirmación" message="Se procederá a registrar la empresa. Desea Continuar?" appendTo="@(body)" >
+                        <h:form id="confirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :dlgForm:dlgMsgs" actionListener="#{empresaMB.registrarEmpresa}" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgEdit" widgetVar="dlgEdit" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" >
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EDITAR EMPRESA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgEditForm">
+                            <p:messages id="dlgEditMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="gridEdit" columns="2" style="margin-bottom:10px">
+                                <h:outputText value="Ruc:" styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.selectedEmpresa.VRuc}" size="12" maxlength="11" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Razón Social:" styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.selectedEmpresa.VRazonSocial}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Dirección:" styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.selectedEmpresa.VDireccion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Teléfono:" styleClass="Etiqueta1"/>
+                                <p:inputText value="#{empresaMB.selectedEmpresa.VTelefono}" size="15" maxlength="15" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputText value="Logo:" styleClass="Etiqueta1"/>
+                                <h:panelGrid id="media" columns="1" cellpadding="0" cellspacing="0">
+                                    <p:fileUpload value="#{empresaMB.file}" fileUploadListener="#{empresaMB.handleFileUpload}" update=":dlgEditForm:media, dlgEditForm:dlgEditMsgs"
+                                                  cancelLabel="Cancelar" uploadLabel="Cargar" label="Examinar" />
+                                    <p:graphicImage cache="false" value="#{empresaMB.content}" />
+                                </h:panelGrid>
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton value="Grabar" oncomplete="PF('confirmEditDlg').show();" style="font-size: 11px;height: 2em"/>
+                                <p:commandButton value="Cancelar" oncomplete="PF('dlgEdit').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmEditDlg" widgetVar="confirmEditDlg" header="Confirmación" message="Se procederá a editar la empresa. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEditDlgForm">
+                            <p:commandButton id="btnSi_" value="SI" update=":dlgEditForm:dlgEditMsgs, :f:tbl" actionListener="#{empresaMB.editarEmpresa}" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo_" value="NO" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="cdlg" widgetVar="cdlg" header="Desactivación de la Empresa" message="Se procederá a desactivar la empresa. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="mpdForm">
+                            <p:commandButton id="dbtnSI" value="SI" update=":f:tbl" actionListener="#{empresaMB.desactivar}" oncomplete="PF('cdlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="dbtnNO" value="NO" oncomplete="PF('cdlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="cadlg" widgetVar="cadlg" header="Activación de la Empresa" message="Se procederá a activar la empresa. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="mpaForm">
+                            <p:commandButton id="dbtnSI" value="SI" update=":f:tbl" actionListener="#{empresaMB.activar}" oncomplete="PF('cadlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="dbtnNO" value="NO" oncomplete="PF('cadlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

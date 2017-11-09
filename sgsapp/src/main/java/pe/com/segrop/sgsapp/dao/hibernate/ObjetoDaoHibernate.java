@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ObjetoDao;
 import pe.com.segrop.sgsapp.domain.SegDetObjeto;
 
@@ -78,6 +79,7 @@ public class ObjetoDaoHibernate extends HibernateDaoSupport implements ObjetoDao
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarObjeto(SegDetObjeto objeto) {
         getHibernateTemplate().saveOrUpdate(objeto);
     }

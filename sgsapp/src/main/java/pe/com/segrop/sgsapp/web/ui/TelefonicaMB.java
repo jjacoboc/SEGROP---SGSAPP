@@ -12,9 +12,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.event.ValueChangeEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -25,6 +29,8 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.primefaces.component.selectoneradio.SelectOneRadio;
+import org.primefaces.context.RequestContext;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 import pe.com.segrop.sgsapp.dao.CargoInspeccionDao;
@@ -46,7 +52,7 @@ import pe.com.segrop.sgsapp.domain.SegDetRespuesta;
 import pe.com.segrop.sgsapp.domain.SegDetRespuestaId;
 import pe.com.segrop.sgsapp.domain.SegRelCuestionario;
 import pe.com.segrop.sgsapp.domain.SegRelCuestionarioId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.File;
 import pe.com.segrop.sgsapp.web.common.InspeccionTelefonica;
 import pe.com.segrop.sgsapp.web.common.Items;
@@ -57,6 +63,8 @@ import pe.com.segrop.sgsapp.web.common.ServiceFinder;
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class TelefonicaMB implements Serializable{
     private static final long serialVersionUID = 1L;
 
@@ -96,6 +104,9 @@ public class TelefonicaMB implements Serializable{
     private String action;
     private String seguimiento;
     private boolean cerrar;
+    private String actionOnLoad;
+    private boolean fromMatrix;
+    private Boolean flag;
     
     /** Creates a new instance of TelefonicaMB */
     public TelefonicaMB() {
@@ -295,7 +306,7 @@ public class TelefonicaMB implements Serializable{
      */
     public List<SegDetPregunta> getItemsPregunta() {
         if (this.itemsPregunta == null) {
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             PreguntaDao preguntaDao = (PreguntaDao) ServiceFinder.findBean("PreguntaDao");
             itemsPregunta = preguntaDao.obtenerListaPreguntasActivasByEmpresa(segCabEmpresa);
         }
@@ -573,11 +584,78 @@ public class TelefonicaMB implements Serializable{
     public void setCerrar(boolean cerrar) {
         this.cerrar = cerrar;
     }
+
+    /**
+     * @return the actionOnLoad
+     */
+    public String getActionOnLoad() {
+        return actionOnLoad;
+    }
+
+    /**
+     * @param actionOnLoad the actionOnLoad to set
+     */
+    public void setActionOnLoad(String actionOnLoad) {
+        this.actionOnLoad = actionOnLoad;
+    }
+
+    /**
+     * @return the fromMatrix
+     */
+    public boolean isFromMatrix() {
+        return fromMatrix;
+    }
+
+    /**
+     * @param fromMatrix the fromMatrix to set
+     */
+    public void setFromMatrix(boolean fromMatrix) {
+        this.fromMatrix = fromMatrix;
+    }
+
+    /**
+     * @return the flag
+     */
+    public Boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * @param flag the flag to set
+     */
+    public void setFlag(Boolean flag) {
+        this.flag = flag;
+    }
     
-    public void handleChangeTipoCarga(ValueChangeEvent actionEvent){
+    @PostConstruct
+    public void init() {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            if (rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                ListasSessionMB listasSessionMB = (ListasSessionMB) JSFUtils.getSessionAttribute("listasSessionMB");
+                listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
+                listasSessionMB.setListaLocalActivoByEmpresa(new Items(null, Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems());
+                JSFUtils.setSessionAttribute("listasSessionMB", listasSessionMB);
+                this.setFlag(true);
+            } else {
+                this.setFlag(false);
+            }
+            this.setSelectedInsTelefonica(new SegDetInsTelefonica());
+            this.setFromMatrix(false);
+        } catch (Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
+    
+    public void handleChangeTipoCarga(AjaxBehaviorEvent event){
         try{
-            if(actionEvent != null){
-                String selectedTipoCarga = (String)actionEvent.getNewValue();
+            if(event != null){
+                String selectedTipoCarga = (String) ((SelectOneRadio) event.getSource()).getValue();
                 if("1".equals(selectedTipoCarga)){
                     this.setCargaIndividual(true);
                     this.setCargaMasiva(false);
@@ -593,10 +671,10 @@ public class TelefonicaMB implements Serializable{
         }
     }
     
-    public void handleChangeReqMonitor(ValueChangeEvent actionEvent){
+    public void handleChangeReqMonitor(AjaxBehaviorEvent event){
         try{
-            if(actionEvent != null){
-                String selectedReqMonitor = (String)actionEvent.getNewValue();
+            if(event != null){
+                String selectedReqMonitor = (String) ((SelectOneRadio) event.getSource()).getValue();
                 if("1".equals(selectedReqMonitor)){
                     this.setCerrar(false);
                 }else{
@@ -628,7 +706,7 @@ public class TelefonicaMB implements Serializable{
     
     public void buscarInspeccionTelefonica(ActionEvent actionEvent) {
         try {
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             InsTelefonicaDao insTelefonicaDao = (InsTelefonicaDao) ServiceFinder.findBean("InsTelefonicaDao");
             SegDetInsTelefonica segDetInsTelefonica = new SegDetInsTelefonica();
             segDetInsTelefonica.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -646,7 +724,7 @@ public class TelefonicaMB implements Serializable{
     
     public void toRegistrar(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             PreguntaDao preguntaDao = (PreguntaDao) ServiceFinder.findBean("PreguntaDao");
             List<SegDetPregunta> lista = preguntaDao.obtenerListaPreguntasActivasByEmpresa(empresaSession);
             this.setListaPreguntas(lista != null ? lista : new ArrayList<SegDetPregunta>());
@@ -671,7 +749,7 @@ public class TelefonicaMB implements Serializable{
     public void toVer(ActionEvent actionEvent){
         try{
             if(actionEvent != null){
-                String rowkey = BaseBean.getRequestParameter("rowkey");
+                String rowkey = JSFUtils.getRequestParameter("rowkey");
                 SegDetInsTelefonica segDetInsTelefonica = this.getListaInsTelefonica().get(Integer.parseInt(rowkey));
                 this.setSelectedInsTelefonica(segDetInsTelefonica);
                 PreguntaDao preguntaDao = (PreguntaDao) ServiceFinder.findBean("PreguntaDao");
@@ -686,7 +764,7 @@ public class TelefonicaMB implements Serializable{
     public void toSeguimiento(ActionEvent actionEvent){
         try{
             if(actionEvent != null){
-                String rowkey = BaseBean.getRequestParameter("rowkey");
+                String rowkey = JSFUtils.getRequestParameter("rowkey");
                 SegDetInsTelefonica segDetInsTelefonica = this.getListaInsTelefonica().get(Integer.parseInt(rowkey));
                 this.setSelectedInsTelefonica(segDetInsTelefonica);
                 PreguntaDao preguntaDao = (PreguntaDao) ServiceFinder.findBean("PreguntaDao");
@@ -711,7 +789,7 @@ public class TelefonicaMB implements Serializable{
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             InsTelefonicaDao insTelefonicaDao = (InsTelefonicaDao) ServiceFinder.findBean("InsTelefonicaDao");
             RespuestaDao respuestaDao = (RespuestaDao) ServiceFinder.findBean("RespuestaDao");
             List<SegDetPregunta> listaPreguntasInspeccion = this.getSelectedInsTelefonica().getSegDetPreguntas();
@@ -729,7 +807,7 @@ public class TelefonicaMB implements Serializable{
                     segDetRespuesta.setNFlgActivo(BigDecimal.ONE);
                     segDetRespuesta.setDFecCreacion(new Date());
                     segDetRespuesta.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetRespuesta.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetRespuesta.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     respuestaDao.registrarRespuesta(segDetRespuesta);
                 }
                 if(this.getListaInsTelefonica().contains(this.getSelectedInsTelefonica())){
@@ -740,7 +818,7 @@ public class TelefonicaMB implements Serializable{
                     this.getSelectedInsTelefonica().setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_EN_SEGUIMIENTO"))));
                     insTelefonicaDao.registrarInspeccionTelefonica(segDetInsTelefonica);
                 }
-                this.setAction("Richfaces.hideModalPanel('segDlg')");
+                RequestContext.getCurrentInstance().execute("PF('segDlg').hide();");
             }
         }catch(Exception e){
             e.getMessage();
@@ -752,7 +830,7 @@ public class TelefonicaMB implements Serializable{
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             InsTelefonicaDao insTelefonicaDao = (InsTelefonicaDao) ServiceFinder.findBean("InsTelefonicaDao");
             RespuestaDao respuestaDao = (RespuestaDao) ServiceFinder.findBean("RespuestaDao");
             List<SegDetPregunta> listaPreguntasInspeccion = this.getSelectedInsTelefonica().getSegDetPreguntas();
@@ -770,7 +848,7 @@ public class TelefonicaMB implements Serializable{
                     segDetRespuesta.setNFlgActivo(BigDecimal.ONE);
                     segDetRespuesta.setDFecCreacion(new Date());
                     segDetRespuesta.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetRespuesta.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetRespuesta.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     respuestaDao.registrarRespuesta(segDetRespuesta);
                 }
                 if(this.getListaInsTelefonica().contains(this.getSelectedInsTelefonica())){
@@ -781,7 +859,7 @@ public class TelefonicaMB implements Serializable{
                     this.getSelectedInsTelefonica().setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_CERRADA"))));
                     insTelefonicaDao.registrarInspeccionTelefonica(segDetInsTelefonica);
                 }
-                this.setAction("Richfaces.hideModalPanel('segDlg')");
+                RequestContext.getCurrentInstance().execute("PF('segDlg').hide();");
             }
         }catch(Exception e){
             e.getMessage();
@@ -793,8 +871,8 @@ public class TelefonicaMB implements Serializable{
         FacesMessage message = null;
         try{
             if(this.pregunta != null && !"".equals(this.pregunta.trim())){
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                 PreguntaDao preguntaDao = (PreguntaDao) ServiceFinder.findBean("PreguntaDao");
                 SegDetPreguntaId segDetPreguntaId = new SegDetPreguntaId();
                 segDetPreguntaId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -809,7 +887,7 @@ public class TelefonicaMB implements Serializable{
                     segDetPregunta.setNFlgActivo(BigDecimal.ONE);
                     segDetPregunta.setDFecCreacion(new Date());
                     segDetPregunta.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetPregunta.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetPregunta.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     preguntaDao.registrarPregunta(segDetPregunta);
                     this.setListaPreguntas(preguntaDao.obtenerListaPreguntasActivasByEmpresa(empresaSession));
                     this.setListaSelectedRowKeys(new Boolean[this.getListaPreguntas().size()]);
@@ -831,7 +909,7 @@ public class TelefonicaMB implements Serializable{
     public void toEditarPregunta(ActionEvent actionEvent){
         try{
             if(actionEvent != null){
-                String rowkey = BaseBean.getRequestParameter("rowkey");
+                String rowkey = JSFUtils.getRequestParameter("rowkey");
                 SegDetPregunta segDetPregunta = this.getListaPreguntas().get(Integer.parseInt(rowkey));
                 this.setSelectedPregunta(segDetPregunta);
             }
@@ -847,13 +925,13 @@ public class TelefonicaMB implements Serializable{
             if(actionEvent != null){
                 SegDetPregunta segDetPregunta = this.getSelectedPregunta();
                 if(segDetPregunta.getVDescripcion() != null && !"".equals(segDetPregunta.getVDescripcion().trim())){
-                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                     PreguntaDao preguntaDao = (PreguntaDao) ServiceFinder.findBean("PreguntaDao");
 
                     segDetPregunta.setVDescripcion(segDetPregunta.getVDescripcion().toUpperCase());
                     segDetPregunta.setDFecModificacion(new Date());
                     segDetPregunta.setVUsuModificacion(usuarioSession.getVUsuario());
-                    segDetPregunta.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetPregunta.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
 
                     preguntaDao.registrarPregunta(segDetPregunta);
                 }else{
@@ -902,7 +980,7 @@ public class TelefonicaMB implements Serializable{
         FacesMessage message = null;
         try{
             if(this.descripcionLugar != null && !"".equals(this.descripcionLugar.trim())){
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 LugarInspeccionDao lugarInspeccionDao = (LugarInspeccionDao) ServiceFinder.findBean("LugarInspeccionDao");
                 SegCabLugar segCabLugar = new SegCabLugar();
                 segCabLugar.setVDescripcion(this.descripcionLugar.toUpperCase().trim());
@@ -912,16 +990,16 @@ public class TelefonicaMB implements Serializable{
                     segCabLugar.setNFlgActivo(BigDecimal.ONE);
                     segCabLugar.setDFecCreacion(new Date());
                     segCabLugar.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segCabLugar.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segCabLugar.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     lugarInspeccionDao.registrarLugar(segCabLugar);
                     if(this.getListaLugares() == null)
                         this.setListaLugares(new ArrayList());
                     this.getListaLugares().add(segCabLugar);
                     this.setDescripcionLugar(null);
                     //this.setLugar(segCabLugar);
-                    ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                    ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                     listasSessionMB.setListaLugarInspeccion(new Items(lugarInspeccionDao.obtenerListaLugaresActivos(), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la descripción del lugar.");
@@ -937,16 +1015,16 @@ public class TelefonicaMB implements Serializable{
         try{
             SegCabLugar segCabLugar = (SegCabLugar) actionEvent.getSource();
             if(segCabLugar.getVDescripcion() != null && !"".equals(segCabLugar.getVDescripcion().trim())){
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segCabLugar.setVDescripcion(segCabLugar.getVDescripcion().toUpperCase().trim());
                 segCabLugar.setDFecModificacion(new Date());
                 segCabLugar.setVUsuModificacion(usuarioSession.getVUsuario());
-                segCabLugar.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segCabLugar.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 LugarInspeccionDao lugarInspeccionDao = (LugarInspeccionDao) ServiceFinder.findBean("LugarInspeccionDao");
                 lugarInspeccionDao.registrarLugar(segCabLugar);
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                 listasSessionMB.setListaLugarInspeccion(new Items(lugarInspeccionDao.obtenerListaLugaresActivos(), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }
         }catch(Exception e){
             e.getMessage();
@@ -960,10 +1038,10 @@ public class TelefonicaMB implements Serializable{
                 LugarInspeccionDao lugarInspeccionDao = (LugarInspeccionDao) ServiceFinder.findBean("LugarInspeccionDao");
                 lugarInspeccionDao.eliminarLugar(this.getSelectedLugar());
                 this.getListaLugares().remove(this.getSelectedLugar());
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaLugarInspeccion(new Items(lugarInspeccionDao.obtenerListaLugaresActivos(), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }
         }catch(Exception e){
             e.getMessage();
@@ -987,7 +1065,7 @@ public class TelefonicaMB implements Serializable{
         try{
             if(this.getNombreResponsable() != null && !"".equals(this.getNombreResponsable().trim())){
                 if(this.getApellidoResponsable() != null && !"".equals(this.getApellidoResponsable().trim())){
-                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                     ResponsableInspeccionDao responsableInspeccionDao = (ResponsableInspeccionDao) ServiceFinder.findBean("ResponsableInspeccionDao");
                     SegCabResponsable segCabResponsable = new SegCabResponsable();
                     segCabResponsable.setVNombres(this.getNombreResponsable().toUpperCase().trim());
@@ -999,16 +1077,16 @@ public class TelefonicaMB implements Serializable{
                         segCabResponsable.setNFlgActivo(BigDecimal.ONE);
                         segCabResponsable.setDFecCreacion(new Date());
                         segCabResponsable.setVUsuCreacion(usuarioSession.getVUsuario());
-                        segCabResponsable.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                        segCabResponsable.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                         responsableInspeccionDao.registrarResponsable(segCabResponsable);
                         if(this.getListaResponsables() == null)
                             this.setListaResponsables(new ArrayList());
                         this.getListaResponsables().add(segCabResponsable);
                         this.setNombreResponsable(null);
                         this.setApellidoResponsable(null);
-                        ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                        ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                         listasSessionMB.setListaResponsableInspeccion(new Items(responsableInspeccionDao.obtenerListaResponsablesActivos(), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VDescripcion").getItems());
-                        BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                        JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                     }
                 }
             }
@@ -1023,18 +1101,18 @@ public class TelefonicaMB implements Serializable{
             SegCabResponsable segCabResponsable = (SegCabResponsable) actionEvent.getSource();
             if(segCabResponsable.getVNombres() != null && !"".equals(segCabResponsable.getVNombres().trim())){
                 if(segCabResponsable.getVApellidos() != null && !"".equals(segCabResponsable.getVApellidos().trim())){
-                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                     segCabResponsable.setVNombres(segCabResponsable.getVNombres().toUpperCase().trim());
                     segCabResponsable.setVApellidos(segCabResponsable.getVApellidos().toUpperCase().trim());
                     segCabResponsable.setVDescripcion(segCabResponsable.getVNombres()+" "+segCabResponsable.getVApellidos());
                     segCabResponsable.setDFecModificacion(new Date());
                     segCabResponsable.setVUsuModificacion(usuarioSession.getVUsuario());
-                    segCabResponsable.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    segCabResponsable.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                     ResponsableInspeccionDao responsableInspeccionDao = (ResponsableInspeccionDao) ServiceFinder.findBean("ResponsableInspeccionDao");
                     responsableInspeccionDao.registrarResponsable(segCabResponsable);
-                    ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                    ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                     listasSessionMB.setListaResponsableInspeccion(new Items(responsableInspeccionDao.obtenerListaResponsablesActivos(), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }
         }catch(Exception e){
@@ -1049,10 +1127,10 @@ public class TelefonicaMB implements Serializable{
                 ResponsableInspeccionDao responsableInspeccionDao = (ResponsableInspeccionDao) ServiceFinder.findBean("ResponsableInspeccionDao");
                 responsableInspeccionDao.eliminarResponsable(this.getSelectedResponsable());
                 this.getListaResponsables().remove(this.getSelectedResponsable());
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaResponsableInspeccion(new Items(responsableInspeccionDao.obtenerListaResponsablesActivos(), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }
         }catch(Exception e){
             e.getMessage();
@@ -1074,7 +1152,7 @@ public class TelefonicaMB implements Serializable{
     public void registrarCargo(ActionEvent actionEvent){
         try{
             if(this.descripcionCargo != null && !"".equals(this.descripcionCargo.trim())){
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 CargoInspeccionDao cargoInspeccionDao = (CargoInspeccionDao) ServiceFinder.findBean("CargoInspeccionDao");
                 SegCabCargo segCabCargo = new SegCabCargo();
                 segCabCargo.setVDescripcion(this.descripcionCargo.toUpperCase().trim());
@@ -1084,16 +1162,16 @@ public class TelefonicaMB implements Serializable{
                     segCabCargo.setNFlgActivo(BigDecimal.ONE);
                     segCabCargo.setDFecCreacion(new Date());
                     segCabCargo.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segCabCargo.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segCabCargo.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     cargoInspeccionDao.registrarCargo(segCabCargo);
                     if(this.getListaCargos() == null)
                         this.setListaCargos(new ArrayList());
                     this.getListaCargos().add(segCabCargo);
                     this.setDescripcionCargo(null);
                     //this.setCargo(segCabCargo);
-                    ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                    ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                     listasSessionMB.setListaCargoInspeccion(new Items(cargoInspeccionDao.obtenerListaCargosActivos(), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }
         }catch(Exception e){
@@ -1106,11 +1184,11 @@ public class TelefonicaMB implements Serializable{
         try{
             SegCabCargo segCabCargo = (SegCabCargo) actionEvent.getSource();
             if(segCabCargo.getVDescripcion() != null && !"".equals(segCabCargo.getVDescripcion().trim())){
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segCabCargo.setVDescripcion(segCabCargo.getVDescripcion().toUpperCase().trim());
                 segCabCargo.setDFecModificacion(new Date());
                 segCabCargo.setVUsuModificacion(usuarioSession.getVUsuario());
-                segCabCargo.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segCabCargo.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 CargoInspeccionDao cargoInspeccionDao = (CargoInspeccionDao) ServiceFinder.findBean("CargoInspeccionDao");
                 cargoInspeccionDao.registrarCargo(segCabCargo);
             }
@@ -1126,10 +1204,10 @@ public class TelefonicaMB implements Serializable{
                 CargoInspeccionDao cargoInspeccionDao = (CargoInspeccionDao) ServiceFinder.findBean("CargoInspeccionDao");
                 cargoInspeccionDao.eliminarCargo(this.getSelectedCargo());
                 this.getListaCargos().remove(this.getSelectedCargo());
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaCargoInspeccion(new Items(cargoInspeccionDao.obtenerListaCargosActivos(), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }
         }catch(Exception e){
             e.getMessage();
@@ -1142,8 +1220,8 @@ public class TelefonicaMB implements Serializable{
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             InsTelefonicaDao insTelefonicaDao = (InsTelefonicaDao) ServiceFinder.findBean("InsTelefonicaDao");
             SegCabLugar segCabLugar = new SegCabLugar();
             segCabLugar.setNCodLugar(BigDecimal.valueOf(Long.parseLong(this.lugar)));
@@ -1175,7 +1253,7 @@ public class TelefonicaMB implements Serializable{
                     segDetInsTelefonica.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_PENDIENTE"))));
                     segDetInsTelefonica.setVUsuCreacion(usuarioSession.getVUsuario());
                     segDetInsTelefonica.setDFecCreacion(new Date());
-                    segDetInsTelefonica.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetInsTelefonica.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     insTelefonicaDao.registrarInspeccionTelefonica(segDetInsTelefonica);
                     
                     CuestionarioDao cuestionarioDao = (CuestionarioDao) ServiceFinder.findBean("CuestionarioDao");
@@ -1189,7 +1267,7 @@ public class TelefonicaMB implements Serializable{
                         segRelCuestionario.setId(segRelCuestionarioId);
                         cuestionarioDao.registrarCuestionario(segRelCuestionario);
                     }
-                    this.setAction("Richfaces.hideModalPanel('dlg')");
+                    RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
                 }else{
                     message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Seleccione al menos una pregunta para realizar la inspección.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
@@ -1218,8 +1296,8 @@ public class TelefonicaMB implements Serializable{
             if(this.getListaSelectedPregunta() != null && this.getListaSelectedPregunta().size() > 0){
                 if(this.getListaInspeccion() != null && !this.getListaInspeccion().isEmpty()){
                     bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-                    SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+                    SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                     CuestionarioDao cuestionarioDao = (CuestionarioDao) ServiceFinder.findBean("CuestionarioDao");
                     InsTelefonicaDao insTelefonicaDao = (InsTelefonicaDao) ServiceFinder.findBean("InsTelefonicaDao");
                     LugarInspeccionDao lugarInspeccionDao = (LugarInspeccionDao) ServiceFinder.findBean("LugarInspeccionDao");
@@ -1235,7 +1313,7 @@ public class TelefonicaMB implements Serializable{
                             segCabLugar.setNFlgActivo(BigDecimal.ONE);
                             segCabLugar.setDFecCreacion(new Date());
                             segCabLugar.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segCabLugar.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segCabLugar.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             lugarInspeccionDao.registrarLugar(segCabLugar);
                         }
                         
@@ -1246,7 +1324,7 @@ public class TelefonicaMB implements Serializable{
                             segCabCargo.setNFlgActivo(BigDecimal.ONE);
                             segCabCargo.setDFecCreacion(new Date());
                             segCabCargo.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segCabCargo.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segCabCargo.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             cargoInspeccionDao.registrarCargo(segCabCargo);
                         }
                         
@@ -1257,15 +1335,15 @@ public class TelefonicaMB implements Serializable{
                             segCabResponsable.setNFlgActivo(BigDecimal.ONE);
                             segCabResponsable.setDFecCreacion(new Date());
                             segCabResponsable.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segCabResponsable.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segCabResponsable.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             responsableInspeccionDao.registrarResponsable(segCabResponsable);
                         }
                         
-                        ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                        ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
                         listasSessionMB.setListaLugarInspeccion(new Items(lugarInspeccionDao.obtenerListaLugaresActivos(), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
                         listasSessionMB.setListaCargoInspeccion(new Items(cargoInspeccionDao.obtenerListaCargosActivos(), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems());
                         listasSessionMB.setListaResponsableInspeccion(new Items(responsableInspeccionDao.obtenerListaResponsablesActivos(), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VDescripcion").getItems());
-                        BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                        JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                         
                         SegDetInsTelefonica segDetInsTelefonica = new SegDetInsTelefonica();
                         segDetInsTelefonica.setNCodInstelefonica(BigDecimal.valueOf(insTelefonicaDao.nextSequenceValue()));
@@ -1280,7 +1358,7 @@ public class TelefonicaMB implements Serializable{
                         segDetInsTelefonica.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_PENDIENTE"))));
                         segDetInsTelefonica.setVUsuCreacion(usuarioSession.getVUsuario());
                         segDetInsTelefonica.setDFecCreacion(new Date());
-                        segDetInsTelefonica.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                        segDetInsTelefonica.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                         insTelefonicaDao.registrarInspeccionTelefonica(segDetInsTelefonica);
                         
                         for(int j=0;j<this.getListaSelectedPregunta().size();j++){
@@ -1294,7 +1372,7 @@ public class TelefonicaMB implements Serializable{
                             cuestionarioDao.registrarCuestionario(segRelCuestionario);
                         }
                     }
-                    this.setAction("Richfaces.hideModalPanel('dlg')");
+                    RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Seleccione al menos una pregunta para realizar la inspección.");
@@ -1320,8 +1398,8 @@ public class TelefonicaMB implements Serializable{
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            BaseBean.getRequest().setAttribute("filePath", bundle.getString("templatePath"));
-            BaseBean.getRequest().setAttribute("fileName", bundle.getString("inspectionFile"));
+            JSFUtils.getRequest().setAttribute("filePath", bundle.getString("templatePath"));
+            JSFUtils.getRequest().setAttribute("fileName", bundle.getString("inspectionFile"));
         }catch(Exception e){
             e.getMessage();
         }

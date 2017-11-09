@@ -17,7 +17,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.activation.MimetypesFileTypeMap;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
@@ -25,12 +28,17 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.io.FileUtils;
+import org.primefaces.context.RequestContext;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.UploadedFile;
 import org.primefaces.model.DefaultUploadedFile;
+import org.primefaces.model.StreamedContent;
 import pe.com.segrop.sgsapp.dao.EmpresaDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
@@ -39,6 +47,8 @@ import pe.com.segrop.sgsapp.web.common.ServiceFinder;
  *
  * @author JJ
  */
+@ManagedBean
+@SessionScoped
 public class EmpresaMB implements Serializable {
 
     private String searchRuc;
@@ -49,6 +59,7 @@ public class EmpresaMB implements Serializable {
     private String telefono;
     private String rutaLogo;
     private UploadedFile file;
+    private StreamedContent content;
     private String mime;
     private String nombreOriginal;
     private SegCabEmpresa selectedEmpresa;
@@ -165,6 +176,20 @@ public class EmpresaMB implements Serializable {
 
     public void setFile(UploadedFile file) {
         this.file = file;
+    }
+
+    /**
+     * @return the content
+     */
+    public StreamedContent getContent() {
+        return content;
+    }
+
+    /**
+     * @param content the content to set
+     */
+    public void setContent(StreamedContent content) {
+        this.content = content;
     }
 
     public String getMime() {
@@ -285,7 +310,7 @@ public class EmpresaMB implements Serializable {
         }
     }
     
-    public void handleFileUpload(){
+    public void handleFileUpload(FileUploadEvent event){
         String filepath = null;
         String temppath = null;
         ResourceBundle bundle = null;
@@ -293,7 +318,8 @@ public class EmpresaMB implements Serializable {
         String fileExt = null;
         FacesMessage message = null;
         try {
-            if(this.getFile() != null){
+            if(event != null){
+                this.setFile(event.getFile());
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
                 BufferedImage image = ImageIO.read(this.getFile().getInputstream());
                 int height = image.getHeight();
@@ -301,7 +327,7 @@ public class EmpresaMB implements Serializable {
                 if(height <= Integer.parseInt(bundle.getString("logoDefaultHeight"))
                     || width <= Integer.parseInt(bundle.getString("logoDefaultWidth"))){
                     bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                    SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                    SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                     temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
     //                    temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
 
@@ -316,10 +342,11 @@ public class EmpresaMB implements Serializable {
                     fileOutStream.close();
 
                     this.setNombreOriginal(this.getFile().getFileName());
-                    this.mime(this.getFile().getFileName());
+                    this.mime(this.getFile().getContentType());
+                    this.setContent(new DefaultStreamedContent(this.getFile().getInputstream(), this.getFile().getContentType(), this.getFile().getFileName()));
                 }else{
                     this.setFile(null);
-                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR. ", "La dimesión máxima del logo debe ser de 230 pixeles de largo por 50 pixeles de alto.");
+                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR. ", "La dimesiÃ³n mÃ¡xima del logo debe ser de 230 pixeles de largo por 50 pixeles de alto.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
                 }
             }
@@ -373,7 +400,7 @@ public class EmpresaMB implements Serializable {
                         if(this.getDireccion() != null && !"".equals(this.getDireccion())){
                             if(this.getTelefono() != null && !"".equals(this.getTelefono())){
 //                                if(this.getNombreOriginal() != null && !"".equals(this.getNombreOriginal())){
-                                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                                     EmpresaDao empresaDao = (EmpresaDao) ServiceFinder.findBean("EmpresaDao");
 
                                     bundle = ResourceBundle.getBundle(Parameters.getParameters());
@@ -406,33 +433,33 @@ public class EmpresaMB implements Serializable {
                                     empresa.setNFlgActivo(BigDecimal.ONE);
                                     empresa.setDFecCreacion(new Date());
                                     empresa.setVUsuCreacion(usuarioSession.getVUsuario());
-                                    empresa.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                    empresa.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
 
                                     empresaDao.registrarEmpresa(empresa);
                                     setListaEmpresa(empresaDao.obtenerListaEmpresas());
-                                    this.setAction("Richfaces.hideModalPanel('dlg')");
+                                    RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
 //                                }else{
 //                                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Cargue el logotipo de la empresa.");
 //                                    FacesContext.getCurrentInstance().addMessage(null,message);
 //                                }
                             }else{
-                                message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la teléfono de la empresa.");
+                                message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la telÃ©fono de la empresa.");
                                 FacesContext.getCurrentInstance().addMessage(null,message);
                             }
                         }else{
-                            message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la dirección de la empresa.");
+                            message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la direcciÃ³n de la empresa.");
                             FacesContext.getCurrentInstance().addMessage(null,message);
                         }
                     }else{
-                        message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la razón social de la empresa.");
+                        message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la razÃ³n social de la empresa.");
                         FacesContext.getCurrentInstance().addMessage(null,message);
                     }
                 }else{
-                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "El RUC debe tener 11 dígitos.");
+                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "El RUC debe tener 11 dÃ­gitos.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
                 }
             }else{
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese el número de RUC de la empresa.");
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese el nÃºmero de RUC de la empresa.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
             }
         } catch (IOException e) {
@@ -442,21 +469,21 @@ public class EmpresaMB implements Serializable {
     
     public void toEditar(ActionEvent actionEvent){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             this.setSelectedEmpresa(this.getListaEmpresa().get(Integer.parseInt(rowKey)));
             String defaultFile = this.getSelectedEmpresa().getVRutaLogo();
             File f = new File(defaultFile);
-            DiskFileItem fileItem = (DiskFileItem) new DiskFileItemFactory().createItem("fileUpload", "image/png", true, f.getName());
-            this.setFile(new DefaultUploadedFile(fileItem));
-            this.setNombreOriginal(this.getFile().getFileName());
+            this.setNombreOriginal(f.getName());
+            this.setContent(new DefaultStreamedContent(FileUtils.openInputStream(f), new MimetypesFileTypeMap().getContentType(f), f.getName()));
             this.setAction(null);
             Iterator<FacesMessage> iter= FacesContext.getCurrentInstance().getMessages();
             if(iter.hasNext() == true){
                 iter.remove();
                 FacesContext.getCurrentInstance().renderResponse();
             }
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | IOException e) {
             e.getMessage();
+            e.printStackTrace();
         }
     }
     
@@ -473,64 +500,58 @@ public class EmpresaMB implements Serializable {
                         if(this.getSelectedEmpresa().getVDireccion() != null && !"".equals(this.getSelectedEmpresa().getVDireccion())){
                             if(this.getSelectedEmpresa().getVTelefono() != null && !"".equals(this.getSelectedEmpresa().getVTelefono())){
 //                                if(this.getNombreOriginal() != null && !"".equals(this.getNombreOriginal())){
-                                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                                     EmpresaDao empresaDao = (EmpresaDao) ServiceFinder.findBean("EmpresaDao");
                                     SegCabEmpresa empresa = this.getSelectedEmpresa();
-
-                                    bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                                    if(this.getFile() == null){
-                                        String defaultFile = bundle.getString("defaultFile");
-                                        File f = new File(defaultFile);
-                                        DiskFileItem fileItem = (DiskFileItem) new DiskFileItemFactory().createItem("fileUpload", "image/png", true, f.getName());
-                                        this.setFile(new DefaultUploadedFile(fileItem));
-                                    }
                                     
-                                    filepath = bundle.getString("filePath").concat(empresa.getVRuc().trim()).concat("\\"); //Para WINDOWS
-
-                                    File direc = new File(filepath);
-                                    direc.mkdirs();
-                                    fileName = direc.getName();
-                                    fileExt = fileName.substring(fileName.lastIndexOf("."));
-                                    File filetoCreate = new File(filepath, "logo".concat(fileExt));
-                                    FileOutputStream fileOutStream = new FileOutputStream(filetoCreate);
-                                    fileOutStream.write(this.getFile().getContents());
-                                    fileOutStream.flush();
-                                    fileOutStream.close();
+                                    if(this.getFile() != null){
+                                        bundle = ResourceBundle.getBundle(Parameters.getParameters());
+                                        filepath = bundle.getString("filePath").concat(empresa.getVRuc().trim()).concat("\\"); //Para WINDOWS
+                                        File direc = new File(filepath);
+                                        direc.mkdirs();
+                                        fileName = direc.getName();
+                                        fileExt = fileName.substring(fileName.lastIndexOf("."));
+                                        File filetoCreate = new File(filepath, "logo".concat(fileExt));
+                                        FileOutputStream fileOutStream = new FileOutputStream(filetoCreate);
+                                        fileOutStream.write(this.getFile().getContents());
+                                        fileOutStream.flush();
+                                        fileOutStream.close();
+                                        empresa.setVRutaLogo(filepath.concat("logo".concat(fileExt)));
+                                    }
 
                                     empresa.setVRuc(empresa.getVRuc() != null ? empresa.getVRuc().toUpperCase().trim() : null);
                                     empresa.setVRazonSocial(empresa.getVRazonSocial() != null ? empresa.getVRazonSocial().toUpperCase().trim() : null);
                                     empresa.setVDireccion(empresa.getVDireccion() != null ? empresa.getVDireccion().toUpperCase().trim() : null);
                                     empresa.setVTelefono(empresa.getVTelefono() != null ? empresa.getVTelefono().toUpperCase().trim() : null);
-                                    empresa.setVRutaLogo(filepath.concat("logo".concat(fileExt)));
                                     empresa.setDFecModificacion(new Date());
                                     empresa.setVUsuModificacion(usuarioSession.getVUsuario());
-                                    empresa.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                    empresa.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
 
                                     empresaDao.registrarEmpresa(empresa);
                                     setListaEmpresa(empresaDao.obtenerListaEmpresas());
-                                    this.action = "Richfaces.hideModalPanel('dlgEdit')";
+                                    RequestContext.getCurrentInstance().execute("PF('dlgEdit').hide();");
 //                                }else{
 //                                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Cargue el logotipo de la empresa.");
 //                                    FacesContext.getCurrentInstance().addMessage(null,message);
 //                                }
                             }else{
-                                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la teléfono de la empresa.");
+                                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la telÃ©fono de la empresa.");
                                 FacesContext.getCurrentInstance().addMessage(null,message);
                             }
                         }else{
-                            message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la dirección de la empresa.");
+                            message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la direcciÃ³n de la empresa.");
                             FacesContext.getCurrentInstance().addMessage(null,message);
                         }
                     }else{
-                        message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la razón social de la empresa.");
+                        message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la razÃ³n social de la empresa.");
                         FacesContext.getCurrentInstance().addMessage(null,message);
                     }
                 }else{
-                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "El RUC debe tener 11 dígitos.");
+                    message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "El RUC debe tener 11 dÃ­gitos.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
                 }
             }else{
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese el número de RUC de la empresa.");
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese el nÃºmero de RUC de la empresa.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
             }
         } catch (IOException e) {
@@ -544,7 +565,7 @@ public class EmpresaMB implements Serializable {
      */
     public void desactivar(ActionEvent actionEvent){
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
             EmpresaDao empresaDao = (EmpresaDao) ServiceFinder.findBean("EmpresaDao");
             getSelectedEmpresa().setNFlgActivo(BigDecimal.ZERO); //INACTIVO = 0
             empresaDao.registrarEmpresa(getSelectedEmpresa());
@@ -561,7 +582,7 @@ public class EmpresaMB implements Serializable {
      */
     public void activar(ActionEvent actionEvent){
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
             EmpresaDao empresaDao = (EmpresaDao) ServiceFinder.findBean("EmpresaDao");
             getSelectedEmpresa().setNFlgActivo(BigDecimal.ONE); //ACTIVO = 1
             empresaDao.registrarEmpresa(getSelectedEmpresa());

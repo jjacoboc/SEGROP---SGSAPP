@@ -15,6 +15,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.InspreEvaluacionDao;
 import pe.com.segrop.sgsapp.domain.SegDetInsPresencial;
 import pe.com.segrop.sgsapp.domain.SegDetInspreEvaluacion;
@@ -60,6 +61,7 @@ public class InspreEvaluacionDaoHibernate extends HibernateDaoSupport implements
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarEvaluacion(SegDetInspreEvaluacion evaluacion) {
         getHibernateTemplate().saveOrUpdate(evaluacion);
     }

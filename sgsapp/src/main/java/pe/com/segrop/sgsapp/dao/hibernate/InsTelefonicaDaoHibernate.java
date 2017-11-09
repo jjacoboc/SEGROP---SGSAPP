@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.InsTelefonicaDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetInsTelefonica;
@@ -117,6 +118,7 @@ public class InsTelefonicaDaoHibernate extends HibernateDaoSupport implements In
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarInspeccionTelefonica(SegDetInsTelefonica insTelefonica) {
         getHibernateTemplate().saveOrUpdate(insTelefonica);
     }

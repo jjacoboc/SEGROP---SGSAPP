@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.NovedadEvaluacionDetalleDao;
 import pe.com.segrop.sgsapp.domain.SegDetNovEvaluacion;
 import pe.com.segrop.sgsapp.domain.SegDetNovevalDetalle;
@@ -63,6 +64,7 @@ public class NovedadEvaluacionDetalleDaoHibernate extends HibernateDaoSupport im
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarEvaluacionDetalle(SegDetNovevalDetalle detalle) {
         getHibernateTemplate().saveOrUpdate(detalle);
     }

@@ -23,6 +23,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.DocumentoDao;
 import pe.com.segrop.sgsapp.domain.SegDetDocumento;
 import pe.com.segrop.sgsapp.domain.SegDetHistorial;
@@ -148,6 +149,7 @@ public class DocumentoDaoHibernate extends HibernateDaoSupport implements Docume
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarDocumento(SegDetDocumento documento) {
         getHibernateTemplate().saveOrUpdate(documento);
     }
@@ -161,6 +163,7 @@ public class DocumentoDaoHibernate extends HibernateDaoSupport implements Docume
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarDocumento(SegDetDocumento documento) {
         getHibernateTemplate().delete(documento);
     }

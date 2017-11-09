@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package pe.com.segrop.sgsapp.web.common;
+package pe.com.segrop.sgsapp.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

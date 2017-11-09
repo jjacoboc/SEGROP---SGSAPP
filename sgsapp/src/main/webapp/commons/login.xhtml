@@ -20,27 +20,21 @@ and open the template in the editor.
             <h:form>
                 <center>
                     <p:spacer height="250"/>
-                    <p:panel id="pnl" header="LOGIN" style="font-size: 13px;width: 400px;text-align: left;" >
-                        <p:messages showSummary="true" showDetail="true">
-                            <f:facet name="errorMarker">
-                                <h:graphicImage style="border: 0;" url="/commons/images/messagebox_critical.png"/>
-                            </f:facet>
-                            <f:facet name="infoMarker">
-                                <h:graphicImage style="border: 0;" url="/commons/images/messagebox_info.png"/>
-                            </f:facet>
-                            <f:facet name="warnMarker">
-                                <h:graphicImage style="border: 0;" url="/commons/images/messagebox_warning.png"/>
-                            </f:facet>
-                        </p:messages>
+                    <p:panel id="pnl" header="LOGIN" style="font-size: 13px;width: 450px;text-align: left;" >
+                        <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
                         <h:panelGrid columns="2" width="100%" style="font-size: 11px;">
                             <h:panelGrid columns="2">
                                 <h:outputText value="Empresa: " styleClass="Etiqueta1" />
                                 <p:autoComplete id="razSoc" value="#{loginMB.selectedEmpresa}" completeMethod="#{loginMB.complete}" panelStyle="font-size: 10px;"
-                                                var="p" itemLabel="#{p.VRazonSocial}" itemValue="#{p}" converter="cEmpresaLogin" forceSelection="true" size="40">
+                                                var="p" itemLabel="#{p.VRazonSocial}" itemValue="#{p}" converter="cEmpresaLogin" size="40">
                                     <f:facet name="itemtip">
                                         <p:panelGrid>
                                             <p:row>
-                                                <p:column colspan="2" style="text-align: center;"><h:graphicImage value="/pages/images/noimage.png"  /></p:column>
+                                                <p:column colspan="2" style="text-align: center;">
+                                                    <p:graphicImage cache="false" value="#{imageLogo.image}">
+                                                        <f:param name="ruc" value="#{p.VRuc}"/>
+                                                    </p:graphicImage>
+                                                </p:column>
                                             </p:row>
                                             <p:row>
                                                 <p:column><h:outputText value="RUC: " styleClass="Etiqueta1" /></p:column>
@@ -63,7 +57,7 @@ and open the template in the editor.
                                 <h:outputText id="txt" value="Confirmación: " styleClass="Etiqueta1" rendered="#{loginMB.flgClave}" />
                                 <p:password id="claveSecundaria" value="#{loginMB.claveSecundaria}" maxlength="8" style="float: left;font-size: 11px;" rendered="#{loginMB.flgClave}" />
                             </h:panelGrid>
-                            <p:graphicImage library="images" name="sgs_logo.png" style="border: 0;float: right;"/>
+                            <p:graphicImage library="images" name="sgs_logo.png" style="border: 0;"/>
                         </h:panelGrid>
                         <h:panelGrid columns="1" width="100%" style="text-align: center;">
                             <p:commandLink id="dlgLink" oncomplete="PF('dlgClave').show()">
@@ -74,6 +68,7 @@ and open the template in the editor.
                     </p:panel>
                 </center>
             </h:form>
+            
             <p:dialog id="dlgClave" header="Olvidó su clave?" height="120" closable="true" resizable="false" draggable="false">
                 <h:form id="dlgClaveForm">
                     <h:panelGrid columns="1">
@@ -86,6 +81,12 @@ and open the template in the editor.
                         <p:commandButton id="btn" value="Cancelar" oncomplete="PF('dlgClave').hide()" style="font-size: 11px;height: 2em"/>
                     </h:panelGroup>
                 </h:form>
+            </p:dialog>
+            
+            <p:ajaxStatus onstart="PF('statusDialog').show();" onsuccess="PF('statusDialog').hide();" />
+
+            <p:dialog widgetVar="statusDialog" modal="true" appendTo="@(body)" draggable="false" closable="false" resizable="false" showHeader="false">
+                <h:graphicImage library="images" name="156.gif" style="border: 0;" />
             </p:dialog>
         </f:view>
     </h:body>

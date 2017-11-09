@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Gestión de Areas</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="GESTION DE AREAS" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid id="pgSearch" columns="2" width="100%" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{areaMB.flag}"/>
+                                    <p:selectOneMenu value="#{areaMB.searchEmpresa}" style="float: left;font-size: 11px" rendered="#{areaMB.flag}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLocalByEmpresa}" update=":f:pgSearch"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{areaMB.searchLocal}" style="float: left;font-size: 11px"> 
+                                        <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Nombre: " styleClass="Etiqueta1" />
+                                    <p:inputText value="#{areaMB.searchDescripcion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <h:panelGroup>
+                                        <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{areaMB.buscarArea}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                        <p:commandButton id="btnNuevo" value="Nuevo" actionListener="#{areaMB.toRegistrar}" update=":dlgForm:dlgMsgs, :dlgForm:pg" oncomplete="PF('dlg').show();" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Areas</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{areaMB.listaArea}" rows="10" rowIndexVar="rowIndexVar" 
+                                             paginator="true" paginatorPosition="top"  style="font-size: 11px;">
+                                    <p:column rendered="#{areaMB.flag}">
+                                        <f:facet name="header">
+                                            <h:outputText value="EMPRESA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodEmpresa}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEmpresa"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LOCAL" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodLocal}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterLocal"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="ÁREA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>                            
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACTIVO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NFlgActivo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterSiNo"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="elink" actionListener="#{areaMB.toEditar}" update=":dlgEditForm:gridEdit" oncomplete="PF('dlgEdit').show();">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="pencil.png" alt="editar local" title="editar local"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="dlink" rendered="#{row.NFlgActivo eq 1}" oncomplete="PF('cdlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{areaMB.selectedItem}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="desactivar local" title="desactivar local"/>
+                                        </p:commandLink>
+                                        <p:commandLink id="alink" rendered="#{row.NFlgActivo eq 0}" oncomplete="PF('cadlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{areaMB.selectedItem}"/>
+                                            <h:graphicImage library="images" name="tick.png" alt="activar local" title="activar local"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="NUEVA ÁREA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgForm">
+                            <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pg" columns="2" style="margin-bottom:10px">
+                                <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{areaMB.flag}"/>
+                                <h:panelGroup rendered="#{areaMB.flag}">
+                                    <p:selectOneMenu value="#{areaMB.empresa}" style="font-size: 11px" >
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLocalByEmpresa}" update=":dlgForm:pg"/>
+                                    </p:selectOneMenu>
+                                </h:panelGroup>
+
+                                <h:outputText value="Local: " styleClass="Etiqueta1"/>
+                                <p:selectOneMenu value="#{areaMB.local}" style="float: left;font-size: 11px">
+                                    <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Descripción: " styleClass="Etiqueta1"/>
+                                <p:inputText value="#{areaMB.descripcion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton id="btnGrabar" value="Grabar" oncomplete="PF('confirmDlg').show();" style="font-size: 11px;height: 2em"/>
+                                <p:commandButton id="btnCancelar" value="Cancelar" oncomplete="PF('dlg').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDlg" widgetVar="confirmDlg" header="Confirmación" message="Se procederá a registrar el área. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :dlgForm:dlgMsgs" actionListener="#{areaMB.registrarArea}" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgEdit" widgetVar="dlgEdit" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EDITAR ÁREA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgEditForm">
+                            <p:messages id="dlgEditMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="gridEdit" columns="2" style="margin-bottom:10px">
+                                <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{areaMB.flag}"/>
+                                <h:selectOneMenu value="#{areaMB.selectedItem.NCodEmpresa}" style="font-size: 11px" rendered="#{areaMB.flag}">
+                                    <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                    <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLocalByEmpresa}" update=":dlgEditForm:gridEdit"/>
+                                </h:selectOneMenu>
+
+                                <h:outputText value="Local: " styleClass="Etiqueta1"/>
+                                <p:selectOneMenu value="#{areaMB.selectedItem.NCodLocal}" style="float: left;font-size: 11px">
+                                    <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Descripción: " styleClass="Etiqueta1"/>
+                                <p:inputText value="#{areaMB.selectedItem.VDescripcion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton id="btnGrabar_" value="Grabar" oncomplete="PF('confirmEditDlg').show();" style="font-size: 11px;height: 2em"/>
+                                <p:commandButton id="btnCancelar_" value="Cancelar" oncomplete="PF('dlgEdit').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmEditDlg" widgetVar="confirmEditDlg" header="Confirmación" message="Se procederá a editar el área. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEditDlgForm">
+                            <p:commandButton id="btnSi_" value="SI" update=":dlgEditForm:dlgEditMsgs, :f:tbl" actionListener="#{areaMB.editarArea}" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo_" value="NO" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="cdlg" widgetVar="cdlg" header="Desactivación del Área" message="Se procederá a desactivar el área. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="mpdForm">
+                            <p:commandButton id="dbtnSI" value="SI" update=":f:tbl" actionListener="#{areaMB.desactivar}" oncomplete="PF('cdlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="dbtnNO" value="NO" oncomplete="PF('cdlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    <p:confirmDialog id="cadlg" widgetVar="cadlg" header="Activación del Área" message="Se procederá a activar el área. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="mpaForm">
+                            <p:commandButton id="dbtnSI" value="SI" update=":f:tbl" actionListener="#{areaMB.activar}" oncomplete="PF('cadlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="dbtnNO" value="NO" oncomplete="PF('cadlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

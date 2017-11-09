@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.LocalDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetLocal;
@@ -77,7 +78,7 @@ public class LocalDaoHibernate extends HibernateDaoSupport implements LocalDao{
     @Override
     public List<SegDetLocal> obtenerListaLocalesByEmpresa(SegCabEmpresa empresa) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLocal.class);
-        criteria.add(Restrictions.eq("NCodEmpresa", empresa.getNCodEmpresa()));
+        criteria.add(Restrictions.eq("id.NCodEmpresa", empresa.getNCodEmpresa()));
         criteria.addOrder(Order.asc("VDescripcion"));
         return (List<SegDetLocal>) getHibernateTemplate().findByCriteria(criteria);
     }
@@ -93,7 +94,7 @@ public class LocalDaoHibernate extends HibernateDaoSupport implements LocalDao{
     @Override
     public List<SegDetLocal> obtenerListaLocalesActivosByEmpresa(SegCabEmpresa empresa) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLocal.class);
-        criteria.add(Restrictions.eq("NCodEmpresa", empresa.getNCodEmpresa()));
+        criteria.add(Restrictions.eq("id.NCodEmpresa", empresa.getNCodEmpresa()));
         criteria.add(Restrictions.eq("NFlgActivo", BigDecimal.ONE));
         criteria.addOrder(Order.asc("VDescripcion"));
         return (List<SegDetLocal>) getHibernateTemplate().findByCriteria(criteria);
@@ -102,16 +103,19 @@ public class LocalDaoHibernate extends HibernateDaoSupport implements LocalDao{
     @Override
     public SegDetLocal obtenerLocalByDescripcion(SegDetLocal local) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLocal.class);
+        criteria.add(Restrictions.eq("id.NCodEmpresa", local.getId().getNCodEmpresa()));
         criteria.add(Restrictions.eq("VDescripcion", local.getVDescripcion()));
         return (SegDetLocal) DataAccessUtils.uniqueResult(getHibernateTemplate().findByCriteria(criteria));
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarLocal(SegDetLocal local) {
         getHibernateTemplate().saveOrUpdate(local);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarLocal(SegDetLocal local) {
         getHibernateTemplate().delete(local);
     }

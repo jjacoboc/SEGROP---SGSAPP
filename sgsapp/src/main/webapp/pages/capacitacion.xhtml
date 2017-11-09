@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Gestión de Capacitaciones</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="GESTION DE CAPACITACIONES" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid id="pnlSearch" columns="2" width="100%" columnClasses="columnLbl, columnTxt">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{novedadMB.flag}"/>
+                                    <p:selectOneMenu value="#{novedadMB.searchEmpresa}" style="float: left;font-size: 11px" rendered="#{novedadMB.flag}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Participante: " styleClass="Etiqueta1" />
+                                    <p:inputText id="searchParticipante" size="100" maxlength="100" value="#{capacitacionMB.searchParticipante}" style="font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Nombre: " styleClass="Etiqueta1" />
+                                    <p:inputText id="searchNombre" size="100" maxlength="100" value="#{capacitacionMB.searchNombre}" style="font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Tipo Capacitación: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchTipoCapacitacion" value="#{capacitacionMB.searchTipoCapacitacion}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaTipoCapacitacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Modalidad Capacitación: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchModalidad" value="#{capacitacionMB.searchModalidad}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaModalidadCapacitacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Rango Fechas: " styleClass="Etiqueta1" />
+                                    <h:panelGrid columns="5" cellpadding="0" cellspacing="0">
+                                        <p:calendar id="searchFechaInicio" value="#{capacitacionMB.searchFechaInicio}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                        <p:spacer width="10"/>
+                                        <h:outputText value="al" style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <p:spacer width="10"/>
+                                        <p:calendar id="searchFechaFin" value="#{capacitacionMB.searchFechaFin}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <h:panelGroup>
+                                        <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{capacitacionMB.buscarCapacitaciones}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                        <p:commandButton id="btnNuevo" value="Nuevo" actionListener="#{capacitacionMB.toRegistrar}" oncomplete="PF('dlg').show();" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Capacitaciones</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{capacitacionMB.listaCapacitacion}" rows="10" rowIndexVar="rowIndexVar" 
+                                             paginator="true" paginatorPosition="top"  style="font-size: 11px;">
+                                    <p:column rendered="#{capacitacionMB.flag}">
+                                        <f:facet name="header">
+                                            <h:outputText value="EMPRESA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodEmpresa}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEmpresa"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="MODALIDAD" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NModalidad}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterModalidadCapacitacion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="TIPO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NTipoCapacitacion}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterTipoCapacitacion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LUGAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NLugar}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterLugarCapacitacion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA Y HORA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFechaHora}" style="font-size: 11px;font-weight: normal;">
+                                            <f:convertDateTime type="date" locale="ISO-8859-1" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 8%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="elink" actionListener="#{capacitacionMB.toEdit}" oncomplete="PF('editDlg').show();" update=":editDlgForm:editPnlCap, :editDlgForm:pnlEdit, :editDlgForm:editCap">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="pencil.png" alt="editar novedad" title="editar novedad"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="NUEVA CAPACITACIÓN"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgForm">
+                            <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <fieldset id="fsCap">
+                                <legend style="font-size: 11px;font-weight: bold;">Datos de la Capacitación</legend>
+                                <h:panelGrid id="pnlCap" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{lugarMB.flag}"/>
+                                    <h:panelGroup rendered="#{capacitacionMB.flag}">
+                                        <p:selectOneMenu value="#{capacitacionMB.empresa}" style="font-size: 11px" >
+                                            <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                        </p:selectOneMenu>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Nombre: " styleClass="Etiqueta1" />
+                                    <p:inputText id="idNombre" value="#{capacitacionMB.nombre}" size="71" maxlength="70" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Descripción: " styleClass="Etiqueta1" />
+                                    <p:inputTextarea id="idDescripcion" value="#{capacitacionMB.descripcion}" cols="68" rows="2" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Tipo Capacitación: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="idTipoCapacitacion" value="#{capacitacionMB.codTipoCapacitacion}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaTipoCapacitacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Modalidad: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="idModalidad" value="#{capacitacionMB.codModalidad}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaModalidadCapacitacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1"/>
+                                    <h:panelGroup>
+                                        <p:selectOneMenu value="#{capacitacionMB.codLugar}" style="float: left;font-size: 11px" >
+                                            <f:selectItems value="#{listasSessionMB.listaLugarCapacitacion}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{capacitacionMB.listarLugares}" update=":dlgLugarForm:pnlLugar" oncomplete="PF('dlgLugar').show();">
+                                            <h:graphicImage library="images" name="textfield-add.png" title="añadir lugar"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                    <p:calendar id="idFechaHora" value="#{capacitacionMB.fechaHora}" pattern="dd/M/yyyy hh:mm a" locale="es" size="20" style="font-size: 11px"/>
+                                </h:panelGrid>
+                            </fieldset>
+                            <p:spacer/>
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Datos de los Participantes</legend>
+                                <h:panelGrid id="pnlNew" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Tipo de Carga: " styleClass="Etiqueta1" />
+                                    <p:selectOneRadio id="tipoCarga" value="#{capacitacionMB.tipoCarga}" style="font-size: 11px;">
+                                        <f:selectItem itemValue="1" itemLabel="Carga Individual"/>
+                                        <f:selectItem itemValue="2" itemLabel="Carga Masiva"/>
+                                        <p:ajax event="change" listener="#{capacitacionMB.handleChangeTipoCarga}" update=":dlgForm:pnlNew"/>
+                                    </p:selectOneRadio>
+                                    <p:spacer width="10px;" rendered="#{capacitacionMB.cargaIndividual}"/>
+                                    <h:panelGrid columns="2" width="85%" cellpadding="0" cellspacing="0" style="text-align: center;" rendered="#{capacitacionMB.cargaIndividual}">
+                                        <h:outputText value="Nombres del Participante" style="font-size: 9px;"/>
+                                        <h:outputText value="Apellidos del Participante" style="font-size: 9px;"/>
+                                    </h:panelGrid>
+                                    <h:outputText value="Nombre Completo: " styleClass="Etiqueta1" rendered="#{capacitacionMB.cargaIndividual}"/>
+                                    <h:panelGroup id="groupIndividual" rendered="#{capacitacionMB.cargaIndividual}">
+                                        <p:inputText id="idNombres" value="#{capacitacionMB.nombreParticipante}" size="26" maxlength="80" style="font-size: 11px;text-transform: uppercase;"/>
+                                        <p:inputText id="idApellido" value="#{capacitacionMB.apellidoParticipante}" size="26" maxlength="80" style="font-size: 11px;text-transform: uppercase;"/>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{capacitacionMB.agregarParticipante}" update=":dlgForm:groupIndividual, :dlgForm:cap, :dlgForm:dlgMsgs">
+                                            <h:graphicImage library="images" name="add.png" title="agregar participante"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+                                    <h:outputLabel value="Archivo:" styleClass="Etiqueta1" rendered="#{capacitacionMB.cargaMasiva and empty capacitacionMB.listaParticipante}"/>
+                                    <p:fileUpload id="idArchivo" value="#{capacitacionMB.file}" fileUploadListener="#{capacitacionMB.uploadFile}" update=":dlgForm:pnlNew, :dlgForm:cap, dlgForm:dlgMsgs"
+                                                  cancelLabel="Cancelar" uploadLabel="Cargar" label="Examinar" allowTypes="/(\.|\/)(xls|xlsx)$/" rendered="#{capacitacionMB.cargaMasiva  and empty capacitacionMB.listaParticipante}"/>
+                                    <p:spacer width="10px;" rendered="#{capacitacionMB.cargaMasiva  and empty capacitacionMB.listaParticipante}"/>
+                                    <h:panelGroup rendered="#{capacitacionMB.cargaMasiva  and empty capacitacionMB.listaParticipante}">
+                                        <h:commandLink action="#{capacitacionMB.downloadTemplate}" target="_blank">
+                                            <h:graphicImage library="images" name="documentExcel.png" alt="descargar plantilla" title="descargar plantilla"/>
+                                        </h:commandLink>
+                                        <p:spacer width="10px;"/>
+                                        <h:outputText value="Plantilla Carga Masiva" styleClass="Etiqueta1" />
+                                    </h:panelGroup>
+                                    <h:outputLabel value="Archivo:" styleClass="Etiqueta1" rendered="#{not empty capacitacionMB.listaParticipante}"/>
+                                    <h:outputText value="Carga finalizada." styleClass="Etiqueta1" rendered="#{not empty capacitacionMB.listaParticipante}"/>
+                                </h:panelGrid>
+                                <p:dataTable id="cap" var="row" value="#{capacitacionMB.listaParticipante}" rows="5" 
+                                             paginator="true" paginatorPosition="top" style="font-size: 11px;" >
+                                    <f:facet name="caption">
+                                        <h:outputText value="LISTA DE PARTICIPANTES" styleClass="Etiqueta1" />
+                                    </f:facet>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRE PARTICIPANTE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombreCompleto}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                            <h:panelGrid columns="1">
+                                <p:commandButton value="Grabar" onclick="PF('confirmDlg').show();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDlg" widgetVar="confirmDlg" header="Confirmación" message="Se procederá a registrar la capacitación. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :dlgForm:dlgMsgs" actionListener="#{capacitacionMB.registrarCapacitacion}" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="editDlg" widgetVar="editDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EDITAR CAPACITACIÓN"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="editDlgForm">
+                            <p:messages id="editDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <fieldset id="editFsCap">
+                                <legend style="font-size: 11px;font-weight: bold;">Datos de la Capacitación</legend>
+                                <h:panelGrid id="editPnlCap" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{lugarMB.flag}"/>
+                                    <h:panelGroup rendered="#{capacitacionMB.flag}">
+                                        <p:selectOneMenu value="#{capacitacionMB.selectedCapacitacion.NCodEmpresa}" style="font-size: 11px" >
+                                            <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                        </p:selectOneMenu>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Nombre: " styleClass="Etiqueta1" />
+                                    <p:inputText id="editNombre" value="#{capacitacionMB.selectedCapacitacion.VNombre}" size="71" maxlength="50" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Descripción: " styleClass="Etiqueta1" />
+                                    <p:inputTextarea id="editDescripcion" value="#{capacitacionMB.selectedCapacitacion.VDescripcion}" cols="68" rows="3" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Tipo Capacitación: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="editTipoCapacitacion" value="#{capacitacionMB.selectedCapacitacion.NTipoCapacitacion}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaTipoCapacitacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Modalidad: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="editModalidad" value="#{capacitacionMB.selectedCapacitacion.NModalidad}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaModalidadCapacitacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1"/>
+                                    <h:panelGroup>
+                                        <p:selectOneMenu value="#{capacitacionMB.selectedCapacitacion.NLugar}" style="float: left;font-size: 11px" >
+                                            <f:selectItems value="#{listasSessionMB.listaLugarCapacitacion}"/>
+                                        </p:selectOneMenu>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{capacitacionMB.listarLugares}" update=":dlgLugarForm:pnlLugar" oncomplete="PF('dlgLugar').show();">
+                                            <h:graphicImage library="images" name="textfield-add.png" alt="añadir lugar" title="añadir lugar"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+
+                                    <h:outputText value="Fecha y Hora: " styleClass="Etiqueta1"/>
+                                    <p:calendar id="idFechaHora" value="#{capacitacionMB.selectedCapacitacion.DFechaHora}" pattern="dd/M/yyyy hh:mm a" locale="es" size="20" style="font-size: 11px"/>
+                                </h:panelGrid>
+                            </fieldset>
+                            <p:spacer/>
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Datos de los Participantes</legend>
+                                <h:panelGrid id="pnlEdit" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Tipo de Carga: " style="float: left;" styleClass="Etiqueta1" />
+                                    <p:selectOneRadio value="#{capacitacionMB.tipoCarga}" style="float: left;font-size: 11px;">
+                                        <f:selectItem itemValue="1" itemLabel="Carga Individual"/>
+                                        <f:selectItem itemValue="2" itemLabel="Carga Masiva"/>
+                                        <p:ajax event="change" listener="#{capacitacionMB.handleChangeTipoCarga}" update=":editDlgForm:pnlEdit"/>
+                                    </p:selectOneRadio>
+                                    <p:spacer width="10px;" rendered="#{capacitacionMB.cargaIndividual}"/>
+                                    <h:panelGrid columns="2" width="92%" cellpadding="0" cellspacing="0" style="text-align: center;" rendered="#{capacitacionMB.cargaIndividual}">
+                                        <h:outputText value="Nombres del Participante" style="font-size: 9px;"/>
+                                        <h:outputText value="Apellidos del Participante" style="font-size: 9px;"/>
+                                    </h:panelGrid>
+                                    <h:outputText value="Nombre Completo: " styleClass="Etiqueta1" rendered="#{capacitacionMB.cargaIndividual}"/>
+                                    <h:panelGroup rendered="#{capacitacionMB.cargaIndividual}">
+                                        <p:inputText id="editNombres" value="#{capacitacionMB.nombreParticipante}" size="28" maxlength="80" style="font-size: 11px;text-transform: uppercase;"/>
+                                        <p:inputText id="editApellido" value="#{capacitacionMB.apellidoParticipante}" size="28" maxlength="80" style="font-size: 11px;text-transform: uppercase;"/>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{capacitacionMB.registrarParticipante}" update=":editDlgForm:editNombres, :editDlgForm:editApellido, :editDlgForm:editCap, :editDlgForm:editDlgMsgs">
+                                            <h:graphicImage library="images" name="add.png" title="agregar participante"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+                                    <h:outputLabel value="Archivo:" styleClass="Etiqueta1" rendered="#{capacitacionMB.cargaMasiva}"/>
+                                    <p:fileUpload id="ideditArchivo" value="#{capacitacionMB.file}" fileUploadListener="#{capacitacionMB.uploadFile}" update=":editDlgForm:ideditArchivo, :editDlgForm:editCap, :editDlgForm:editDlgMsgs"
+                                                  cancelLabel="Cancelar" uploadLabel="Cargar" label="Examinar" allowTypes="/(\.|\/)(xls|xlsx)$/" rendered="#{capacitacionMB.cargaMasiva}"/>
+                                    <p:spacer width="10px;" rendered="#{capacitacionMB.cargaMasiva}"/>
+                                    <h:panelGroup rendered="#{capacitacionMB.cargaMasiva}">
+                                        <p:commandLink action="#{capacitacionMB.downloadTemplate}" target="_blank">
+                                            <h:graphicImage library="images" name="documentExcel.png" alt="descargar plantilla" title="descargar plantilla"/>
+                                        </p:commandLink>
+                                        <p:spacer width="10px;"/>
+                                        <h:outputText value="Descargar Plantilla Carga Masiva" styleClass="Etiqueta1" />
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                                <h:panelGrid columns="1" width="100%">
+                                    <p:dataTable id="editCap" var="row" value="#{capacitacionMB.listaParticipante}" rows="5" rowIndexVar="rowkey" 
+                                                 paginator="true" paginatorPosition="top" style="font-size: 11px;" >
+                                        <p:column>
+                                            <f:facet name="header">
+                                                <h:outputText value="NOMBRE PARTICIPANTE" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{row.VNombreCompleto}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:column>
+                                        <p:column style="text-align: center;width: 10%;">
+                                            <f:facet name="header">
+                                                <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <p:commandLink id="elink" actionListener="#{capacitacionMB.toEditarParticipante}" oncomplete="PF('editParticipanteDlg').show()" update=":editParticipanteDlgForm:pnlEditParticipante">
+                                                <f:param name="rowkey" value="#{rowkey}"/>
+                                                <f:setPropertyActionListener value="#{row}" target="#{capacitacionMB.selectedParticipante}"/>
+                                                <h:graphicImage library="images" name="pencil.png" alt="editar participante" title="editar participante"/>
+                                            </p:commandLink>
+                                            <p:commandLink onclick="PF('delConfirmDlg').show();">
+                                                <f:setPropertyActionListener value="#{row}" target="#{capacitacionMB.selectedParticipante}"/>
+                                                <h:graphicImage library="images" name="cross.png" alt="eliminar participante" title="eliminar participante"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                    </p:dataTable>
+                                </h:panelGrid>
+                            </fieldset>
+                            <h:panelGrid columns="2">
+                                <p:commandButton value="Grabar" onclick="PF('editConfirmDlg').show();" style="font-size: 11px;height: 2em"/>
+                                <p:commandButton value="Cancelar" oncomplete="PF('editDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="editConfirmDlg" widgetVar="editConfirmDlg" header="Confirmación" message="Se procederá a actualizar la capacitación. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="editConfirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :editDlgForm:editDlgMsgs" actionListener="#{capacitacionMB.editCapacitacion}" oncomplete="PF('editConfirmDlg').hide();" style="font-size: 11px;height: 2em;"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('editConfirmDlg').hide();" style="font-size: 11px;height: 2em;"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="editParticipanteDlg" widgetVar="editParticipanteDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EDITAR PARTICIPANTE"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="editParticipanteDlgForm">
+                            <h:panelGrid id="pnlEditParticipante" columns="2" width="100%">
+                                <p:spacer width="10px;"/>
+                                <h:panelGrid columns="2" width="92%" cellpadding="0" cellspacing="0" style="text-align: center;">
+                                    <h:outputText value="Nombres del Participante" style="font-size: 9px;"/>
+                                    <h:outputText value="Apellidos del Participante" style="font-size: 9px;"/>
+                                </h:panelGrid>
+                                <h:outputText value="Nombre Completo: " style="font-size: 11px;"/>
+                                <h:panelGroup>
+                                    <p:inputText value="#{capacitacionMB.nombreParticipante}" size="32" maxlength="80" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:inputText value="#{capacitacionMB.apellidoParticipante}" size="32" maxlength="80" style="font-size: 11px;text-transform: uppercase;"/>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                            <p:separator/>
+                            <p:commandButton id="btnSi" value="Grabar" update=":editDlgForm:editCap, :editDlgForm:editDlgMsgs" actionListener="#{capacitacionMB.editarParticipante}" oncomplete="PF('editParticipanteDlg').hide();" style="height: 2em"/>
+                            <p:commandButton id="btnNo" value="Cancelar" type="button" oncomplete="PF('editParticipanteDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="delConfirmDlg" widgetVar="delConfirmDlg" header="Confirmación" message="Se procederá a eliminar al participante. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="delConfirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :editDlgForm:editCap" actionListener="#{capacitacionMB.eliminarParticipante}" oncomplete="PF('delConfirmDlg').hide();" style="height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('delConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgLugar" widgetVar="dlgLugar" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR LUGAR DE CAPACITACIÓN"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgLugarForm">
+                            <p:messages id="dlgLugarMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlLugar" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Lugar : " styleClass="Etiqueta1"/>
+                                    <h:inputText id="txtlugar" size="95" maxlength="150" value="#{capacitacionMB.descripcionLugar}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{capacitacionMB.registrarLugar}" update=":f:pnlSearch, :dlgForm:pnlCap, :editDlgForm:editPnlCap, :dlgLugarForm:dlgLugarMsgs, :dlgLugarForm:pnlLugar">
+                                        <h:graphicImage library="images" name="add.png" title="añadir lugar" alt="añadir lugar"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="lugares" var="row" rowIndexVar="rowkey" value="#{capacitacionMB.listaLugares}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LUGAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center;width:10px;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ELIMINAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink onclick="PF('confirmDelLugarDlg').show()">
+                                            <f:setPropertyActionListener value="#{row}" target="#{capacitacionMB.selectedLugar}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar lugar" title="eliminar lugar"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelLugarDlg" widgetVar="confirmDelLugarDlg" header="Confirmación" message="Se procederá a eliminar el lugar. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelLugarDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:pnlSearch, :dlgForm:pnlCap, :editDlgForm:editPnlCap, :dlgLugarForm:dlgLugarMsgs, :dlgLugarForm:pnlLugar" actionListener="#{capacitacionMB.eliminarParticipante}" oncomplete="PF('confirmDelLugarDlg').hide();" style="height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelLugarDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

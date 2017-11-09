@@ -10,15 +10,17 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.ConverterException;
+import javax.faces.convert.FacesConverter;
 import javax.faces.model.SelectItem;
 import javax.servlet.http.HttpSession;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.ui.ListasSessionMB;
 
 /**
  *
  * @author JJ
  */
+@FacesConverter("converterLocal")
 public class ConverterLocal implements Converter{
 
     @Override
@@ -35,9 +37,9 @@ public class ConverterLocal implements Converter{
         List lista = null;
         String label = "";
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
             ListasSessionMB listasSession = session.getAttribute("listasSessionMB")!=null?(ListasSessionMB)session.getAttribute("listasSessionMB"):new ListasSessionMB();
-            lista = listasSession.getListaLocalActivoByEmpresa();
+            lista = listasSession.getListaLocalActivo();
             for(int i=0;i<lista.size();i++){
                 SelectItem item = (SelectItem)lista.get(i);
                 if(value.toString().equals(item.getValue().toString())){

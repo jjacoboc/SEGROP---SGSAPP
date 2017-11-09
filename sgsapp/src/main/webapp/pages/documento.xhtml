@@ -1,0 +1,396 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Gestión de Documentos</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="GESTION DE DOCUMENTOS" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid id="pnlFilters" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Procedencia: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{documentoMB.searchProcedencia}" style="float: left;font-size: 11px" >
+                                        <f:selectItems value="#{listasSessionMB.listaProcedencia}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Tipo de Documento: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu value="#{documentoMB.searchTipoDocumento}" style="float: left;font-size: 11px" >
+                                        <f:selectItems value="#{listasSessionMB.listaTipoDocumento}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Rango Fechas: " styleClass="Etiqueta1" />
+                                    <h:panelGrid columns="5" cellpadding="0" cellspacing="0">
+                                        <p:calendar id="searchFechaInicio" value="#{documentoMB.searchFechaInicio}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                        <p:spacer width="10"/>
+                                        <h:outputText value="al" style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <p:spacer width="10"/>
+                                        <p:calendar id="searchFechaFin" value="#{documentoMB.searchFechaFin}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <h:panelGrid columns="1">
+                                <h:panelGroup>
+                                    <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{documentoMB.buscarDocumento}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                    <p:commandButton id="btnNuevo" value="Nuevo" actionListener="#{documentoMB.toRegistrar}" oncomplete="PF('dlg').show();" update=":dlgForm:dlgMsgs, :dlgForm:pnlNew" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:panelGrid>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Documentos</legend>
+                                <p:dataTable id="tbl" var="row" value="#{documentoMB.listaDocumento}" rows="10" rowIndexVar="rowKey" 
+                                             paginator="true" paginatorPosition="top" emptyMessage="No se encontraron registros." style="font-size: 11px; width: 100%">
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="PROCEDENCIA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NProcedencia}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterProcedencia"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="TIPO DOCUMENTO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NTipoDocumento}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterTipoDocumento"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="DESCRIPCIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombre}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 5%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="VERSIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NVersion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 10%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA EMISIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFecEmision}" style="font-size: 11px;font-weight: normal;">
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;width: 10%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="elink" actionListener="#{documentoMB.toEdit}" oncomplete="PF('editDlg').show()" update=":editDlgForm:editDlgMsgs, :editDlgForm:pnlEdit">
+                                            <f:setPropertyActionListener value="#{row}" target="#{documentoMB.selectedDocument}"/>
+                                            <h:graphicImage library="images" name="pencil.png" alt="editar datos del documento" title="editar datos del documento"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <h:commandLink id="dlink" action="#{documentoMB.handleFileDownload}"  target="_blank">
+                                            <f:param value="#{rowKey}" name="rowKey"/>
+                                            <f:setPropertyActionListener value="#{row}" target="#{documentoMB.selectedDocument}"/>
+                                            <h:graphicImage library="images" name="download.png" height="16px" width="16px" alt="descargar documento" title="descargar documento"/>
+                                        </h:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="vlink" actionListener="#{documentoMB.toRegistrar}" oncomplete="PF('versionDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{documentoMB.selectedDocument}"/>
+                                            <h:graphicImage library="images" name="document-move.png" height="16px" width="16px" alt="versionar documento" title="versionar documento"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="hlink" actionListener="#{documentoMB.listarHistorico}" oncomplete="PF('histDlg').show();" update=":histDlgForm:tblHist">
+                                            <f:param value="#{rowKey}" name="rowKey"/>
+                                            <h:graphicImage library="images" name="document-copies.png" height="16px" width="16px" alt="historial del documento" title="historial del documento"/>
+                                        </p:commandLink>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="deslink" oncomplete="PF('desdlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{documentoMB.selectedDocument}"/>
+                                            <h:graphicImage library="images" name="page_delete.png" alt="desactivar documento" title="desactivar documento"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+                    
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="650px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="NUEVO DOCUMENTO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgForm" prependId="false" enctype="multipart/form-data">
+                            <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlNew" columns="2">                        
+                                <h:outputText value="Procedencia: " styleClass="Etiqueta1" />
+                                <p:selectOneMenu value="#{documentoMB.procedencia}" style="float: left;font-size: 11px" >
+                                    <f:selectItems value="#{listasSessionMB.listaProcedencia}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Tipo de Documento: " styleClass="Etiqueta1" />
+                                <h:panelGroup>
+                                    <p:selectOneMenu value="#{documentoMB.tipoDocumento}" style="float: left;font-size: 11px" >
+                                        <f:selectItems value="#{listasSessionMB.listaTipoDocumento}"/>
+                                    </p:selectOneMenu>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{documentoMB.listarTipoDocumentos}" update=":dlgTipoDocumentoForm:pnlTipoDocumento" oncomplete="#{p:component('dlgTipoDocumento')}.show();">
+                                        <h:graphicImage library="images" name="textfield-add.png" alt="añadir tipo de documento"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+
+                                <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                <p:inputText value="#{documentoMB.descripcion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputLabel value="Fecha de Emisión:" styleClass="Etiqueta1"/>
+                                <p:calendar id="idFechaHora" value="#{documentoMB.fechaEmision}" pattern="dd/MM/yyyy hh:mm a" locale="es" size="20" style="float: left; font-size: 11px"/>
+
+                                <h:outputLabel value="Archivo:" styleClass="Etiqueta1"/>
+                                <h:panelGrid id="pnlFile" columns="1">
+                                    <p:fileUpload value="#{documentoMB.file}" allowTypes="/(\.|\/)(gif|jpe?g|png|doc|docx|pdf|txt|xls|xlsx|ppt|pptx)$/" fileLimit="1" fileUploadListener="#{documentoMB.handleFileUpload}" 
+                                                  label="Examinar..." uploadLabel="Cargar" cancelLabel="Cancelar" update=":dlgForm:pnlFile" rendered="#{documentoMB.file eq null}"/>
+                                    <h:outputText value="- Los tipos de archivo aceptados son doc, docx, xls, xlsx, ppt, pptx, pdf, txt, jpg, png, gif." style="font-size: 9px;color: red;" rendered="#{documentoMB.file eq null}"/>
+                                    <h:outputText value="- El archivo debe tener como máximo 1024KB." style="font-size: 9px; color: red;" rendered="#{documentoMB.file eq null}"/>
+                                    <h:panelGrid columns="2">
+                                        <h:outputText value="#{documentoMB.nombreOriginal}" rendered="#{documentoMB.file ne null}"/>
+                                        <p:commandLink update=":dlgForm:pnlFile" rendered="#{documentoMB.file ne null}">
+                                            <f:setPropertyActionListener value="#{null}" target="#{documentoMB.file}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar documento" title="eliminar documento"/>
+                                        </p:commandLink>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton value="Grabar" onclick="PF('confirmDlg').show();" style="font-size: 11px;height: 2em" />
+                                <p:commandButton value="Cancelar" onclick="PF('dlg').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>  
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="confirmDlg" widgetVar="confirmDlg" header="Confirmación" message="Se procederá a registrar el documento. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :dlgForm:dlgMsgs" actionListener="#{documentoMB.registrarDocumento}" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:dialog id="editDlg" widgetVar="editDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="650px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="ACTUALIZAR DOCUMENTO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="editDlgForm">
+                            <p:messages id="editDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlEdit" columns="2">                        
+                                <h:outputText value="Procedencia: " styleClass="Etiqueta1" />
+                                <p:selectOneMenu value="#{documentoMB.selectedDocument.NProcedencia}" style="float: left;font-size: 11px" >
+                                    <f:selectItems value="#{listasSessionMB.listaProcedencia}"/>
+                                </p:selectOneMenu>
+
+                                <h:outputText value="Tipo de Documento: " styleClass="Etiqueta1" />
+                                <h:panelGroup>
+                                    <p:selectOneMenu value="#{documentoMB.selectedDocument.NTipoDocumento}" style="float: left;font-size: 11px" >
+                                        <f:selectItems value="#{listasSessionMB.listaTipoDocumento}"/>
+                                    </p:selectOneMenu>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{documentoMB.listarTipoDocumentos}" update=":dlgTipoDocumentoForm:pnlTipoDocumento" oncomplete="#{p:component('dlgTipoDocumento')}.show();">
+                                        <h:graphicImage library="images" name="textfield-add.png" alt="añadir tipo de documento"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+
+                                <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                <p:inputText value="#{documentoMB.selectedDocument.VDescripcion}" size="50" maxlength="100" style="float: left;font-size: 11px;text-transform: uppercase;" />
+
+                                <h:outputLabel value="Fecha de Emisión:" styleClass="Etiqueta1"/>
+                                <p:calendar id="idFechaHora" value="#{documentoMB.selectedDocument.DFecEmision}" pattern="dd/MM/yyyy hh:mm a" locale="es" size="20" style="float: left; font-size: 11px"/>
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton value="Grabar" onclick="PF('confirmEditDlg').show();" style="font-size: 11px;height: 2em" />
+                                <p:commandButton value="Cancelar" onclick="PF('editDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>  
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="confirmEditDlg" widgetVar="confirmEditDlg" header="Confirmación" message="Se procederá con la actualización del documento. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEditDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :editDlgForm:editDlgMsgs" actionListener="#{documentoMB.editarDocumento}" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEditDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:dialog id="versionDlg" widgetVar="versionDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="500px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="VERSIONAR DOCUMENTO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="versionDlgForm" enctype="multipart/form-data">
+                            <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlVersion" columns="2" style="margin-bottom:10px">
+                                <h:outputLabel value="Archivo:" styleClass="Etiqueta1"/>
+                                <h:panelGrid columns="1">
+                                    <p:fileUpload value="#{documentoMB.file}" allowTypes="/(\.|\/)(gif|jpe?g|png|doc|docx|pdf|txt|xls|xlsx|ppt|pptx)$/" fileLimit="1" fileUploadListener="#{documentoMB.handleFileUpload}" 
+                                                  label="Examinar..." uploadLabel="Cargar" cancelLabel="Cancelar" update=":versionDlgForm:pnlVersion" rendered="#{documentoMB.file eq null}"/>
+                                    <h:outputText value="- Los tipos de archivo aceptados son doc, docx, xls, xlsx, ppt, pptx, pdf, txt, jpg, png, gif." style="font-size: 9px;color: red;"/>
+                                    <h:outputText value="- El archivo debe tener como máximo 1024KB." style="font-size: 9px;color: red;"/>
+                                    <h:panelGrid columns="2">
+                                        <h:outputText value="#{documentoMB.nombreOriginal}" rendered="#{documentoMB.file ne null}"/>
+                                        <p:commandLink update=":versionDlgForm:pnlVersion" rendered="#{documentoMB.file ne null}">
+                                            <f:setPropertyActionListener value="#{null}" target="#{documentoMB.file}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar documento" title="eliminar documento"/>
+                                        </p:commandLink>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </h:panelGrid>
+
+                            <h:panelGroup>
+                                <p:commandButton value="Grabar" onclick="PF('confirmVersionDlg').show();" style="font-size: 11px;height: 2em" />
+                                <p:commandButton value="Cancelar" onclick="PF('versionDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            </h:panelGroup>
+                        </h:form>
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="confirmVersionDlg" widgetVar="confirmVersionDlg" header="Confirmación" message="Se actualizará el documento a la nueva versión seleccionada. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmVersionDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl" actionListener="#{documentoMB.versionarDocumento}" oncomplete="PF('confirmVersionDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmVersionDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:dialog id="histDlg" widgetVar="histDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="650px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="RESTAURAR DOCUMENTO HISTÓRICO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="histDlgForm">
+                            <h:panelGrid columns="1" style="margin-bottom:10px;" width="100%">
+                                <p:dataTable id="tblHist" var="row" rowIndexVar="rowKey" value="#{documentoMB.listaHistorial}" rows="10" style="font-size: 11px; width: 100%"
+                                             paginator="true" paginatorPosition="top" emptyMessage="No se encontraron registros.">
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="TIPO DOCUMENTO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NTipoDocumento}" >
+                                            <f:converter converterId="converterTipoDocumento"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="DESCRIPCIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" />
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="VERSIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NVersion}" />
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA EMISIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFecEmision}" >
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;width: 12%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="RESTAURAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink actionListener="#{documentoMB.restaurarDocumento}" oncomplete="PF('histDlg').hide;" update=":f:tbl">
+                                            <f:param value="#{rowKey}" name="rowKey"/>
+                                            <f:setPropertyActionListener value="#{row}" target="#{documentoMB.selectedHistorial}"/>
+                                            <h:graphicImage library="images" name="document-split.png" alt="restaurar documento"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="desdlg" widgetVar="desdlg" header="Desactivación del Documento" message="Se procederá a desactivar el documento. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="mpdForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl" actionListener="#{documentoMB.desactivarDocumento}" oncomplete="PF('desdlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('desdlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:dialog id="dlgTipoDocumento" widgetVar="dlgTipoDocumento" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="750px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR TIPO DE DOCUMENTO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgTipoDocumentoForm">
+                            <p:messages id="dlgTipoDocumentoMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlTipoDocumento" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Tipo de Documento : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txttipodocumento" size="95" maxlength="150" value="#{documentoMB.descripcionTipoDocumento}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{documentoMB.registrarTipoDocumento}" update=":f:pnlFilters, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgTipoDocumentoForm:dlgTipoDocumentoMsgs, :dlgTipoDocumentoForm:pnlTipoDocumento">
+                                        <h:graphicImage library="images" name="add.png" title="añadir tipo de documento" alt="añadir tipo de documento"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="tipodocumentos" var="row" rowIndexVar="rowkey" value="#{documentoMB.listaTipoDocumentos}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="TIPO DE DOCUMENTO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center; width: 5%;">
+                                        <p:commandLink onclick="PF('confirmDelTipoDocumentoDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{documentoMB.selectedTipoDocumento}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar tipo de documento" title="eliminar tipo de documento"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="confirmDelTipoDocumentoDlg" widgetVar="confirmDelTipoDocumentoDlg" header="Confirmación" message="Se procederá a eliminar el tipo de documento. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelLocalDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{documentoMB.eliminarTipoDocumento}" oncomplete="PF('confirmDelTipoDocumentoDlg').hide();" update=":f:pnlFilters, :dlgForm:pnlNew, :editDlgForm:pnlEdit, :dlgTipoDocumentoForm:dlgTipoDocumentoMsgs, :dlgTipoDocumentoForm:pnlTipoDocumento" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelTipoDocumentoDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>
+

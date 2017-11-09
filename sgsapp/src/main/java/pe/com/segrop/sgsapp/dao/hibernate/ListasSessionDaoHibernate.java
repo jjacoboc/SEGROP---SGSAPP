@@ -17,6 +17,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ListasSessionDao;
 import pe.com.segrop.sgsapp.domain.SegCabMaestro;
 import pe.com.segrop.sgsapp.domain.SegDetMaestrodetalle;
@@ -81,11 +82,13 @@ public class ListasSessionDaoHibernate extends HibernateDaoSupport implements Li
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarMaestroDetalle(SegDetMaestrodetalle maestroDetalle) {
         getHibernateTemplate().saveOrUpdate(maestroDetalle);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarMaestroDetalle(SegDetMaestrodetalle maestroDetalle) {
         getHibernateTemplate().delete(maestroDetalle);
     }

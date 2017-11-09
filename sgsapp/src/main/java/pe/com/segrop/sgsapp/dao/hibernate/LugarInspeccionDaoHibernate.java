@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.LugarInspeccionDao;
 import pe.com.segrop.sgsapp.domain.SegCabLugar;
 
@@ -78,11 +79,13 @@ public class LugarInspeccionDaoHibernate extends HibernateDaoSupport implements 
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarLugar(SegCabLugar lugar) {
         getHibernateTemplate().saveOrUpdate(lugar);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarLugar(SegCabLugar lugar) {
         getHibernateTemplate().delete(lugar);
     }

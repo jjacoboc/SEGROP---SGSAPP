@@ -17,6 +17,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.LugarCapacitacionDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetLugarCapacitacion;
@@ -77,11 +78,13 @@ public class LugarCapacitacionDaoHibernate extends HibernateDaoSupport implement
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarLugarCapacitacion(SegDetLugarCapacitacion lugar) {
         getHibernateTemplate().saveOrUpdate(lugar);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void eliminarLugarCapacitacion(SegDetLugarCapacitacion lugar) {
         getHibernateTemplate().delete(lugar);
     }

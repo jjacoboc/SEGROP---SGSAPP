@@ -16,6 +16,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ClaveDao;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegDetClave;
@@ -61,6 +62,7 @@ public class ClaveDaoHibernate extends HibernateDaoSupport implements ClaveDao{
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarClave(SegDetClave clave) {
         getHibernateTemplate().saveOrUpdate(clave);
     }

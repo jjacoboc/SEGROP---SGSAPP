@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.PermisoDao;
 import pe.com.segrop.sgsapp.domain.SegDetObjeto;
 import pe.com.segrop.sgsapp.domain.SegDetPerfil;
@@ -133,6 +134,7 @@ public class PermisoDaoHibernate extends HibernateDaoSupport implements PermisoD
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarPermiso(SegRelPermiso permiso) {
         getHibernateTemplate().saveOrUpdate(permiso);
     }

@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3c.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Cambio de Clave</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+    </h:head>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+                
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:panelGrid columns="2" width="100%" cellpadding="0" style="vertical-align: middle" styleClass="ui-widget ui-widget-header ui-corner-all">
+                        <p:graphicImage library="images" name="logoSegrop.png" style="border: 0;"/>
+                        <p:spacer height="15"/>
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" width="100%" cellpadding="0" cellspacing="0" >
+                        <p:spacer height="150"/>
+                        <h:form id="login">
+                            <center>
+                                <p:panel id="pnl" header="CAMBIO DE CLAVE" style="font-size: 13px;width: 350px;text-align: left;" >
+                                    <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                                    <h:panelGrid columns="2" width="100%">
+                                        <h:panelGrid columns="2">
+                                            <h:outputText value="Clave Actual: " styleClass="Etiqueta1"/>
+                                            <p:password value="#{claveMB.claveActual}" maxlength="8" style="float: left;font-size: 11px" />
+
+                                            <h:outputText value="Nueva Clave: " styleClass="Etiqueta1"/>
+                                            <p:password value="#{claveMB.nuevaClave}" maxlength="8" style="float: left;font-size: 11px" />
+
+                                            <h:outputText value="Confirmación: " styleClass="Etiqueta1"/>
+                                            <p:password value="#{claveMB.confirmacion}" maxlength="8" style="float: left;font-size: 11px" />
+                                        </h:panelGrid>
+                                        <p:graphicImage library="images" name="keychain.png" style="border: 0;"/>
+                                    </h:panelGrid>
+                                    <h:panelGrid columns="1" width="100%" style="text-align: center;">
+                                        <p:commandButton value="Registrar" action="#{claveMB.cambiarClave}" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGrid>
+                                </p:panel>
+                            </center>
+                        </h:form>
+                    </h:panelGrid>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>
+

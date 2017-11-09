@@ -16,10 +16,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import org.primefaces.context.RequestContext;
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
 import pe.com.segrop.sgsapp.dao.DocumentoDao;
 import pe.com.segrop.sgsapp.dao.HistorialDao;
@@ -32,16 +36,18 @@ import pe.com.segrop.sgsapp.domain.SegDetHistorial;
 import pe.com.segrop.sgsapp.domain.SegDetHistorialId;
 import pe.com.segrop.sgsapp.domain.SegDetTipoDocumento;
 import pe.com.segrop.sgsapp.domain.SegDetTipoDocumentoId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
-import pe.com.segrop.sgsapp.web.common.StringUtil;
+import pe.com.segrop.sgsapp.util.StringUtil;
 
 /**
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class DocumentoMB implements Serializable{
 
     private String searchEmpresa;
@@ -270,29 +276,30 @@ public class DocumentoMB implements Serializable{
         this.selectedDocument = new SegDetDocumento();
     }
     
-    public void handleFileUpload(){
+    public void handleFileUpload(FileUploadEvent event){
         String filepath = null;
         String temppath = null;
         ResourceBundle bundle = null;
         try {
-            if(this.getFile() != null){
+            if(event != null){
+                this.setFile(event.getFile());
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                 temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
 //                    temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
 
                 File direc = new File(temppath);
                 direc.mkdirs();
                 File filetoCreate = new File(temppath, this.getFile().getFileName());
-                FileOutputStream fileOutStream = new FileOutputStream(filetoCreate);
-                fileOutStream.write(this.getFile().getContents());
-                fileOutStream.flush();
-                fileOutStream.close();
-                
+                try (FileOutputStream fileOutStream = new FileOutputStream(filetoCreate)) {
+                    fileOutStream.write(this.getFile().getContents());
+                    fileOutStream.flush();
+                }                
                 this.setNombreOriginal(this.file.getFileName());
             }
         } catch (IOException ex) {
             ex.getMessage();
+            ex.printStackTrace();
         }
     }
     
@@ -300,63 +307,55 @@ public class DocumentoMB implements Serializable{
         String filePath = null;
         String fileName = null;
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             SegDetDocumento doc = this.getListaDocumento().get(Integer.parseInt(rowKey));
             if(doc != null){
                 filePath = doc.getVRuta();
                 fileName = doc.getVNombre();
                 
                 File f = new File(filePath.concat(fileName));
-                FileInputStream fileIn = new FileInputStream(f);
-                HttpServletResponse response = BaseBean.getResponse();
-                System.out.println("file length: "+f.length());
-                System.out.println("file path: "+filePath);
-                System.out.println("file name: "+fileName);
-                response.setContentLength(fileIn.available());
-                response.setContentType("application/octet-stream");
-                response.setHeader("Content-Disposition","attachment;filename=\"".concat(fileName).concat("\""));
-                ServletOutputStream out = response.getOutputStream();
-                
-                int c;
-                while((c=fileIn.read()) != -1){
-                    out.write(c);
+                try (FileInputStream fileIn = new FileInputStream(f)) {
+                    HttpServletResponse response = JSFUtils.getResponse();
+                    System.out.println("file length: "+f.length());
+                    System.out.println("file path: "+filePath);
+                    System.out.println("file name: "+fileName);
+                    response.setContentLength(fileIn.available());
+                    response.setContentType("application/octet-stream");
+                    response.setHeader("Content-Disposition","attachment;filename=\"".concat(fileName).concat("\""));
+                    try (ServletOutputStream out = response.getOutputStream()) {
+                        int c;
+                        while((c=fileIn.read()) != -1){
+                            out.write(c);
+                        }   /*
+                        int len = (int)f.length();
+                        byte[] outputByte = new byte[len];
+                        //copy binary contect to output stream
+                        while(fileIn.read(outputByte, 0, len) != -1){
+                        out.write(outputByte, 0, len);
+                        }
+                         */ /*
+                        byte[] outputByte = IOUtils.toByteArray(fileIn);
+                        int read = 0;
+                        //copy binary contect to output stream
+                        while((read = fileIn.read(outputByte)) != -1){
+                        out.write(outputByte, 0, read);
+                        }
+                         */ out.flush();
+                        //Desktop.getDesktop().open(f);
+                    }
                 }
-                /*
-                int len = (int)f.length();
-                byte[] outputByte = new byte[len];
-                //copy binary contect to output stream
-                while(fileIn.read(outputByte, 0, len) != -1){
-                    out.write(outputByte, 0, len);
-                }
-                */
-                
-                
-                /*
-                byte[] outputByte = IOUtils.toByteArray(fileIn);
-                int read = 0;
-                //copy binary contect to output stream
-                while((read = fileIn.read(outputByte)) != -1){
-                    out.write(outputByte, 0, read);
-                }
-                */
-                out.flush();
-                out.close();
-                fileIn.close();
-                //Desktop.getDesktop().open(f);
             }
-        }catch(IOException e){
-            e.getMessage();
-        } catch (NumberFormatException e) {
+        }catch(IOException | NumberFormatException e){
             e.getMessage();
         }
     }
     
     public String handleFileDownload2(){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             SegDetDocumento doc = this.getListaDocumento().get(Integer.parseInt(rowKey));
-            BaseBean.getRequest().setAttribute("filePath", doc.getVRuta());
-            BaseBean.getRequest().setAttribute("fileName", doc.getVNombre());
+            JSFUtils.getRequest().setAttribute("filePath", doc.getVRuta());
+            JSFUtils.getRequest().setAttribute("fileName", doc.getVNombre());
         }catch(NumberFormatException e){
             e.getMessage();
         }
@@ -365,7 +364,7 @@ public class DocumentoMB implements Serializable{
     
     public void buscarDocumento(ActionEvent actionEvent) {
         try {
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             SegDetDocumentoId segDetDocumentoId = new SegDetDocumentoId();
             segDetDocumentoId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -385,7 +384,7 @@ public class DocumentoMB implements Serializable{
     
     public void buscarDocumentoDesactivado(ActionEvent actionEvent) {
         try {
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             SegDetDocumentoId segDetDocumentoId = new SegDetDocumentoId();
             segDetDocumentoId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -420,56 +419,60 @@ public class DocumentoMB implements Serializable{
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             if(this.procedencia != null && !"-1".equals(this.procedencia.toString())){
                 if(this.tipoDocumento != null && !"-1".equals(this.tipoDocumento.toString())){
                     if(this.descripcion != null && !"".equals(this.descripcion)){
                         if(this.fechaEmision != null && !"".equals(this.fechaEmision.toString())){
-                            temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
-                            filepath = bundle.getString("filePath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
-//                                temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
-//                                filepath = bundle.getString("filepath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
+                            if(this.file != null) {
+                                temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
+                                filepath = bundle.getString("filePath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
+    //                                temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
+    //                                filepath = bundle.getString("filepath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
 
-                            long seqValue = documentoDao.nextSequenceValue();
-                            String name = this.getFile().getFileName();
-                            String extension = name.substring(name.lastIndexOf("."));
-                            String fileName = "doc".concat(StringUtil.integerAsString(seqValue)).concat("_01").concat(extension);
-                            File direc = new File(filepath);
-                            direc.mkdirs();
-                            File filetoCreate = new File(filepath, fileName);
-                            FileOutputStream fileOutStream = new FileOutputStream(filetoCreate);
-                            fileOutStream.write(this.getFile().getContents());
-                            fileOutStream.flush();
-                            fileOutStream.close();
+                                long seqValue = documentoDao.nextSequenceValue();
+                                String name = this.getFile().getFileName();
+                                String extension = name.substring(name.lastIndexOf("."));
+                                String fileName = "doc".concat(StringUtil.integerAsString(seqValue)).concat("_01").concat(extension);
+                                File direc = new File(filepath);
+                                direc.mkdirs();
+                                File filetoCreate = new File(filepath, fileName);
+                                try (FileOutputStream fileOutStream = new FileOutputStream(filetoCreate)) {
+                                    fileOutStream.write(this.getFile().getContents());
+                                    fileOutStream.flush();
+                                }
 
-                            direc = new File(temppath);
-                            direc.delete();
+                                direc = new File(temppath);
+                                direc.delete();
 
-                            SegDetDocumentoId segDetDocumentoId = new SegDetDocumentoId();
-                            segDetDocumentoId.setNCodDocumento(BigDecimal.valueOf(seqValue));
-                            segDetDocumentoId.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
-                            
-                            SegDetDocumento segDetDocumento = new SegDetDocumento();
-                            segDetDocumento.setId(segDetDocumentoId);
-                            segDetDocumento.setNCodDocumento(BigDecimal.valueOf(seqValue));
-                            segDetDocumento.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
-                            segDetDocumento.setNProcedencia(procedencia);
-                            segDetDocumento.setNTipoDocumento(tipoDocumento);
-                            segDetDocumento.setVDescripcion(descripcion.toUpperCase().trim());
-                            segDetDocumento.setDFecEmision(fechaEmision);
-                            segDetDocumento.setNVersion(BigDecimal.ONE);
-                            segDetDocumento.setNActivo(BigDecimal.ONE);
-                            segDetDocumento.setVNombreOriginal(this.getNombreOriginal());
-                            segDetDocumento.setVNombre(fileName);
-                            segDetDocumento.setVRuta(filepath); //Windows
-                            segDetDocumento.setDFecCreacion(new Date());
-                            segDetDocumento.setVUsuCreacion(usuario.getVUsuario());
-                            segDetDocumento.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
-                            documentoDao.registrarDocumento(segDetDocumento);
-                            
-                            this.setAction("Richfaces.hideModalPanel('dlg')");
+                                SegDetDocumentoId segDetDocumentoId = new SegDetDocumentoId();
+                                segDetDocumentoId.setNCodDocumento(BigDecimal.valueOf(seqValue));
+                                segDetDocumentoId.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+
+                                SegDetDocumento segDetDocumento = new SegDetDocumento();
+                                segDetDocumento.setId(segDetDocumentoId);
+                                segDetDocumento.setNCodDocumento(BigDecimal.valueOf(seqValue));
+                                segDetDocumento.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+                                segDetDocumento.setNProcedencia(procedencia);
+                                segDetDocumento.setNTipoDocumento(tipoDocumento);
+                                segDetDocumento.setVDescripcion(descripcion.toUpperCase().trim());
+                                segDetDocumento.setDFecEmision(fechaEmision);
+                                segDetDocumento.setNVersion(BigDecimal.ONE);
+                                segDetDocumento.setNActivo(BigDecimal.ONE);
+                                segDetDocumento.setVNombreOriginal(this.getNombreOriginal());
+                                segDetDocumento.setVNombre(fileName);
+                                segDetDocumento.setVRuta(filepath); //Windows
+                                segDetDocumento.setDFecCreacion(new Date());
+                                segDetDocumento.setVUsuCreacion(usuario.getVUsuario());
+                                segDetDocumento.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
+                                documentoDao.registrarDocumento(segDetDocumento);
+                                RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
+                            } else {
+                                FacesContext.getCurrentInstance().addMessage(null,
+                                new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Adjunte el documento de registrar."));
+                            }
                         }else{
                             FacesContext.getCurrentInstance().addMessage(null,
                                 new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la fecha de emisión del documento."));
@@ -505,7 +508,7 @@ public class DocumentoMB implements Serializable{
     
     public void editarDocumento(ActionEvent event){
         try{
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             SegDetDocumento segDetDocumento = this.getSelectedDocument();
             if(segDetDocumento.getNProcedencia() != null && !"-1".equals(segDetDocumento.getNProcedencia().toString())){
@@ -518,10 +521,9 @@ public class DocumentoMB implements Serializable{
                             segDetDocumento.setDFecEmision(segDetDocumento.getDFecEmision());
                             segDetDocumento.setDFecModificacion(new Date());
                             segDetDocumento.setVUsuModificacion(usuario.getVUsuario());
-                            segDetDocumento.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetDocumento.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                             documentoDao.registrarDocumento(segDetDocumento);
-
-                            this.setAction("Richfaces.hideModalPanel('editDlg')");
+                            RequestContext.getCurrentInstance().execute("PF('editDlg').hide();");
                         }else{
                             FacesContext.getCurrentInstance().addMessage(null,
                                 new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la fecha de emisión del documento."));
@@ -556,13 +558,13 @@ public class DocumentoMB implements Serializable{
     
     public void desactivarDocumento(ActionEvent event){
         try{
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             SegDetDocumento segDetDocumento = this.getSelectedDocument();
             segDetDocumento.setNActivo(BigDecimal.ZERO);
             segDetDocumento.setDFecModificacion(new Date());
             segDetDocumento.setVUsuModificacion(usuario.getVUsuario());
-            segDetDocumento.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+            segDetDocumento.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
             documentoDao.registrarDocumento(segDetDocumento);
             this.getListaDocumento().remove(segDetDocumento);
         }catch(Exception e){
@@ -572,13 +574,13 @@ public class DocumentoMB implements Serializable{
     
     public void activarDocumento(ActionEvent event){
         try{
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             SegDetDocumento segDetDocumento = this.getSelectedDocument();
             segDetDocumento.setNActivo(BigDecimal.ONE);
             segDetDocumento.setDFecModificacion(new Date());
             segDetDocumento.setVUsuModificacion(usuario.getVUsuario());
-            segDetDocumento.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+            segDetDocumento.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
             documentoDao.registrarDocumento(segDetDocumento);
             this.getListaDocumento().remove(segDetDocumento);
         }catch(Exception e){
@@ -594,8 +596,8 @@ public class DocumentoMB implements Serializable{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             HistorialDao historialDao = (HistorialDao) ServiceFinder.findBean("HistorialDao");
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             
             temppath = bundle.getString("tempPath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
             filepath = bundle.getString("filePath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
@@ -624,7 +626,7 @@ public class DocumentoMB implements Serializable{
             segDetHistorial.setVRuta(segDetDocumento.getVRuta()); //Windows
             segDetHistorial.setDFecCreacion(new Date());
             segDetHistorial.setVUsuCreacion(usuario.getVUsuario());
-            segDetHistorial.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+            segDetHistorial.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
             historialDao.registrarHistorial(segDetHistorial);
             
             //se guarda la nueva version del documento en disco.
@@ -642,10 +644,10 @@ public class DocumentoMB implements Serializable{
             File direc = new File(filepath);
             direc.mkdirs();
             File filetoCreate = new File(filepath, fileName);
-            FileOutputStream fileOutStream = new FileOutputStream(filetoCreate);
-            fileOutStream.write(this.getFile().getContents());
-            fileOutStream.flush();
-            fileOutStream.close();
+            try (FileOutputStream fileOutStream = new FileOutputStream(filetoCreate)) {
+                fileOutStream.write(this.getFile().getContents());
+                fileOutStream.flush();
+            }
 
             direc = new File(temppath);
             direc.delete();
@@ -656,9 +658,9 @@ public class DocumentoMB implements Serializable{
             segDetDocumento.setNVersion(BigDecimal.valueOf(version));
             segDetDocumento.setDFecModificacion(new Date());
             segDetDocumento.setVUsuModificacion(usuario.getVUsuario());
-            segDetDocumento.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+            segDetDocumento.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
             documentoDao.registrarDocumento(segDetDocumento);
-            this.setAction("Richfaces.hideModalPanel('versionDlg')");
+            RequestContext.getCurrentInstance().execute("PF('versionDlg').hide();");
         }catch(IOException e){
             e.getMessage();
         }
@@ -666,7 +668,7 @@ public class DocumentoMB implements Serializable{
     
     public void listarHistorico(ActionEvent event){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             SegDetDocumento segDetDocumento = this.getListaDocumento().get(Integer.parseInt(rowKey));
             this.setSelectedDocument(segDetDocumento);
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
@@ -678,11 +680,11 @@ public class DocumentoMB implements Serializable{
     
     public void restaurarDocumento(ActionEvent event){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             SegDetHistorial historial = this.getListaHistorial().get(Integer.parseInt(rowKey));
             DocumentoDao documentoDao = (DocumentoDao) ServiceFinder.findBean("DocumentoDao");
             HistorialDao historialDao = (HistorialDao) ServiceFinder.findBean("HistorialDao");
-            SegCabUsuario segCabUsuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario segCabUsuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             
             SegDetDocumento segDetDocumento = this.getSelectedDocument();
             
@@ -706,7 +708,7 @@ public class DocumentoMB implements Serializable{
             segDetHistorial.setVRuta(segDetDocumento.getVRuta()); //Windows
             segDetHistorial.setDFecCreacion(new Date());
             segDetHistorial.setVUsuCreacion(segCabUsuario.getVUsuario());
-            segDetHistorial.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+            segDetHistorial.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
             historialDao.registrarHistorial(segDetHistorial);
             this.getListaDocumento().remove(segDetDocumento);
             
@@ -739,11 +741,11 @@ public class DocumentoMB implements Serializable{
             segDetDocumento.setNVersion(historial.getNVersion());
             segDetDocumento.setDFecModificacion(new Date());
             segDetDocumento.setVUsuModificacion(segCabUsuario.getVUsuario());
-            segDetDocumento.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+            segDetDocumento.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
             documentoDao.registrarDocumento(segDetDocumento);
             historialDao.eliminarHistorial(historial);
             this.getListaDocumento().add(segDetDocumento);
-            this.setAction("Richfaces.hideModalPanel('histDlg')");
+            RequestContext.getCurrentInstance().execute("PF('histDlg').hide();");
         }catch(NumberFormatException e){
             e.getMessage();
         }
@@ -764,7 +766,7 @@ public class DocumentoMB implements Serializable{
     
     public void listarTipoDocumentos(ActionEvent actionEvent){
         try{
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             TipoDocumentoDao tipoDocumentoDao = (TipoDocumentoDao) ServiceFinder.findBean("TipoDocumentoDao");
             this.setListaTipoDocumentos(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(segCabEmpresa));
             this.setSelectedTipoDocumento(new SegDetTipoDocumento());
@@ -780,9 +782,9 @@ public class DocumentoMB implements Serializable{
         try{
             if(this.descripcionTipoDocumento != null && !"".equals(this.descripcionTipoDocumento.trim())){
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-                SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+                SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                 TipoDocumentoDao tipoDocumentoDao = (TipoDocumentoDao) ServiceFinder.findBean("TipoDocumentoDao");
                 SegDetTipoDocumentoId segDetTipoDocumentoId = new SegDetTipoDocumentoId();
                 segDetTipoDocumentoId.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
@@ -797,7 +799,7 @@ public class DocumentoMB implements Serializable{
                     segDetTipoDocumento.setNFlgActivo(BigDecimal.ONE);
                     segDetTipoDocumento.setDFecCreacion(new Date());
                     segDetTipoDocumento.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetTipoDocumento.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetTipoDocumento.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     tipoDocumentoDao.registrarTipoDocumento(segDetTipoDocumento);
                     if(this.getListaTipoDocumentos() == null)
                         this.setListaTipoDocumentos(new ArrayList<SegDetTipoDocumento>());
@@ -808,11 +810,11 @@ public class DocumentoMB implements Serializable{
                     owner.setNCodEmpresa(BigDecimal.valueOf(Long.parseLong(bundle.getString("COD_OWNER"))));
                     listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                     listasSessionMB.setListaTipoDocumento(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(owner), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems());
-                    SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                    SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                     if(!bundle.getString("COD_OWNER").equals(empresaSession.getNCodEmpresa().toString())){
                         listasSessionMB.getListaTipoDocumento().addAll(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems());
                     }
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la descripción del tipo de documento.");
@@ -830,23 +832,23 @@ public class DocumentoMB implements Serializable{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             SegDetTipoDocumento segDetTipoDocumento = (SegDetTipoDocumento) actionEvent.getSource();
             if(segDetTipoDocumento.getVDescripcion() != null && !"".equals(segDetTipoDocumento.getVDescripcion().trim())){
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segDetTipoDocumento.setVDescripcion(segDetTipoDocumento.getVDescripcion().toUpperCase().trim());
                 segDetTipoDocumento.setDFecModificacion(new Date());
                 segDetTipoDocumento.setVUsuModificacion(usuarioSession.getVUsuario());
-                segDetTipoDocumento.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetTipoDocumento.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 TipoDocumentoDao tipoDocumentoDao = (TipoDocumentoDao) ServiceFinder.findBean("TipoDocumentoDao");
                 tipoDocumentoDao.registrarTipoDocumento(segDetTipoDocumento);
                 SegCabEmpresa owner = new SegCabEmpresa();
                 owner.setNCodEmpresa(BigDecimal.valueOf(Long.parseLong(bundle.getString("COD_OWNER"))));
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaTipoDocumento(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(owner), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems());
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
                 if(!bundle.getString("COD_OWNER").equals(empresaSession.getNCodEmpresa().toString())){
                     listasSessionMB.getListaTipoDocumento().addAll(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems());
                 }
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese la descripción del tipo de documento.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
@@ -863,16 +865,16 @@ public class DocumentoMB implements Serializable{
             TipoDocumentoDao tipoDocumentoDao = (TipoDocumentoDao) ServiceFinder.findBean("TipoDocumentoDao");
             tipoDocumentoDao.eliminarTipoDocumento(this.getSelectedTipoDocumento());
             this.getListaTipoDocumentos().remove(this.getSelectedTipoDocumento());
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
             listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
             SegCabEmpresa owner = new SegCabEmpresa();
             owner.setNCodEmpresa(BigDecimal.valueOf(Long.parseLong(bundle.getString("COD_OWNER"))));
             listasSessionMB.setListaTipoDocumento(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(owner), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems());
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             if(!bundle.getString("COD_OWNER").equals(empresaSession.getNCodEmpresa().toString())){
                 listasSessionMB.getListaTipoDocumento().addAll(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems());
             }
-            BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+            JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
         }catch(NumberFormatException e){
             e.getMessage();
         }

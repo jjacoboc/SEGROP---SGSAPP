@@ -24,6 +24,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ExportDao;
 import pe.com.segrop.sgsapp.domain.SegCabEntidad;
 import pe.com.segrop.sgsapp.domain.SegDetAtributo;
@@ -1014,11 +1015,13 @@ public class ExportDaoHibernate extends HibernateDaoSupport implements ExportDao
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void registrarConfiguracion(SegDetExport export) {
         getHibernateTemplate().saveOrUpdate(export);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void deleteExport(SegDetExport export){
         getHibernateTemplate().delete(export);
     }

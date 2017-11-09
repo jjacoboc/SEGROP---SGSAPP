@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package pe.com.segrop.sgsapp.web.common;
+package pe.com.segrop.sgsapp.util;
 
 import javax.faces.context.FacesContext;
 import javax.servlet.ServletContext;
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author Jonatan Jacobo
  */
-public class BaseBean {
+public class JSFUtils {
 
     /**
      * Devuelve la sesión actual asociado a la solicitud, o si la solicitud es nula, crea una.
@@ -78,5 +78,11 @@ public class BaseBean {
         Object object = session.getAttribute(id);
         
         return object;
+    }
+    
+    public static void setSessionAttribute(String key, Object object){
+        FacesContext context = FacesContext.getCurrentInstance();
+        HttpSession session = ((HttpServletRequest)context.getExternalContext().getRequest()).getSession(false);
+        session.setAttribute(key, object);
     }
 }

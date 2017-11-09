@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.CuestionarioDao;
 import pe.com.segrop.sgsapp.domain.SegRelCuestionario;
 
@@ -48,6 +49,7 @@ public class CuestionarioDaoHibernate extends HibernateDaoSupport implements Cue
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarCuestionario(SegRelCuestionario cuestionario) {
         getHibernateTemplate().saveOrUpdate(cuestionario);
     }

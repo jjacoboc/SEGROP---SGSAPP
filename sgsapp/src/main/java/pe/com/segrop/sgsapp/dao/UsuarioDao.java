@@ -5,6 +5,7 @@
 package pe.com.segrop.sgsapp.dao;
 
 import java.util.List;
+import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 
 /**
@@ -13,12 +14,14 @@ import pe.com.segrop.sgsapp.domain.SegCabUsuario;
  */
 public interface UsuarioDao {
     
-    public Long nextSequenceValue();
-    public List<SegCabUsuario> buscarUsuarios(SegCabUsuario usuario);
-    public List<SegCabUsuario> buscarUsuariosActivos(SegCabUsuario usuario);
-    public List<SegCabUsuario> obtenerListaUsuarios();
-    public List<SegCabUsuario> obtenerListaUsuariosActivos();
-    public SegCabUsuario obtenerUsuarioByUser(SegCabUsuario usuario);
-    public SegCabUsuario obtenerUsuarioByNumeroDocumento(SegCabUsuario usuario);
-    public void registrarUsuario(SegCabUsuario usuario);
+    Long nextSequenceValue();
+    List<SegCabUsuario> buscarUsuarios(SegCabUsuario usuario);
+    List<SegCabUsuario> buscarUsuariosActivos(SegCabUsuario usuario);
+    List<SegCabUsuario> obtenerListaUsuarios();
+    List<SegCabUsuario> obtenerListaUsuariosActivos();
+    List<SegCabUsuario> obtenerListaUsuariosByEmpresa(SegCabEmpresa segCabEmpresa);
+    List<SegCabUsuario> obtenerListaUsuariosActivosByEmpresa(SegCabEmpresa segCabEmpresa);
+    SegCabUsuario obtenerUsuarioByUser(SegCabUsuario usuario);
+    SegCabUsuario obtenerUsuarioByNumeroDocumento(SegCabUsuario usuario);
+    void registrarUsuario(SegCabUsuario usuario);
 }

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -24,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ViewScoped;
+import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
@@ -46,9 +47,9 @@ import pe.com.segrop.sgsapp.domain.SegDetClave;
 import pe.com.segrop.sgsapp.domain.SegDetObjeto;
 import pe.com.segrop.sgsapp.domain.SegDetPerfil;
 import pe.com.segrop.sgsapp.domain.SegDetPerfilId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
-import pe.com.segrop.sgsapp.web.common.SHA1BASE64;
+import pe.com.segrop.sgsapp.util.SHA1BASE64;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
 import pe.com.segrop.sgsapp.web.common.Util;
 
@@ -57,12 +58,11 @@ import pe.com.segrop.sgsapp.web.common.Util;
  * @author JJ
  */
 @ManagedBean
-@ViewScoped
+@SessionScoped
 public class LoginMB implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private static final int MINUTES = 1;
-    private String empresa;
     private String usuario;
     private String clave;
     private String claveSecundaria;
@@ -86,20 +86,6 @@ public class LoginMB implements Serializable {
      */
     public LoginMB() {
         this.flgClave = false;
-    }
-
-    /**
-     * @return the empresa
-     */
-    public String getEmpresa() {
-        return empresa;
-    }
-
-    /**
-     * @param empresa the empresa to set
-     */
-    public void setEmpresa(String empresa) {
-        this.empresa = empresa;
     }
 
     /**
@@ -263,7 +249,7 @@ public class LoginMB implements Serializable {
     }
 
     public void clear() {
-        this.setEmpresa(null);
+        this.setSelectedEmpresa(null);
         this.setUsuario(null);
         this.setClave(null);
         this.setClaveGenerada(null);
@@ -321,13 +307,13 @@ public class LoginMB implements Serializable {
         String subject = "";
         StringBuilder body = new StringBuilder("");
         try {
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
             EmpresaDao empresaDao = (EmpresaDao) ServiceFinder.findBean("EmpresaDao");
             UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
             ClaveDao claveDao = (ClaveDao) ServiceFinder.findBean("ClaveDao");
             sessionAttempt = session.getAttribute("sessionAttempt") != null ? (String) session.getAttribute("sessionAttempt") : "1";
             SegCabEmpresa segCabEmpresa = new SegCabEmpresa();
-            segCabEmpresa.setVRuc(this.empresa);
+            segCabEmpresa.setVRuc(this.getSelectedEmpresa().getVRuc());
             segCabEmpresa = empresaDao.obtenerEmpresaByRuc(segCabEmpresa);
             if (segCabEmpresa != null) {
                 SegCabUsuarioId segCabUsuarioId = new SegCabUsuarioId();
@@ -344,14 +330,15 @@ public class LoginMB implements Serializable {
                             String claveEncriptada = SHA1BASE64.encriptar(this.getClave().trim());
                             if (claveEncriptada.equals(segDetClave.getVClave())) {
                                 if (segCabUsuario.getNFlgClave().compareTo(BigDecimal.ZERO) == 0) {
-                                    this.setEmpresa(this.empresa);
                                     this.setUsuarioSession(segCabUsuario);
                                     this.setEmpresaSession(segCabEmpresa);
-                                    BaseBean.getSession().setAttribute("empresa", segCabEmpresa);
-                                    BaseBean.getSession().setAttribute("usuario", segCabUsuario);
+                                    JSFUtils.getSession().setAttribute("empresa", segCabEmpresa);
+                                    JSFUtils.getSession().setAttribute("usuario", segCabUsuario);
                                     FileInputStream fis = new FileInputStream(new File(this.getEmpresaSession().getVRutaLogo()));
-                                    file = new DefaultStreamedContent(new ByteArrayInputStream(IOUtils.toByteArray(fis)));
-                                    this.mime(this.getFile().getName());
+                                    InputStream is = new FileInputStream(new File(this.getEmpresaSession().getVRutaLogo()));
+//                                    file = new DefaultStreamedContent(new ByteArrayInputStream(IOUtils.toByteArray(fis)));
+                                    file = new DefaultStreamedContent(is);
+//                                    this.mime(this.getFile().getName());
                                     UsuarioPerfilDao usuarioPerfilDao = (UsuarioPerfilDao) ServiceFinder.findBean("UsuarioPerfilDao");
                                     List<SegDetPerfil> listaPerfil = usuarioPerfilDao.obtenerPerfilesAsignadosByUsuario(segCabUsuario);
                                     if (listaPerfil != null && !listaPerfil.isEmpty()) {
@@ -375,12 +362,12 @@ public class LoginMB implements Serializable {
                                                 this.setPerfilSession(segDetPerfil);
                                                 this.setMapObjetos(mapa);
 
-                                                BaseBean.getSession().setAttribute("mapaObjetos", mapa);
-                                                BaseBean.getSession().setAttribute("perfil", segDetPerfil);
+                                                JSFUtils.getSession().setAttribute("mapaObjetos", mapa);
+                                                JSFUtils.getSession().setAttribute("perfil", segDetPerfil);
                                                 if (segCabUsuario.getNFlgCambioclave().compareTo(BigDecimal.ZERO) == 0) {
-                                                    this.setDestinationPage("bienvenida");
+                                                    this.setDestinationPage("/pages/bienvenida");
                                                 } else {
-                                                    this.setDestinationPage("cambioClave");
+                                                    this.setDestinationPage("/pages/cambioClave");
                                                 }
                                             } else {
                                                 this.setDestinationPage("login");
@@ -411,11 +398,10 @@ public class LoginMB implements Serializable {
                                                 new FacesMessage(FacesMessage.SEVERITY_INFO, "INFO", "Se ha enviado un email con la clave de confirmación a " + segCabUsuario.getVCorreo() + ", por favor verifique su correo."));
                                     } else {
                                         if (this.claveSecundaria.equals(this.claveGenerada)) {
-                                            this.setEmpresa(this.empresa);
                                             this.setUsuarioSession(segCabUsuario);
                                             this.setEmpresaSession(segCabEmpresa);
-                                            BaseBean.getSession().setAttribute("empresa", segCabEmpresa);
-                                            BaseBean.getSession().setAttribute("usuario", segCabUsuario);
+                                            JSFUtils.getSession().setAttribute("empresa", segCabEmpresa);
+                                            JSFUtils.getSession().setAttribute("usuario", segCabUsuario);
                                             FileInputStream fis = new FileInputStream(new File(this.getEmpresaSession().getVRutaLogo()));
                                             file = new DefaultStreamedContent(new ByteArrayInputStream(IOUtils.toByteArray(fis)));
                                             this.mime(this.getFile().getName());
@@ -441,12 +427,12 @@ public class LoginMB implements Serializable {
                                                         }
                                                         this.setPerfilSession(segDetPerfil);
                                                         this.setMapObjetos(mapa);
-                                                        BaseBean.getSession().setAttribute("mapaObjetos", mapa);
-                                                        BaseBean.getSession().setAttribute("perfil", segDetPerfil);
+                                                        JSFUtils.getSession().setAttribute("mapaObjetos", mapa);
+                                                        JSFUtils.getSession().setAttribute("perfil", segDetPerfil);
                                                         if (segCabUsuario.getNFlgCambioclave().compareTo(BigDecimal.ZERO) == 0) {
-                                                            this.setDestinationPage("bienvenida");
+                                                            this.setDestinationPage("/pages/bienvenida");
                                                         } else {
-                                                            this.setDestinationPage("cambioClave");
+                                                            this.setDestinationPage("/pages/cambioClave");
                                                         }
                                                     } else {
                                                         this.setDestinationPage("login");
@@ -479,7 +465,7 @@ public class LoginMB implements Serializable {
                             password.setDFecBloqueo(new Date());
                             password.setVUsuModificacion(segCabUsuario.getVUsuario());
                             password.setDFecModificacion(password.getDFecBloqueo());
-                            password.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                            password.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                             claveDao.registrarClave(password);
                             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                             to[0] = segCabUsuario.getVCorreo();
@@ -510,16 +496,15 @@ public class LoginMB implements Serializable {
                         new FacesMessage(FacesMessage.SEVERITY_ERROR, "No existe la empresa ingresada.", "Intente nuevamente."));
                 this.setDestinationPage("login");
             }
-        } catch (IllegalStateException e) {
-            Logger.getLogger(LoginMB.class.getName()).log(Level.SEVERE, null, e.getMessage());
-            e.printStackTrace();
-        } catch (NumberFormatException e) {
+        } catch (IllegalStateException | NumberFormatException e) {
             Logger.getLogger(LoginMB.class.getName()).log(Level.SEVERE, null, e.getMessage());
             e.printStackTrace();
         } catch (FileNotFoundException e) {
             Logger.getLogger(LoginMB.class.getName()).log(Level.SEVERE, null, e.getMessage());
+            e.printStackTrace();
         } catch (IOException e) {
             Logger.getLogger(LoginMB.class.getName()).log(Level.SEVERE, null, e.getMessage());
+            e.printStackTrace();
         }
         return this.getDestinationPage();
     }
@@ -547,8 +532,8 @@ public class LoginMB implements Serializable {
                 }
                 this.setPerfilSession(segDetPerfil);
                 this.setMapObjetos(mapa);
-                BaseBean.getSession().setAttribute("mapaObjetos", mapa);
-                BaseBean.getSession().setAttribute("perfil", segDetPerfil);
+                JSFUtils.getSession().setAttribute("mapaObjetos", mapa);
+                JSFUtils.getSession().setAttribute("perfil", segDetPerfil);
                 if (this.getUsuarioSession().getNFlgCambioclave().compareTo(BigDecimal.ZERO) == 0) {
                     this.setDestinationPage("bienvenida");
                 } else {
@@ -571,14 +556,13 @@ public class LoginMB implements Serializable {
         String subject = "";
         StringBuilder body = new StringBuilder("");
         try {
-            if (this.empresa != null && !this.empresa.isEmpty()) {
+            if (this.getSelectedEmpresa() != null) {
                 if (this.usuario != null && !this.usuario.isEmpty()) {
                     UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
                     EmpresaDao empresaDao = (EmpresaDao) ServiceFinder.findBean("EmpresaDao");
                     ClaveDao claveDao = (ClaveDao) ServiceFinder.findBean("ClaveDao");
                     SegCabEmpresa segCabEmpresa = new SegCabEmpresa();
-                    segCabEmpresa.setVRuc(this.empresa);
-                    segCabEmpresa = empresaDao.obtenerEmpresaByRuc(segCabEmpresa);
+                    segCabEmpresa = empresaDao.obtenerEmpresaByRuc(this.getSelectedEmpresa());
                     SegCabUsuarioId segCabUsuarioId = new SegCabUsuarioId();
                     segCabUsuarioId.setNCodEmpresa(segCabEmpresa != null ? segCabEmpresa.getNCodEmpresa() : null);
                     SegCabUsuario segCabUsuario = new SegCabUsuario();
@@ -595,7 +579,7 @@ public class LoginMB implements Serializable {
                         segDetClave.setDFecBloqueo(null);
                         segDetClave.setDFecModificacion(new Date());
                         segDetClave.setVUsuModificacion(user.getVUsuario());
-                        segDetClave.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                        segDetClave.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
 
                         claveDao.registrarClave(segDetClave);
 
@@ -610,7 +594,6 @@ public class LoginMB implements Serializable {
                         body.append("Nueva Clave: <strong>").append(segDetClave.getVClave()).append("</strong><br>");
                         Util.enviarCorreo(to, subject, body.toString());
 
-                        this.setEmpresa(null);
                         this.setUsuario(null);
 
                         FacesContext.getCurrentInstance().addMessage(null,
@@ -671,8 +654,8 @@ public class LoginMB implements Serializable {
     public String cerrarSesion() {
         String destino = null;
         try {
-            BaseBean.getSession().invalidate();
-            destino = "login";
+            JSFUtils.getSession().invalidate();
+            destino = "/commons/login?faces-redirect=true";
         } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();

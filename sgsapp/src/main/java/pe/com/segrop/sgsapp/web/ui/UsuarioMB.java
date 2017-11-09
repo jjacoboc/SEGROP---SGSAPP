@@ -3,6 +3,7 @@
  * and open the template in the editor.
  */
 package pe.com.segrop.sgsapp.web.ui;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,29 +11,36 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.servlet.http.HttpSession;
+import org.primefaces.context.RequestContext;
 import pe.com.segrop.sgsapp.dao.ClaveDao;
 import pe.com.segrop.sgsapp.dao.UsuarioDao;
+import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegCabUsuarioId;
 import pe.com.segrop.sgsapp.domain.SegDetClave;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
-import pe.com.segrop.sgsapp.web.common.SHA1BASE64;
+import pe.com.segrop.sgsapp.util.SHA1BASE64;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
-import pe.com.segrop.sgsapp.web.common.StringUtil;
+import pe.com.segrop.sgsapp.util.StringUtil;
 import pe.com.segrop.sgsapp.web.common.Util;
 
 /**
  *
  * @author JJ
  */
-public class UsuarioMB implements Serializable{
+@ManagedBean
+@ViewScoped
+public class UsuarioMB implements Serializable {
 
     private String searchEmpresa;
     private String searchNumTipoDocumento;
@@ -54,8 +62,11 @@ public class UsuarioMB implements Serializable{
     private List<SelectItem> itemsNombre;
     private List<SelectItem> itemsApellido;
     private String action;
-    
-    /** Creates a new instance of UsuarioMB */
+    private Boolean flag;
+
+    /**
+     * Creates a new instance of UsuarioMB
+     */
     public UsuarioMB() {
         this.selectedUsuario = new SegCabUsuario();
     }
@@ -333,12 +344,53 @@ public class UsuarioMB implements Serializable{
     public void setAction(String action) {
         this.action = action;
     }
-    
-    public void buscarUsuario(ActionEvent actionEvent) {
+
+    /**
+     * @return the flag
+     */
+    public Boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * @param flag the flag to set
+     */
+    public void setFlag(Boolean flag) {
+        this.flag = flag;
+    }
+
+    @PostConstruct
+    public void init() {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try {
-            UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            if (rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                this.setFlag(true);
+            } else {
+                this.setFlag(false);
+            }
+        } catch (Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
+
+    public void buscarUsuario(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
             SegCabUsuarioId segCabUsuarioId = new SegCabUsuarioId();
-            segCabUsuarioId.setNCodEmpresa(this.getSearchEmpresa() != null ? BigDecimal.valueOf(Long.parseLong(this.getSearchEmpresa())) : null);
+            if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                segCabUsuarioId.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+            } else {
+                segCabUsuarioId.setNCodEmpresa(this.getSearchEmpresa() != null ? BigDecimal.valueOf(Long.parseLong(this.getSearchEmpresa())) : null);
+            }
             SegCabUsuario segCabUsuario = new SegCabUsuario();
             segCabUsuario.setId(segCabUsuarioId);
             segCabUsuario.setNCodEmpresa(this.getSearchEmpresa() != null ? BigDecimal.valueOf(Long.parseLong(this.getSearchEmpresa())) : null);
@@ -346,51 +398,59 @@ public class UsuarioMB implements Serializable{
             segCabUsuario.setVNumDocumento(this.getSearchNumDocumento() != null ? this.getSearchNumDocumento().toUpperCase().trim() : null);
             segCabUsuario.setVNombres(this.getSearchNombre() != null ? this.getSearchNombre().toUpperCase().trim() : null);
             segCabUsuario.setVApellidos(this.getSearchApellido() != null ? this.getSearchApellido().toUpperCase().trim() : null);
+            UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
             setListaUsuario(usuarioDao.buscarUsuarios(segCabUsuario));
         } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
     }
-    
-    public void toRegistrar(ActionEvent actionEvent){
-        try{
+
+    public void toRegistrar(ActionEvent actionEvent) {
+        try {
             this.setEmpresa(null);
             this.setNombre(null);
             this.setAction(null);
-            Iterator<FacesMessage> iter= FacesContext.getCurrentInstance().getMessages();
-            if(iter.hasNext() == true){
+            Iterator<FacesMessage> iter = FacesContext.getCurrentInstance().getMessages();
+            if (iter.hasNext() == true) {
                 iter.remove();
                 FacesContext.getCurrentInstance().renderResponse();
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
     }
-    
-    public void toEditar(ActionEvent actionEvent){
-        try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+
+    public void toEditar(ActionEvent actionEvent) {
+        try {
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             this.setSelectedUsuario(this.getListaUsuario().get(Integer.parseInt(rowKey)));
             this.setAction(null);
-            Iterator<FacesMessage> iter= FacesContext.getCurrentInstance().getMessages();
-            if(iter.hasNext() == true){
+            Iterator<FacesMessage> iter = FacesContext.getCurrentInstance().getMessages();
+            if (iter.hasNext() == true) {
                 iter.remove();
                 FacesContext.getCurrentInstance().renderResponse();
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
     }
 
     public void editarUsuario(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         SegCabUsuario user = null;
         try {
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabUsuario usuarioSession = (SegCabUsuario) JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
             SegCabUsuario segCabUsuario = this.getSelectedUsuario();
+            if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                segCabUsuario.getId().setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+            }
             segCabUsuario.getId().setNCodEmpresa(segCabUsuario.getId().getNCodEmpresa() != null ? segCabUsuario.getId().getNCodEmpresa() : null);
             segCabUsuario.setNCodEmpresa(segCabUsuario.getId().getNCodEmpresa() != null ? segCabUsuario.getId().getNCodEmpresa() : null);
             segCabUsuario.setNTipNumDocumento(segCabUsuario.getNTipNumDocumento() != null ? segCabUsuario.getNTipNumDocumento() : null);
@@ -402,23 +462,28 @@ public class UsuarioMB implements Serializable{
             segCabUsuario.setVUsuario(segCabUsuario.getVUsuario() != null ? segCabUsuario.getVUsuario().trim() : null);
             segCabUsuario.setDFecModificacion(new Date());
             segCabUsuario.setVUsuModificacion(usuarioSession.getVUsuario());
-            segCabUsuario.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
-            
-            if(!errorValidation(segCabUsuario)){
+            segCabUsuario.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
+
+            UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
+            if (!errorValidation(segCabUsuario)) {
                 user = usuarioDao.obtenerUsuarioByNumeroDocumento(segCabUsuario);
-                if((user == null) || (user != null && user.getId().getNCodUsuario().equals(segCabUsuario.getId().getNCodUsuario()))){
+                if ((user == null) || user.getId().getNCodUsuario().equals(segCabUsuario.getId().getNCodUsuario())) {
                     user = usuarioDao.obtenerUsuarioByUser(segCabUsuario);
-                    if((user == null) || (user != null && user.getId().getNCodUsuario().equals(segCabUsuario.getId().getNCodUsuario()))){
+                    if ((user == null) || user.getId().getNCodUsuario().equals(segCabUsuario.getId().getNCodUsuario())) {
                         usuarioDao.registrarUsuario(segCabUsuario);
-                        //setListaUsuario(usuarioDao.obtenerListaUsuarios());
-                        this.setAction("Richfaces.hideModalPanel('dlgEdit')");
-                    }else{
+                        if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                            setListaUsuario(usuarioDao.obtenerListaUsuariosActivosByEmpresa(segCabEmpresa));
+                        } else {
+                            setListaUsuario(usuarioDao.obtenerListaUsuarios());
+                        }
+                        RequestContext.getCurrentInstance().execute("PF('dlgEdit').hide();");
+                    } else {
                         FacesContext.getCurrentInstance().addMessage(null,
-                            new FacesMessage(FacesMessage.SEVERITY_ERROR,"Error.", "El usuario ingresado ya se encuentra en uso."));
+                                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error.", "El usuario ingresado ya se encuentra en uso."));
                     }
-                }else{
+                } else {
                     FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR,"Error.", "El Número de Documento ingresado ya se encuentra registrado."));
+                            new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error.", "El Número de Documento ingresado ya se encuentra registrado."));
                 }
             }
         } catch (Exception e) {
@@ -428,15 +493,23 @@ public class UsuarioMB implements Serializable{
     }
 
     public void registrarUsuario(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         SegCabUsuario user = null;
         String[] to = new String[1];
         String subject = "";
         StringBuilder body = new StringBuilder("");
         try {
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            SegCabUsuario usuarioSession = (SegCabUsuario) JSFUtils.getSessionAttribute("usuario");
+            if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                this.setEmpresa(segCabEmpresa.getNCodEmpresa());
+            }
             UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
             SegCabUsuarioId segCabUsuarioId = new SegCabUsuarioId();
-            segCabUsuarioId.setNCodUsuario(BigDecimal.valueOf(usuarioDao.nextSequenceValue().longValue()));
+            segCabUsuarioId.setNCodUsuario(BigDecimal.valueOf(usuarioDao.nextSequenceValue()));
             segCabUsuarioId.setNCodEmpresa(this.empresa != null ? this.empresa : null);
             SegCabUsuario segCabUsuario = new SegCabUsuario();
             segCabUsuario.setId(segCabUsuarioId);
@@ -454,18 +527,18 @@ public class UsuarioMB implements Serializable{
             segCabUsuario.setNFlgCambioclave(BigDecimal.ONE);
             segCabUsuario.setDFecCreacion(new Date());
             segCabUsuario.setVUsuCreacion(usuarioSession.getVUsuario());
-            segCabUsuario.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+            segCabUsuario.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
 
-            if(!errorValidation(segCabUsuario)){
+            if (!errorValidation(segCabUsuario)) {
                 user = usuarioDao.obtenerUsuarioByNumeroDocumento(segCabUsuario);
-                if(user == null){
+                if (user == null) {
                     user = usuarioDao.obtenerUsuarioByUser(segCabUsuario);
-                    if(user == null){
+                    if (user == null) {
                         usuarioDao.registrarUsuario(segCabUsuario);
                         ClaveDao claveDao = (ClaveDao) ServiceFinder.findBean("ClaveDao");
                         SegDetClave segDetClave = new SegDetClave();
                         segDetClave.setSegCabUsuario(segCabUsuario);
-                        segDetClave.setNCodClave(BigDecimal.valueOf(claveDao.nextSequenceValue().longValue()));
+                        segDetClave.setNCodClave(BigDecimal.valueOf(claveDao.nextSequenceValue()));
                         segDetClave.setSegCabUsuario(segCabUsuario);
                         String clave = Util.generarClave();
                         segDetClave.setVClave(SHA1BASE64.encriptar(clave));
@@ -473,7 +546,7 @@ public class UsuarioMB implements Serializable{
                         segDetClave.setNFlgActivo(BigDecimal.ONE);
                         segDetClave.setDFecCreacion(new Date());
                         segDetClave.setVUsuCreacion(usuarioSession.getVUsuario());
-                        segDetClave.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                        segDetClave.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                         claveDao.registrarClave(segDetClave);
 
                         to[0] = segCabUsuario.getVCorreo();
@@ -484,150 +557,174 @@ public class UsuarioMB implements Serializable{
                         body.append("Nota: Su usuario y clave son estrictamente personales. El uso de los mismos quedan bajo la responsabilidad del usuario.");
                         Util.enviarCorreo(to, subject, body.toString());
 
-                        //setListaUsuario(usuarioDao.obtenerListaUsuarios());
-                        this.setAction("Richfaces.hideModalPanel('dlg')");
-                    }else{
+                        if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                            setListaUsuario(usuarioDao.obtenerListaUsuariosActivosByEmpresa(segCabEmpresa));
+                        } else {
+                            setListaUsuario(usuarioDao.obtenerListaUsuarios());
+                        }
+                        RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
+                    } else {
                         FacesContext.getCurrentInstance().addMessage(null,
-                            new FacesMessage(FacesMessage.SEVERITY_ERROR,"Error.", "El usuario o login ingresado ya se encuentra en uso."));
+                                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error.", "El usuario o login ingresado ya se encuentra en uso."));
                     }
-                }else{
+                } else {
                     FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_ERROR,"Error.", "El Número de Documento ingresado ya se encuentra registrado."));
+                            new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error.", "El Número de Documento ingresado ya se encuentra registrado."));
                 }
             }
+        } catch (NumberFormatException | IllegalStateException e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Desactiva al usuario seleccionada.
+     *
+     * @param actionEvent
+     */
+    public void desactivar(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            HttpSession session = JSFUtils.getSession();
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
+            getSelectedUsuario().setNFlgActivo(BigDecimal.ZERO); //INACTIVO = 0
+            usuarioDao.registrarUsuario(getSelectedUsuario());
+            if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                setListaUsuario(usuarioDao.obtenerListaUsuariosActivosByEmpresa(segCabEmpresa));
+            } else {
+                setListaUsuario(usuarioDao.obtenerListaUsuarios());
+            }
+            session.setAttribute("listasSessionMB", new ListasSessionMB());
         } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
     }
-    
-    /**
-     * Desactiva al usuario seleccionada.
-     * @return destino Página a la que redirecciona el método.
-     */
-    public void desactivar(ActionEvent actionEvent){
-        try{
-            HttpSession session = BaseBean.getSession();
-            UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
-            getSelectedUsuario().setNFlgActivo(BigDecimal.ZERO); //INACTIVO = 0
-            usuarioDao.registrarUsuario(getSelectedUsuario());
-            setListaUsuario(usuarioDao.obtenerListaUsuarios());
-            session.setAttribute("listasSessionMB", new ListasSessionMB());
-        }catch(Exception e){
-            e.getMessage();
-            e.printStackTrace();
-        }
-    }
-    
+
     /**
      * Activa lemprea sa seleccionada.
-     * @return destino Página a la que redirecciona el método.
+     *
+     * @param actionEvent
      */
-    public void activar(ActionEvent actionEvent){
-        try{
-            HttpSession session = BaseBean.getSession();
+    public void activar(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            HttpSession session = JSFUtils.getSession();
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
             UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
             getSelectedUsuario().setNFlgActivo(BigDecimal.ONE); //ACTIVO = 1
             usuarioDao.registrarUsuario(getSelectedUsuario());
-            setListaUsuario(usuarioDao.obtenerListaUsuarios());
+            if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                setListaUsuario(usuarioDao.obtenerListaUsuariosActivosByEmpresa(segCabEmpresa));
+            } else {
+                setListaUsuario(usuarioDao.obtenerListaUsuarios());
+            }
             session.setAttribute("listasSessionMB", new ListasSessionMB());
-        }catch(Exception e){
+        } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
     }
-    
-    public boolean errorValidation(SegCabUsuario usuario){
+
+    public boolean errorValidation(SegCabUsuario usuario) {
         FacesMessage message = null;
         boolean error = false;
         ResourceBundle bundle;
-        try{
+        try {
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            if(usuario.getId().getNCodEmpresa() == null || usuario.getId().getNCodEmpresa().compareTo(BigDecimal.valueOf(-1))==0){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Seleccione la empresa del usuario.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            if (usuario.getId().getNCodEmpresa() == null || usuario.getId().getNCodEmpresa().compareTo(BigDecimal.valueOf(-1)) == 0) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Seleccione la empresa del usuario.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNTipNumDocumento() == null || usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(-1))==0){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Selecione el tipo de documento del usuario.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNTipNumDocumento() == null || usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(-1)) == 0) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Selecione el tipo de documento del usuario.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getVNumDocumento() == null || "".equals(usuario.getVNumDocumento().trim())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese el número de documento del usuario.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getVNumDocumento() == null || "".equals(usuario.getVNumDocumento().trim())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Ingrese el número de documento del usuario.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNTipNumDocumento() != null 
-                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("DNI"))))==0
-                    && !StringUtil.isNumeric(usuario.getVNumDocumento())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Formato de DNI incorrecto. Solo debe contener dígitos numéricos.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNTipNumDocumento() != null
+                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("DNI")))) == 0
+                    && !StringUtil.isNumeric(usuario.getVNumDocumento())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Formato de DNI incorrecto. Solo debe contener dígitos numéricos.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNTipNumDocumento() != null 
-                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("DNI"))))==0
-                    && usuario.getVNumDocumento().length()!=8){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "El DNI debe tener 8 dígitos numéricos.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNTipNumDocumento() != null
+                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("DNI")))) == 0
+                    && usuario.getVNumDocumento().length() != 8) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "El DNI debe tener 8 dígitos numéricos.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNTipNumDocumento() != null 
-                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("PASAPORTE"))))==0
-                    && !StringUtil.isNumeric(usuario.getVNumDocumento())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Formato de Pasaporte incorrecto. Solo debe contener dígitos numéricos.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNTipNumDocumento() != null
+                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("PASAPORTE")))) == 0
+                    && !StringUtil.isNumeric(usuario.getVNumDocumento())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Formato de Pasaporte incorrecto. Solo debe contener dígitos numéricos.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNTipNumDocumento() != null 
-                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("PASAPORTE"))))==0
-                    && usuario.getVNumDocumento().length()!=8){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "El Pasaporte debe tener 8 dígitos.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNTipNumDocumento() != null
+                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("PASAPORTE")))) == 0
+                    && usuario.getVNumDocumento().length() != 8) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "El Pasaporte debe tener 8 dígitos.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNTipNumDocumento() != null 
-                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("CARNE_EXTRANJERIA"))))==0
-                    && usuario.getVNumDocumento().length()!=8){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "El Carné de Extranjería debe tener 8 dígitos.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNTipNumDocumento() != null
+                    && usuario.getNTipNumDocumento().compareTo(BigDecimal.valueOf(Long.parseLong(bundle.getString("CARNE_EXTRANJERIA")))) == 0
+                    && usuario.getVNumDocumento().length() != 8) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "El Carné de Extranjería debe tener 8 dígitos.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getVNombres() == null || "".equals(usuario.getVNombres().trim())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese el(los) nombre(s) del usuario.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getVNombres() == null || "".equals(usuario.getVNombres().trim())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Ingrese el(los) nombre(s) del usuario.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getVApellidos() == null || "".equals(usuario.getVApellidos().trim())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese los apellidos del usuario.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getVApellidos() == null || "".equals(usuario.getVApellidos().trim())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Ingrese los apellidos del usuario.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getVCorreo() == null || "".equals(usuario.getVCorreo().trim())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese el correo del usuario.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getVCorreo() == null || "".equals(usuario.getVCorreo().trim())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Ingrese el correo del usuario.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getVUsuario() == null || "".equals(usuario.getVUsuario().trim())){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese el usuario o login.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getVUsuario() == null || "".equals(usuario.getVUsuario().trim())) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Ingrese el usuario o login.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
-            }else if(usuario.getNFlgClave() == null){
-                message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Indique si el usuario necesitará confirmación de clave de acceso.");
-                FacesContext.getCurrentInstance().addMessage(null,message);
+            } else if (usuario.getNFlgClave() == null) {
+                message = new FacesMessage(FacesMessage.SEVERITY_ERROR, "ERROR.", "Indique si el usuario necesitará confirmación de clave de acceso.");
+                FacesContext.getCurrentInstance().addMessage(null, message);
                 error = true;
                 return error;
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
         return error;
     }
-    
+
     public List<SelectItem> completeNumDocumento(String query) {
-        List<SelectItem> suggestions = new ArrayList<SelectItem>();
+        List<SelectItem> suggestions = new ArrayList<>();
         try {
             for (SelectItem p : getItemsNumDocumento()) {
                 if (p.getLabel().startsWith(query.toUpperCase())) {
@@ -640,9 +737,9 @@ public class UsuarioMB implements Serializable{
         }
         return suggestions;
     }
-    
+
     public List<SelectItem> completeNombre(String query) {
-        List<SelectItem> suggestions = new ArrayList<SelectItem>();
+        List<SelectItem> suggestions = new ArrayList<>();
         try {
             for (SelectItem p : getItemsNombre()) {
                 if (p.getLabel().startsWith(query.toUpperCase())) {
@@ -655,9 +752,9 @@ public class UsuarioMB implements Serializable{
         }
         return suggestions;
     }
-    
+
     public List<SelectItem> completeApellido(String query) {
-        List<SelectItem> suggestions = new ArrayList<SelectItem>();
+        List<SelectItem> suggestions = new ArrayList<>();
         try {
             for (SelectItem p : getItemsApellido()) {
                 if (p.getLabel().startsWith(query.toUpperCase())) {

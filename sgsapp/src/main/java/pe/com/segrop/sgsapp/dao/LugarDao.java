@@ -15,14 +15,15 @@ import pe.com.segrop.sgsapp.domain.SegDetLugar;
  */
 public interface LugarDao {
     
-    public Long nextSequenceValue();    
-    public List<SegDetLugar> buscarLugares(SegDetLugar lugar);    
-    public List<SegDetLugar> obtenerListaLugares();
-    public List<SegDetLugar> obtenerListaLugaresByArea(SegDetArea area);
-    public List<SegDetLugar> obtenerListaLugaresActivos();
-    public List<SegDetLugar> obtenerListaLugaresActivosByEmpresa(SegCabEmpresa empresa);
-    public List<SegDetLugar> obtenerListaLugaresActivosByArea(SegDetArea area);
-    public SegDetLugar obtenerLugarByDescripcion(SegDetLugar lugar);
-    public void registrarLugar(SegDetLugar lugar);
-    public void eliminarLugar(SegDetLugar lugar);
+    Long nextSequenceValue();    
+    List<SegDetLugar> buscarLugares(SegDetLugar lugar);    
+    List<SegDetLugar> obtenerListaLugares();
+    List<SegDetLugar> obtenerListaLugaresByEmpresa(SegCabEmpresa empresa);
+    List<SegDetLugar> obtenerListaLugaresByArea(SegDetArea area);
+    List<SegDetLugar> obtenerListaLugaresActivos();
+    List<SegDetLugar> obtenerListaLugaresActivosByEmpresa(SegCabEmpresa empresa);
+    List<SegDetLugar> obtenerListaLugaresActivosByArea(SegDetArea area);
+    SegDetLugar obtenerLugarByDescripcion(SegDetLugar lugar);
+    void registrarLugar(SegDetLugar lugar);
+    void eliminarLugar(SegDetLugar lugar);
 }

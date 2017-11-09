@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ResponsableDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetArea;
@@ -58,6 +59,9 @@ public class ResponsableDaoHibernate extends HibernateDaoSupport implements Resp
     @Override
     public List<SegDetResponsable> buscarResponsables(SegDetResponsable responsable) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetResponsable.class);
+        if(responsable.getId().getNCodEmpresa()!=null && !"-1".equals(responsable.getId().getNCodEmpresa().toString())){
+            criteria.add(Restrictions.eq("NCodEmpresa", responsable.getId().getNCodEmpresa()));
+        }
         if(responsable.getId().getNCodLocal()!=null && !"-1".equals(responsable.getId().getNCodLocal().toString())){
             criteria.add(Restrictions.eq("NCodLocal", responsable.getId().getNCodLocal()));
         }
@@ -78,6 +82,15 @@ public class ResponsableDaoHibernate extends HibernateDaoSupport implements Resp
     @Override
     public List<SegDetResponsable> obtenerListaResponsables() {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetResponsable.class);
+        criteria.addOrder(Order.asc("VNombres"));
+        criteria.addOrder(Order.asc("VApellidos"));
+        return (List<SegDetResponsable>) getHibernateTemplate().findByCriteria(criteria);
+    }
+    
+    @Override
+    public List<SegDetResponsable> obtenerListaResponsablesByEmpresa(SegCabEmpresa empresa) {
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetResponsable.class);
+        criteria.add(Restrictions.eq("NCodEmpresa", empresa.getNCodEmpresa()));
         criteria.addOrder(Order.asc("VNombres"));
         criteria.addOrder(Order.asc("VApellidos"));
         return (List<SegDetResponsable>) getHibernateTemplate().findByCriteria(criteria);
@@ -133,11 +146,13 @@ public class ResponsableDaoHibernate extends HibernateDaoSupport implements Resp
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarResponsable(SegDetResponsable responsable) {
         getHibernateTemplate().saveOrUpdate(responsable);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void eliminarResponsable(SegDetResponsable responsable) {
         getHibernateTemplate().delete(responsable);
     }

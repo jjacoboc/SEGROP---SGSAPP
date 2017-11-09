@@ -40,7 +40,7 @@ import pe.com.segrop.sgsapp.domain.SegDetNovedadId;
 import pe.com.segrop.sgsapp.domain.SegDetNovevalDetalle;
 import pe.com.segrop.sgsapp.domain.SegDetRiesgo;
 import pe.com.segrop.sgsapp.domain.SegDetRiesgoId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
 
@@ -84,7 +84,7 @@ public class MatrizMB implements Serializable {
 
     public final List<SegDetRiesgo> getListaRiesgo() {
         if(listaRiesgo == null){
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             RiesgoDao riesgoDao = (RiesgoDao) ServiceFinder.findBean("RiesgoDao");
             SegDetRiesgoId segDetRiesgoId = new SegDetRiesgoId();
             segDetRiesgoId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -204,7 +204,7 @@ public class MatrizMB implements Serializable {
     
     public void buscarRiesgos(ActionEvent event) {
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             RiesgoDao riesgoDao = (RiesgoDao) ServiceFinder.findBean("RiesgoDao");
             SegDetRiesgoId segDetRiesgoId = new SegDetRiesgoId();
             segDetRiesgoId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -231,8 +231,8 @@ public class MatrizMB implements Serializable {
         List lista = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             NovedadDao novedadDao =(NovedadDao)ServiceFinder.findBean("NovedadDao");
             NovedadEvaluacionDao novedadEvaluacionDao =(NovedadEvaluacionDao)ServiceFinder.findBean("NovedadEvaluacionDao");
             InsPresencialDao insPresencialDao =(InsPresencialDao)ServiceFinder.findBean("InsPresencialDao");
@@ -256,7 +256,7 @@ public class MatrizMB implements Serializable {
                 eval.setNNivelImpacto(BigDecimal.valueOf(Long.parseLong(nivelImpacto)));
                 eval.setDFecModificacion(new Date());
                 eval.setVUsuModificacion(usuarioSession.getVUsuario());
-                eval.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                eval.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 novedadEvaluacionDao.registrarEvaluacion(eval);
             }else if(tipo != null && tipo.equals(bundle.getString("TIPO_RIESGO_INSPECCION"))){
                 SegDetInsPresencialId inspeccionId = new SegDetInsPresencialId();
@@ -271,10 +271,10 @@ public class MatrizMB implements Serializable {
                 eval.setNNivelImpacto(BigDecimal.valueOf(Long.parseLong(nivelImpacto)));
                 eval.setDFecModificacion(new Date());
                 eval.setVUsuModificacion(usuarioSession.getVUsuario());
-                eval.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                eval.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 inspreEvaluacionDao.registrarEvaluacion(eval);
             }
-            lista = (List<SegDetRiesgo>)BaseBean.getSession().getAttribute("listaRiesgo");
+            lista = (List<SegDetRiesgo>)JSFUtils.getSession().getAttribute("listaRiesgo");
             if(lista != null && !lista.isEmpty()){
                 for(int i=0;i<lista.size();i++){
                     SegDetRiesgo riesgo = (SegDetRiesgo)lista.get(i);
@@ -284,7 +284,7 @@ public class MatrizMB implements Serializable {
                     }
                 }
             }
-            BaseBean.getSession().setAttribute("listaRiesgo", lista);
+            JSFUtils.getSession().setAttribute("listaRiesgo", lista);
         }catch(Exception e){
             e.getMessage();
             e.printStackTrace();
@@ -299,8 +299,8 @@ public class MatrizMB implements Serializable {
         List lista = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             NovedadDao novedadDao =(NovedadDao)ServiceFinder.findBean("NovedadDao");
             NovedadEvaluacionDao novedadEvaluacionDao =(NovedadEvaluacionDao)ServiceFinder.findBean("NovedadEvaluacionDao");
             InsPresencialDao insPresencialDao =(InsPresencialDao)ServiceFinder.findBean("InsPresencialDao");
@@ -317,7 +317,7 @@ public class MatrizMB implements Serializable {
                 eval.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_SOLUCIONADA"))));
                 eval.setDFecModificacion(new Date());
                 eval.setVUsuModificacion(usuarioSession.getVUsuario());
-                eval.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                eval.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 novedadEvaluacionDao.registrarEvaluacion(eval);
             }else if(tipo != null && tipo.equals(bundle.getString("TIPO_RIESGO_INSPECCION"))){
                 SegDetInsPresencialId inspeccionId = new SegDetInsPresencialId();
@@ -329,10 +329,10 @@ public class MatrizMB implements Serializable {
                 eval.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_SOLUCIONADA"))));
                 eval.setDFecModificacion(new Date());
                 eval.setVUsuModificacion(usuarioSession.getVUsuario());
-                eval.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                eval.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 inspreEvaluacionDao.registrarEvaluacion(eval);
             }
-            lista = (List<SegDetRiesgo>)BaseBean.getSession().getAttribute("listaRiesgo");
+            lista = (List<SegDetRiesgo>)JSFUtils.getSession().getAttribute("listaRiesgo");
             if(lista != null && !lista.isEmpty()){
                 for(int i=0;i<lista.size();i++){
                     SegDetRiesgo riesgo = (SegDetRiesgo)lista.get(i);
@@ -358,7 +358,7 @@ public class MatrizMB implements Serializable {
         SegDetInspreEvaluacion segDetInspreEvaluacion = null;
         try{            
             sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm");
-            lista = (List<SegDetRiesgo>) BaseBean.getSessionAttribute("listaRiesgo");
+            lista = (List<SegDetRiesgo>) JSFUtils.getSessionAttribute("listaRiesgo");
             riesgo = lista.get(this.getRowKey());
             if("1".equals(riesgo.getNTipoRiesgo().toString())){
                 segDetNovAcciones = (List<SegDetAcciones>)riesgo.getSegDetAcciones();
@@ -484,10 +484,10 @@ public class MatrizMB implements Serializable {
     
     public void toSeguimientoNovedad(ActionEvent event) {
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             NovedadDao novedadDao = (NovedadDao) ServiceFinder.findBean("NovedadDao");
             AccionDao accionDao =(AccionDao)ServiceFinder.findBean("AccionDao");
-            NovedadMB novedadMB = (NovedadMB)BaseBean.getSessionAttribute("novedadMB");
+            NovedadMB novedadMB = (NovedadMB)JSFUtils.getSessionAttribute("novedadMB");
             novedadMB = novedadMB != null ? novedadMB : new NovedadMB();
             
             SegDetRiesgo riesgo = this.getListaRiesgo().get(this.getRowKey());
@@ -512,7 +512,7 @@ public class MatrizMB implements Serializable {
             novedadMB.setFromMatrix(true);
             novedadMB.setActionOnLoad("Richfaces.showModalPanel('segDlg')");
             
-            BaseBean.getSession().setAttribute("novedadMB", novedadMB);
+            JSFUtils.getSession().setAttribute("novedadMB", novedadMB);
         }catch(Exception e){
             e.getMessage();
             e.printStackTrace();
@@ -523,11 +523,11 @@ public class MatrizMB implements Serializable {
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             NovedadDao novedadDao = (NovedadDao) ServiceFinder.findBean("NovedadDao");
             NovedadEvaluacionDao novedadEvaluacionDao =(NovedadEvaluacionDao)ServiceFinder.findBean("NovedadEvaluacionDao");
             NovedadEvaluacionDetalleDao novedadEvaluacionDetalleDao =(NovedadEvaluacionDetalleDao)ServiceFinder.findBean("NovedadEvaluacionDetalleDao");
-            NovedadMB novedadMB = (NovedadMB)BaseBean.getSessionAttribute("novedadMB");
+            NovedadMB novedadMB = (NovedadMB)JSFUtils.getSessionAttribute("novedadMB");
             novedadMB = novedadMB != null ? novedadMB : new NovedadMB();
             
             SegDetRiesgo riesgo = this.getListaRiesgo().get(this.getRowKey());
@@ -555,7 +555,7 @@ public class MatrizMB implements Serializable {
             novedadMB.setFromMatrix(true);
             novedadMB.setActionOnLoad("Richfaces.showModalPanel('evalDlg')");
             
-            BaseBean.getSession().setAttribute("novedadMB", novedadMB);
+            JSFUtils.getSession().setAttribute("novedadMB", novedadMB);
         }catch(Exception e){
             e.getMessage();
             e.printStackTrace();
@@ -564,10 +564,10 @@ public class MatrizMB implements Serializable {
     
     public void toSeguimientoInspeccion(ActionEvent event) {
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
             InsPreAccionDao insPreAccionDao =(InsPreAccionDao)ServiceFinder.findBean("InsPreAccionDao");
-            PresencialMB presencialMB = (PresencialMB)BaseBean.getSessionAttribute("presencialMB");
+            PresencialMB presencialMB = (PresencialMB)JSFUtils.getSessionAttribute("presencialMB");
             presencialMB = presencialMB != null ? presencialMB : new PresencialMB();
             
             SegDetRiesgo riesgo = this.getListaRiesgo().get(this.getRowKey());
@@ -597,7 +597,7 @@ public class MatrizMB implements Serializable {
             presencialMB.setFromMatrix(true);
             presencialMB.setActionOnLoad("Richfaces.showModalPanel('segDlg')");
             
-            BaseBean.getSession().setAttribute("presencialMB", presencialMB);
+            JSFUtils.getSession().setAttribute("presencialMB", presencialMB);
         }catch(Exception e){
             e.getMessage();
             e.printStackTrace();
@@ -608,11 +608,11 @@ public class MatrizMB implements Serializable {
         ResourceBundle bundle;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
             InspreEvaluacionDao inspreEvaluacionDao =(InspreEvaluacionDao)ServiceFinder.findBean("InspreEvaluacionDao");
             InspreEvaluacionDetalleDao inspreEvaluacionDetalleDao =(InspreEvaluacionDetalleDao)ServiceFinder.findBean("InspreEvaluacionDetalleDao");
-            PresencialMB presencialMB = (PresencialMB)BaseBean.getSessionAttribute("presencialMB");
+            PresencialMB presencialMB = (PresencialMB)JSFUtils.getSessionAttribute("presencialMB");
             presencialMB = presencialMB != null ? presencialMB : new PresencialMB();
             
             SegDetRiesgo riesgo = this.getListaRiesgo().get(this.getRowKey());
@@ -646,7 +646,7 @@ public class MatrizMB implements Serializable {
             presencialMB.setFromMatrix(true);
             presencialMB.setActionOnLoad("Richfaces.showModalPanel('evalDlg')");
             
-            BaseBean.getSession().setAttribute("presencialMB", presencialMB);
+            JSFUtils.getSession().setAttribute("presencialMB", presencialMB);
         }catch(Exception e){
             e.getMessage();
             e.printStackTrace();

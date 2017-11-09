@@ -9,25 +9,34 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
+import org.primefaces.event.SelectEvent;
 import pe.com.segrop.sgsapp.dao.UsuarioDao;
 import pe.com.segrop.sgsapp.dao.UsuarioPerfilDao;
+import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegCabUsuarioId;
 import pe.com.segrop.sgsapp.domain.SegDetPerfil;
 import pe.com.segrop.sgsapp.domain.SegRelUsuarioperfil;
 import pe.com.segrop.sgsapp.domain.SegRelUsuarioperfilId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
+import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
 
 /**
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class UsuarioPerfilMB implements Serializable{
 
     private String searchEmpresa;
@@ -44,11 +53,10 @@ public class UsuarioPerfilMB implements Serializable{
     private List<SegDetPerfil> target;
     private SegDetPerfil selectedPerfil;
     private boolean visible;
+    private Boolean flag;
     
     /** Creates a new instance of UsuarioPerfilMB */
     public UsuarioPerfilMB() {
-        this.setSource(new ArrayList());
-        this.setTarget(new ArrayList());
     }
 
     public String getSearchEmpresa() {
@@ -174,6 +182,40 @@ public class UsuarioPerfilMB implements Serializable{
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
+
+    /**
+     * @return the flag
+     */
+    public Boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * @param flag the flag to set
+     */
+    public void setFlag(Boolean flag) {
+        this.flag = flag;
+    }
+    
+    @PostConstruct
+    public void init() {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            if (rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                this.setFlag(true);
+            } else {
+                this.setFlag(false);
+            }
+            this.setSource(new ArrayList());
+            this.setTarget(new ArrayList());
+        } catch(Exception e) {
+            e.getMessage();
+        }
+    }
     
     public void buscarUsuario(ActionEvent event) {
         try {
@@ -196,7 +238,7 @@ public class UsuarioPerfilMB implements Serializable{
     
     public void handleSelectedUsuario(ActionEvent event){
         try{
-            String rowkey = BaseBean.getRequestParameter("rowkey");
+            String rowkey = JSFUtils.getRequestParameter("rowkey");
             SegCabUsuario usuario = this.getListaUsuario().get(Integer.parseInt(rowkey));
             UsuarioPerfilDao usuarioPerfilDao = (UsuarioPerfilDao) ServiceFinder.findBean("UsuarioPerfilDao");
             List noAsignados = usuarioPerfilDao.obtenerPerfilesNoAsignadosByUsuario(usuario);
@@ -211,9 +253,9 @@ public class UsuarioPerfilMB implements Serializable{
         }
     }
     
-    public void onRowSourceSelected(ActionEvent event) {
+    public void onRowSourceSelected(SelectEvent event) {
         try{
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             UsuarioPerfilDao usuarioPerfilDao = (UsuarioPerfilDao) ServiceFinder.findBean("UsuarioPerfilDao");
             if(this.getSelectedPerfil() != null){
                 SegDetPerfil perfil = this.getSelectedPerfil();
@@ -227,7 +269,7 @@ public class UsuarioPerfilMB implements Serializable{
                 segRelUsuarioperfil.setNFlgActivo(BigDecimal.ONE);
                 segRelUsuarioperfil.setDFecModificacion(new Date());
                 segRelUsuarioperfil.setVUsuModificacion(usuarioSession.getVUsuario());
-                segRelUsuarioperfil.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segRelUsuarioperfil.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 usuarioPerfilDao.registrarAsignacion(segRelUsuarioperfil);
 
                 this.getTarget().add(this.getSelectedPerfil());
@@ -239,9 +281,9 @@ public class UsuarioPerfilMB implements Serializable{
         }
     }
 
-    public void onRowTargetSelected(ActionEvent event) {
+    public void onRowTargetSelected(SelectEvent event) {
         try{
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             UsuarioPerfilDao usuarioPerfilDao = (UsuarioPerfilDao) ServiceFinder.findBean("UsuarioPerfilDao");
             if(this.getSelectedPerfil() != null){
                 SegDetPerfil perfil = this.getSelectedPerfil();
@@ -255,7 +297,7 @@ public class UsuarioPerfilMB implements Serializable{
                 segRelUsuarioperfil.setNFlgActivo(BigDecimal.ZERO);
                 segRelUsuarioperfil.setDFecModificacion(new Date());
                 segRelUsuarioperfil.setVUsuModificacion(usuarioSession.getVUsuario());
-                segRelUsuarioperfil.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segRelUsuarioperfil.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 usuarioPerfilDao.registrarAsignacion(segRelUsuarioperfil);
                 
                 this.getSource().add(this.getSelectedPerfil());
@@ -270,7 +312,7 @@ public class UsuarioPerfilMB implements Serializable{
     public void registrarAsignacion(ActionEvent event){
         FacesMessage message = null;
         try{
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             UsuarioPerfilDao usuarioPerfilDao = (UsuarioPerfilDao) ServiceFinder.findBean("UsuarioPerfilDao");
             
             if(this.getSource() != null && !this.getSource().isEmpty()){
@@ -288,7 +330,7 @@ public class UsuarioPerfilMB implements Serializable{
                         usuarioperfil.setNFlgActivo(BigDecimal.ZERO);
                         usuarioperfil.setDFecModificacion(new Date());
                         usuarioperfil.setVUsuModificacion(usuarioSession.getVUsuario());
-                        usuarioperfil.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                        usuarioperfil.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                         usuarioPerfilDao.registrarAsignacion(usuarioperfil);
                     }
                 }
@@ -309,14 +351,14 @@ public class UsuarioPerfilMB implements Serializable{
                             usuarioperfil.setNFlgActivo(BigDecimal.ONE);
                             usuarioperfil.setDFecModificacion(new Date());
                             usuarioperfil.setVUsuModificacion(usuarioSession.getVUsuario());
-                            usuarioperfil.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                            usuarioperfil.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                             usuarioPerfilDao.registrarAsignacion(usuarioperfil);
                         }
                     }else{
                         segRelUsuarioperfil.setNFlgActivo(BigDecimal.ONE);
                         segRelUsuarioperfil.setDFecModificacion(new Date());
                         segRelUsuarioperfil.setVUsuModificacion(usuarioSession.getVUsuario());
-                        segRelUsuarioperfil.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                        segRelUsuarioperfil.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                         usuarioPerfilDao.registrarAsignacion(segRelUsuarioperfil);
                     }
                 }

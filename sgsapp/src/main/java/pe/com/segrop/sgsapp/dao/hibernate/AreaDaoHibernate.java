@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.AreaDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetArea;
@@ -57,7 +58,10 @@ public class AreaDaoHibernate extends HibernateDaoSupport implements AreaDao{
 
     @Override
     public List<SegDetArea> buscarAreas(SegDetArea area) {
-        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetArea.class);        
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetArea.class);
+        if(area.getId().getNCodEmpresa()!=null && !"-1".equals(area.getId().getNCodEmpresa().toString())){
+            criteria.add(Restrictions.eq("NCodEmpresa", area.getId().getNCodEmpresa()));
+        }
         if(area.getId().getNCodLocal()!=null && !"-1".equals(area.getId().getNCodLocal().toString())){
             criteria.add(Restrictions.eq("NCodLocal", area.getId().getNCodLocal()));
         }
@@ -79,6 +83,14 @@ public class AreaDaoHibernate extends HibernateDaoSupport implements AreaDao{
     public List<SegDetArea> obtenerListaAreasByLocal(SegDetLocal local) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetArea.class);
         criteria.add(Restrictions.eq("NCodLocal", local.getId().getNCodLocal()));
+        criteria.addOrder(Order.asc("VDescripcion"));
+        return (List<SegDetArea>) getHibernateTemplate().findByCriteria(criteria);
+    }
+    
+    @Override
+    public List<SegDetArea> obtenerListaAreasByEmpresa(SegCabEmpresa empresa) {
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetArea.class);
+        criteria.add(Restrictions.eq("NCodEmpresa", empresa.getNCodEmpresa()));
         criteria.addOrder(Order.asc("VDescripcion"));
         return (List<SegDetArea>) getHibernateTemplate().findByCriteria(criteria);
     }
@@ -119,11 +131,13 @@ public class AreaDaoHibernate extends HibernateDaoSupport implements AreaDao{
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarArea(SegDetArea area) {
         getHibernateTemplate().saveOrUpdate(area);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarArea(SegDetArea area) {
         getHibernateTemplate().delete(area);
     }

@@ -1,0 +1,395 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Evaluación de Riesgos</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:panel header="EVALUACIÓN DE RIESGOS" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Tipo de Riesgo: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchTipoRiesgo" value="#{riesgoMB.searchTipoRiesgo}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaTipoRiesgo}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Local: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchLocal" value="#{riesgoMB.searchLocal}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaLocalActivoByEmpresa}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaAreaByLocal}" update=":f:searchArea"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Area: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchArea" value="#{riesgoMB.searchArea}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaAreaActivaByLocal}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLugarByArea}" update=":f:searchLugar, :f:searchResponsable"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchLugar" value="#{riesgoMB.searchLugar}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaLugarActivoByArea}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchResponsable" value="#{riesgoMB.searchResponsable}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaResponsableActivoByArea}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchCargo" value="#{riesgoMB.searchCargo}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaCargoActivoByEmpresa}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Estado: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchEstado" value="#{riesgoMB.searchEstado}" style="float: left;font-size: 11px">
+                                        <f:selectItem itemValue="-1" itemLabel="Seleccione"/>
+                                        <f:selectItems value="#{listasSessionMB.listaEstadoEvaluacion}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Rango Fechas: " styleClass="Etiqueta1" />
+                                    <h:panelGrid columns="5" cellpadding="0" cellspacing="0">
+                                        <p:calendar id="searchFechaInicio" value="#{riesgoMB.searchFechaInicio}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                        <p:spacer width="10"/>
+                                        <h:outputText value="al" style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <p:spacer width="10"/>
+                                        <p:calendar id="searchFechaFin" value="#{riesgoMB.searchFechaFin}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <h:panelGrid columns="1">
+                                <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{riesgoMB.buscarRiesgo}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                            </h:panelGrid>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Riesgos</legend>
+                                <p:dataTable id="tbl" var="row" rowIndexVar="rowKey" value="#{riesgoMB.listaRiesgo}" rows="10" 
+                                             paginator="true" paginatorPosition="top" emptyMessage="No se encontraron registros." style="font-size: 11px;" >
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="TIPO RIESGO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NTipoRiesgo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterTipoRiesgo"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LOCAL" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NLocal}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterLocal"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="RESPONSABLE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NResponsable}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterResponsable"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="CARGO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NCargo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterCargo"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="DESCRIPCIÓN BREVE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescBreve}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA Y HORA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFecHora}" style="font-size: 11px;font-weight: normal;">
+                                            <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="ESTADO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NEstado}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEstadoEvaluacion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="elink" actionListener="#{riesgoMB.toEvaluacion}" oncomplete="#{riesgoMB.action}" update=":f:tbl :evalNovDlgForm:novPanel, :evalNovDlgForm:evalNovPanel, :evalInsDlgForm:insPanel, :evalInsDlgForm:evalInsPanel" rendered="#{row.NEstado != 55}">
+                                            <f:param value="#{rowKey}" name="rowKey"/>
+                                            <f:setPropertyActionListener value="#{row}" target="#{riesgoMB.selectedRiesgo}"/>
+                                            <h:graphicImage style="border: 0;" url="/pages/images/table_edit.png" alt="evaluar riesgo" title="evaluar riesgo"/>
+                                        </p:commandLink>
+                                        <h:graphicImage style="border: 0;" url="/pages/images/table_edit_disabled.png" alt="evaluar riesgo" title="evaluar riesgo" rendered="#{row.NEstado == 55}"/>
+                                        <p:spacer width="5"/>
+                                        <p:commandLink id="alink" actionListener="#{riesgoMB.reabrirEvaluacion}" update=":f:tbl, :evalNovDlgForm:novPanel, :evalNovDlgForm:evalNovPanel, :evalInsDlgForm:insPanel, :evalInsDlgForm:evalInsPanel" rendered="#{row.NEstado == 55}">
+                                            <f:param value="#{rowKey}" name="rowKey"/>
+                                            <f:setPropertyActionListener value="#{row}" target="#{riesgoMB.selectedRiesgo}"/>
+                                            <h:graphicImage style="border: 0;" url="/pages/images/open_folder.png" width="16" height="16" alt="reabrir riesgo" title="reabrir riesgo"/>
+                                        </p:commandLink>
+                                        <h:graphicImage style="border: 0;" url="/pages/images/open_folder_disabled.png" width="16" height="16" alt="reabrir riesgo" title="reabrir riesgo" rendered="#{row.NEstado != 55}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+                    
+                    <p:dialog id="evalNovDlg" widgetVar="evalNovDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="500px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EVALUACIÓN DEL RIESGO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="evalNovDlgForm">
+                            <p:messages id="evalNovDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Riesgo</legend>
+                                <h:panelGrid id="novPanel" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputLabel value="Código:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedNovedad.NCodNovedad}" style="float: left;font-size: 11px;font-weight: normal;"/>
+
+                                    <h:outputLabel value="Nombre:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedNovedad.VDescBreve}" style="float: left;font-size: 11px;font-weight: normal;"/>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <h:outputText value="#{riesgoMB.selectedNovedad.NLugar}" style="float: left;font-size: 11px;font-weight: normal;"> 
+                                        <f:converter converterId="converterLugar"/>
+                                    </h:outputText>
+
+                                    <h:outputLabel value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedNovedad.DFecHora}" style="float: left;font-size: 11px;font-weight: normal;"> 
+                                        <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                    </h:outputText>
+
+                                    <h:outputLabel value="Estado:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.novedadEvaluacion.NEstado}" style="float: left;font-size: 11px;font-weight: normal;"
+                                                  rendered="#{riesgoMB.novedadEvaluacion.NEstado!=null}">
+                                        <f:converter converterId="converterEstadoEvaluacion"/>
+                                    </h:outputText>
+                                    <h:outputText value="PENDIENTE DE ANALISIS" style="float: left;font-size: 11px;font-weight: normal;" rendered="#{riesgoMB.novedadEvaluacion.NEstado==null}"/>
+
+                                    <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedNovedad.VDescripcion}" style="float: left;font-size: 11px;font-weight: normal;"/>
+                                </h:panelGrid>
+                            </fieldset>
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Evaluación</legend>
+                                <h:panelGrid id="evalNovPanel" columns="1" >
+                                    <h:outputLabel value="Cuál es la probabilidad de ocurrencia?" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <h:selectOneRadio id="ocurrencia" value="#{riesgoMB.novedadEvaluacion.NOcurrencia}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaOcurrencia}"/>
+                                    </h:selectOneRadio>
+                                    <ui:repeat var="var" value="#{listasSessionMB.listaAyudaOcurrencia}" varStatus="rowKey">
+                                        <p:tooltip value="label[for='evalNovDlgForm:ocurrencia:#{rowKey}']">
+                                            <h:outputText value="#{var.label}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:tooltip>
+                                    </ui:repeat>
+                                    <p:spacer/>
+                                    <h:outputLabel value="Cuál es el impacto?" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <h:selectOneRadio id="impacto" value="#{riesgoMB.novedadEvaluacion.NImpacto}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaImpacto}"/>
+                                    </h:selectOneRadio>
+                                    <ui:repeat var="var" value="#{listasSessionMB.listaAyudaImpacto}" varStatus="rowKey">
+                                        <p:tooltip value="label[for='evalNovDlgForm:impacto:#{rowKey}']">
+                                            <h:outputText value="#{var.label}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:tooltip>
+                                    </ui:repeat>
+                                    <p:spacer/>
+                                    <h:outputLabel value="Explicación:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <p:dataTable id="diagnostico" value="#{riesgoMB.novedadEvaluacion.segDetNovevalDetalles}" var="row" style="font-size: 11px; width: 100%;" rendered="#{not empty riesgoMB.novedadEvaluacion.segDetNovevalDetalles}">
+                                        <p:column>
+                                            <h:panelGroup>
+                                                <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;"> 
+                                                    <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                                </h:outputText>
+                                                <p:spacer width="5"/>
+                                                <h:outputText value="#{row.VDiagnostico}" style="font-size: 11px;font-weight: normal;"/>
+                                            </h:panelGroup>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <h:inputTextarea value="#{riesgoMB.diagnostico}" rows="5" cols="81" style="font-size: 11px;font-weight: normal;"/>
+                                    <p:spacer/>
+                                    <h:outputLabel value="Recomendaciones:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <p:dataTable id="recomendacion" value="#{riesgoMB.novedadEvaluacion.segDetNovevalDetalles}" var="row" style="font-size: 11px; width: 100%" rendered="#{not empty riesgoMB.novedadEvaluacion.segDetNovevalDetalles}">
+                                        <p:column>
+                                            <h:panelGroup>
+                                                <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;">
+                                                    <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                                </h:outputText>
+                                                <p:spacer width="5"/>
+                                                <h:outputText value="#{row.VRecomendacion}" style="font-size: 11px;font-weight: normal;"/>
+                                            </h:panelGroup>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <h:inputTextarea value="#{riesgoMB.recomendacion}" rows="5" cols="81" style="font-size: 11px;font-weight: normal;"/>
+                                </h:panelGrid>
+                            </fieldset>
+                            <h:panelGrid columns="1">
+                                <h:panelGroup>
+                                    <p:commandButton value="Grabar Evaluación" onclick="PF('confirmEvalNovDlg').show();" style="font-size: 11px;height: 2em" />
+                                    <p:commandButton value="Grabar y Cerrar Evaluación" onclick="PF('confirmEvalCerNovDlg').show();" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="confirmEvalNovDlg" widgetVar="confirmEvalNovDlg" header="Confirmación" message="Se procederá a grabar la evaluación del riesgo. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEvalNovDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :evalNovDlgForm:evalNovDlgMsgs" actionListener="#{riesgoMB.registrarEvaluacionNovedad}" oncomplete="PF('confirmEvalNovDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEvalNovDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:confirmDialog id="confirmEvalCerNovDlg" widgetVar="confirmEvalCerNovDlg" header="Confirmación" message="Se procederá a grabar y cerrar la evaluación del riesgo. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEvalCerNovDlgForm">                                
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :evalNovDlgForm:evalNovDlgMsgs" actionListener="#{riesgoMB.registrarCerrarEvaluacionNovedad}" oncomplete="PF('confirmEvalCerNovDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEvalCerNovDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:dialog id="evalInsDlg" widgetVar="evalInsDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="500px">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EVALUACIÓN DEL RIESGO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="evalInsDlgForm">
+                            <p:messages id="evalInsDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Riesgo</legend>
+                                <h:panelGrid id="insPanel" columns="2" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputLabel value="Código:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedInsPresencial.NCodInspresencial}" style="float: left;font-size: 11px;font-weight: normal;"/>
+
+                                    <h:outputLabel value="Nombre:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedInsPresencial.VDescBreve}" style="float: left;font-size: 11px;font-weight: normal;"/>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <h:outputText value="#{riesgoMB.selectedInsPresencial.NLugar}" style="float: left;font-size: 11px;font-weight: normal;"> 
+                                        <f:converter converterId="converterLugar"/>
+                                    </h:outputText>
+
+                                    <h:outputLabel value="Fecha y Hora:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedInsPresencial.DFecHora}" style="float: left;font-size: 11px;font-weight: normal;"> 
+                                        <f:convertDateTime type="date" pattern="dd/MM/yyyy h:mm a"/>
+                                    </h:outputText>
+
+                                    <h:outputLabel value="Estado:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.inspeccionEvaluacion.NEstado}" style="float: left;font-size: 11px;font-weight: normal;"
+                                                  rendered="#{riesgoMB.inspeccionEvaluacion.NEstado!=null}">
+                                        <f:converter converterId="converterEstadoEvaluacion" />
+                                    </h:outputText>
+                                    <h:outputText value="PENDIENTE DE ANALISIS" style="float: left;font-size: 11px;font-weight: normal;" rendered="#{riesgoMB.inspeccionEvaluacion.NEstado==null}"/>
+
+                                    <h:outputLabel value="Descripción:" styleClass="Etiqueta1"/>
+                                    <h:outputText value="#{riesgoMB.selectedInsPresencial.VDescripcion}" style="float: left;font-size: 11px;font-weight: normal;"/>
+                                </h:panelGrid>
+                            </fieldset>
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Evaluación</legend>
+                                <h:panelGrid id="evalInsPanel" columns="1" >
+                                    <h:outputLabel value="Cuál es la probabilidad de ocurrencia?" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <h:selectOneRadio id="ocurrencia" value="#{riesgoMB.inspeccionEvaluacion.NOcurrencia}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaOcurrencia}"/>
+                                    </h:selectOneRadio>
+                                    <ui:repeat var="var" value="#{listasSessionMB.listaAyudaOcurrencia}" varStatus="rowKey">
+                                        <p:tooltip value="label[for='evalInsDlgForm:ocurrencia:#{rowKey}']">
+                                            <h:outputText value="#{var.label}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:tooltip>
+                                    </ui:repeat>
+                                    <p:spacer/>
+                                    <h:outputLabel value="Cuál es el impacto?" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <h:selectOneRadio id="impacto" value="#{riesgoMB.inspeccionEvaluacion.NImpacto}" style="float: left;font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaImpacto}"/>
+                                    </h:selectOneRadio>
+                                    <ui:repeat var="var" value="#{listasSessionMB.listaAyudaImpacto}" varStatus="rowKey">
+                                        <p:tooltip value="label[for='evalInsDlgForm:impacto:#{rowKey}']">
+                                            <h:outputText value="#{var.label}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:tooltip>
+                                    </ui:repeat>
+                                    <p:spacer/>
+                                    <h:outputLabel value="Explicación:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <p:dataTable id="diagnostico" value="#{riesgoMB.inspeccionEvaluacion.segDetInspreevalDetalles}" var="row" style="font-size: 11px; width: 100%;" rendered="#{not empty riesgoMB.inspeccionEvaluacion.segDetInspreevalDetalles}">
+                                        <p:column>
+                                            <h:panelGroup>
+                                                <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;"> 
+                                                    <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                                </h:outputText>
+                                                <p:spacer width="5"/>
+                                                <h:outputText value="#{row.VDiagnostico}" style="font-size: 11px;font-weight: normal;"/>
+                                            </h:panelGroup>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <h:inputTextarea value="#{riesgoMB.diagnostico}" rows="5" cols="81" style="font-size: 11px;font-weight: normal;"/>
+                                    <p:spacer/>
+                                    <h:outputLabel value="Recomendaciones:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                    <p:dataTable id="recomendacion" value="#{riesgoMB.inspeccionEvaluacion.segDetInspreevalDetalles}" var="row" style="font-size: 11px; width: 100%;" rendered="#{not empty riesgoMB.inspeccionEvaluacion.segDetInspreevalDetalles}">
+                                        <p:column>
+                                            <h:panelGroup>
+                                                <h:outputText value="#{row.DFechora}" style="font-size: 11px;font-weight: bold;">
+                                                    <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                                </h:outputText>
+                                                <p:spacer width="5"/>
+                                                <h:outputText value="#{row.VRecomendacion}" style="font-size: 11px;font-weight: normal;"/>
+                                            </h:panelGroup>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <h:inputTextarea value="#{riesgoMB.recomendacion}" rows="5" cols="81" style="font-size: 11px;font-weight: normal;"/>
+                                </h:panelGrid>
+                            </fieldset>
+                            <h:panelGrid columns="1">
+                                <h:panelGroup>
+                                    <p:commandButton value="Grabar Evaluación" onclick="PF('confirmEvalInsDlg').show();" style="font-size: 11px;height: 2em" />
+                                    <p:commandButton value="Grabar y Cerrar Evaluación" onclick="PF('confirmEvalCerInsDlg').show();" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+                    
+                    <p:confirmDialog id="confirmEvalInsDlg" widgetVar="confirmEvalInsDlg" header="Confirmación" message="Se procederá a grabar la evaluación del riesgo. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEvalInsDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :evalInsDlgForm:evalInsDlgMsgs" actionListener="#{riesgoMB.registrarEvaluacionInspeccion}" oncomplete="PF('confirmEvalInsDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEvalInsDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                    
+                    <p:confirmDialog id="confirmEvalCerInsDlg" widgetVar="confirmEvalCerInsDlg" header="Confirmación" message="Se procederá a grabar y cerrar la evaluación del riesgo. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmEvalCerInsDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :evalInsDlgForm:evalInsDlgMsgs" actionListener="#{riesgoMB.registrarCerrarEvaluacionInspeccion}" oncomplete="PF('confirmEvalCerInsDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmEvalCerInsDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>
+

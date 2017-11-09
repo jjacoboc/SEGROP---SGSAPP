@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.LugarDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetArea;
@@ -57,7 +58,10 @@ public class LugarDaoHibernate extends HibernateDaoSupport implements LugarDao{
 
     @Override
     public List<SegDetLugar> buscarLugares(SegDetLugar lugar) {
-        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLugar.class);        
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLugar.class);
+        if(lugar.getId().getNCodEmpresa()!=null && !"-1".equals(lugar.getId().getNCodEmpresa().toString())){
+            criteria.add(Restrictions.eq("NCodEmpresa", lugar.getId().getNCodEmpresa()));
+        }
         if(lugar.getId().getNCodArea()!=null && !"-1".equals(lugar.getId().getNCodArea().toString())){
             criteria.add(Restrictions.eq("NCodArea", lugar.getId().getNCodArea()));
         }
@@ -71,6 +75,14 @@ public class LugarDaoHibernate extends HibernateDaoSupport implements LugarDao{
     @Override
     public List<SegDetLugar> obtenerListaLugares() {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLugar.class);
+        criteria.addOrder(Order.asc("VDescripcion"));
+        return (List<SegDetLugar>) getHibernateTemplate().findByCriteria(criteria);
+    }
+    
+    @Override
+    public List<SegDetLugar> obtenerListaLugaresByEmpresa(SegCabEmpresa empresa) {
+        DetachedCriteria criteria = DetachedCriteria.forClass(SegDetLugar.class);
+        criteria.add(Restrictions.eq("NCodEmpresa", empresa.getNCodEmpresa()));
         criteria.addOrder(Order.asc("VDescripcion"));
         return (List<SegDetLugar>) getHibernateTemplate().findByCriteria(criteria);
     }
@@ -120,11 +132,13 @@ public class LugarDaoHibernate extends HibernateDaoSupport implements LugarDao{
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarLugar(SegDetLugar lugar) {
         getHibernateTemplate().saveOrUpdate(lugar);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarLugar(SegDetLugar lugar) {
         getHibernateTemplate().delete(lugar);
     }

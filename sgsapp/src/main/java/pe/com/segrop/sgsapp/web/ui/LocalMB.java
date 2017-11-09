@@ -11,17 +11,23 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.model.SelectItem;
 import javax.servlet.http.HttpSession;
+import org.primefaces.component.selectonemenu.SelectOneMenu;
+import org.primefaces.context.RequestContext;
 import pe.com.segrop.sgsapp.dao.LocalDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegDetLocal;
 import pe.com.segrop.sgsapp.domain.SegDetLocalId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
@@ -30,7 +36,10 @@ import pe.com.segrop.sgsapp.web.common.ServiceFinder;
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class LocalMB implements Serializable{
+    
     private static final long serialVersionUID = 1L;
 
     private String searchEmpresa;
@@ -41,6 +50,7 @@ public class LocalMB implements Serializable{
     private List<SelectItem> itemsDescripcion;
     private SegDetLocal selectedItem;
     private String action;
+    private Boolean flag;
     
     /** Creates a new instance of LocalMB */
     public LocalMB() {
@@ -125,6 +135,39 @@ public class LocalMB implements Serializable{
     public void setAction(String action) {
         this.action = action;
     }
+
+    /**
+     * @return the flag
+     */
+    public Boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * @param flag the flag to set
+     */
+    public void setFlag(Boolean flag) {
+        this.flag = flag;
+    }
+    
+    @PostConstruct
+    public void init() {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            if(rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                this.setFlag(true);
+            } else {
+                this.setFlag(false);
+            }
+        } catch(Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
     
     public void buscarLocal(ActionEvent actionEvent) {
         ResourceBundle bundle = null;
@@ -132,7 +175,7 @@ public class LocalMB implements Serializable{
         try {
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             rucSegrop = bundle.getString("rucSegrop");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetLocalId segDetLocalId = new SegDetLocalId();
             if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
                 segDetLocalId.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
@@ -145,6 +188,18 @@ public class LocalMB implements Serializable{
             LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
             setListaLocal(localDao.buscarLocales(segDetLocal));
         } catch (Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
+    
+    public void handleChangeValue(AjaxBehaviorEvent event) {
+        try {
+            if(event != null) {
+                BigDecimal id = (BigDecimal) ((SelectOneMenu) event.getSource()).getValue();
+                this.setEmpresa(id);
+            }
+        } catch(Exception e) {
             e.getMessage();
             e.printStackTrace();
         }
@@ -187,8 +242,8 @@ public class LocalMB implements Serializable{
         try {
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             rucSegrop = bundle.getString("rucSegrop");
-            SegCabUsuario segCabUsuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabUsuario segCabUsuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetLocal segDetLocal = this.getSelectedItem();
             if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
                 segDetLocal.getId().setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
@@ -204,14 +259,14 @@ public class LocalMB implements Serializable{
                 }else{
                     segDetLocal.setDFecModificacion(new Date());
                     segDetLocal.setVUsuModificacion(segCabUsuario.getVUsuario());
-                    segDetLocal.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetLocal.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                     localDao.registrarLocal(segDetLocal);
                     if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
                         setListaLocal(localDao.obtenerListaLocalesByEmpresa(segCabEmpresa));
                     }else{
                         setListaLocal(localDao.obtenerListaLocales());
                     }
-                    this.action = "Richfaces.hideModalPanel('dlgEdit')";
+                    RequestContext.getCurrentInstance().execute("PF('dlgEdit').hide();");
                 }
             }
         } catch (Exception e) {
@@ -227,16 +282,16 @@ public class LocalMB implements Serializable{
         try {
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             rucSegrop = bundle.getString("rucSegrop");
-            SegCabUsuario segCabUsuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabUsuario segCabUsuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
                 this.setEmpresa(segCabEmpresa.getNCodEmpresa());
             }
             SegDetLocalId segDetLocalId = new SegDetLocalId();
-            segDetLocalId.setNCodEmpresa(this.empresa != null ? this.empresa : null);
+            segDetLocalId.setNCodEmpresa(this.getEmpresa() != null ? this.getEmpresa() : null);
             SegDetLocal segDetLocal = new SegDetLocal();
             segDetLocal.setId(segDetLocalId);
-            segDetLocal.setVDescripcion(this.descripcion != null ? this.descripcion.toUpperCase().trim() : null);
+            segDetLocal.setVDescripcion(this.getDescripcion() != null ? this.getDescripcion().toUpperCase().trim() : null);
             if(!errorValidation(segDetLocal)){
                 LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
                 SegDetLocal local = localDao.obtenerLocalByDescripcion(segDetLocal); //validando si existe un local con la misma descripción
@@ -244,18 +299,18 @@ public class LocalMB implements Serializable{
                     message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR.", " El local ingresado ya se encuentra registrado.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
                 }else{
-                    segDetLocal.getId().setNCodLocal(BigDecimal.valueOf(localDao.nextSequenceValue().longValue()));
+                    segDetLocal.getId().setNCodLocal(BigDecimal.valueOf(localDao.nextSequenceValue()));
                     segDetLocal.setNFlgActivo(BigDecimal.ONE);
                     segDetLocal.setDFecCreacion(new Date());
                     segDetLocal.setVUsuCreacion(segCabUsuario.getVUsuario());
-                    segDetLocal.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetLocal.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     localDao.registrarLocal(segDetLocal);
                     if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
                         setListaLocal(localDao.obtenerListaLocalesByEmpresa(segCabEmpresa));
                     }else{
                         setListaLocal(localDao.obtenerListaLocales());
                     }
-                    this.action = "Richfaces.hideModalPanel('dlg')";
+                    RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
                 }
             }
         } catch (Exception e) {
@@ -265,17 +320,17 @@ public class LocalMB implements Serializable{
     }
     
     /**
-     * Desactiva el local seleccionado.
-     * @return destino Página a la que redirecciona el método.
+     * Desactiva el local seleccionadel método.
+     * @param actionEvent
      */
     public void desactivar(ActionEvent actionEvent){
         ResourceBundle bundle = null;
         String rucSegrop = null;
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             rucSegrop = bundle.getString("rucSegrop");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
             getSelectedItem().setNFlgActivo(BigDecimal.ZERO); //INACTIVO = 0
             localDao.registrarLocal(getSelectedItem());
@@ -293,16 +348,16 @@ public class LocalMB implements Serializable{
     
     /**
      * Activa el local seleccionado.
-     * @return destino Página a la que redirecciona el método.
+     * @param actionEvent
      */
     public void activar(ActionEvent actionEvent){
         ResourceBundle bundle = null;
         String rucSegrop = null;
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             rucSegrop = bundle.getString("rucSegrop");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
             getSelectedItem().setNFlgActivo(BigDecimal.ONE); //ACTIVO = 1
             localDao.registrarLocal(getSelectedItem());
@@ -341,7 +396,7 @@ public class LocalMB implements Serializable{
     }
     
     public List<SelectItem> completeDescripcion(String query) {
-        List<SelectItem> suggestions = new ArrayList<SelectItem>();
+        List<SelectItem> suggestions = new ArrayList<>();
         try {
             for (SelectItem p : getItemsDescripcion()) {
                 if (p.getLabel().startsWith(query.toUpperCase())) {

@@ -10,15 +10,17 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.convert.ConverterException;
+import javax.faces.convert.FacesConverter;
 import javax.faces.model.SelectItem;
 import javax.servlet.http.HttpSession;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.ui.ListasSessionMB;
 
 /**
  *
  * @author JJ
  */
+@FacesConverter("converterEstadoEvaluacion")
 public class ConverterEstadoEvaluacion implements Converter{
 
     @Override
@@ -36,7 +38,7 @@ public class ConverterEstadoEvaluacion implements Converter{
         String label = "PENDIENTE DE ANALISIS";
         try{
             if(value != null && !"-1".equals(value.toString())){
-                HttpSession session = BaseBean.getSession();
+                HttpSession session = JSFUtils.getSession();
                 ListasSessionMB listasSession = session.getAttribute("listasSessionMB")!=null?(ListasSessionMB)session.getAttribute("listasSessionMB"):new ListasSessionMB();
                 lista = listasSession.getListaEstadoEvaluacion();
                 for(int i=0;i<lista.size();i++){

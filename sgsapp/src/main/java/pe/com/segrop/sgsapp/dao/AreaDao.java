@@ -15,14 +15,15 @@ import pe.com.segrop.sgsapp.domain.SegDetLocal;
  */
 public interface AreaDao {
     
-    public Long nextSequenceValue();
-    public List<SegDetArea> buscarAreas(SegDetArea area);    
-    public List<SegDetArea> obtenerListaAreas();
-    public List<SegDetArea> obtenerListaAreasByLocal(SegDetLocal local);
-    public List<SegDetArea> obtenerListaAreasActivas();
-    public List<SegDetArea> obtenerListaAreasActivasByEmpresa(SegCabEmpresa empresa);
-    public List<SegDetArea> obtenerListaAreasActivasByLocal(SegDetLocal local);
-    public SegDetArea obtenerAreaByDescripcion(SegDetArea area);
-    public void registrarArea(SegDetArea area);
-    public void eliminarArea(SegDetArea area);
+    Long nextSequenceValue();
+    List<SegDetArea> buscarAreas(SegDetArea area);    
+    List<SegDetArea> obtenerListaAreas();
+    List<SegDetArea> obtenerListaAreasByLocal(SegDetLocal local);
+    List<SegDetArea> obtenerListaAreasByEmpresa(SegCabEmpresa empresa);
+    List<SegDetArea> obtenerListaAreasActivas();
+    List<SegDetArea> obtenerListaAreasActivasByEmpresa(SegCabEmpresa empresa);
+    List<SegDetArea> obtenerListaAreasActivasByLocal(SegDetLocal local);
+    SegDetArea obtenerAreaByDescripcion(SegDetArea area);
+    void registrarArea(SegDetArea area);
+    void eliminarArea(SegDetArea area);
 }

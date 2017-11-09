@@ -18,7 +18,9 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.PerfilDao;
+import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetPerfil;
 
 /**
@@ -74,9 +76,9 @@ public class PerfilDaoHibernate extends HibernateDaoSupport implements PerfilDao
     }
     
     @Override
-    public List<SegDetPerfil> obtenerListaPerfilesByEmpresa(SegDetPerfil perfil) {
+    public List<SegDetPerfil> obtenerListaPerfilesByEmpresa(SegCabEmpresa segCabEmpresa) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetPerfil.class);
-        criteria.add(Restrictions.eq("NCodEmpresa", perfil.getId().getNCodEmpresa()));
+        criteria.add(Restrictions.eq("NCodEmpresa", segCabEmpresa.getNCodEmpresa()));
         criteria.addOrder(Order.asc("VNombre"));
         return (List<SegDetPerfil>) getHibernateTemplate().findByCriteria(criteria);
     }
@@ -90,9 +92,9 @@ public class PerfilDaoHibernate extends HibernateDaoSupport implements PerfilDao
     }
     
     @Override
-    public List<SegDetPerfil> obtenerListaPerfilesActivosByEmpresa(SegDetPerfil perfil) {
+    public List<SegDetPerfil> obtenerListaPerfilesActivosByEmpresa(SegCabEmpresa segCabEmpresa) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetPerfil.class);
-        criteria.add(Restrictions.eq("NCodEmpresa", perfil.getId().getNCodEmpresa()));
+        criteria.add(Restrictions.eq("NCodEmpresa", segCabEmpresa.getNCodEmpresa()));
         criteria.add(Restrictions.eq("NFlgActivo", BigDecimal.ONE));
         criteria.addOrder(Order.asc("VNombre"));
         return (List<SegDetPerfil>) getHibernateTemplate().findByCriteria(criteria);
@@ -114,6 +116,7 @@ public class PerfilDaoHibernate extends HibernateDaoSupport implements PerfilDao
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarPerfil(SegDetPerfil perfil) {
         getHibernateTemplate().saveOrUpdate(perfil);
     }

@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ResponsableInspeccionDao;
 import pe.com.segrop.sgsapp.domain.SegCabResponsable;
 
@@ -77,11 +78,13 @@ public class ResponsableInspeccionDaoHibernate extends HibernateDaoSupport imple
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarResponsable(SegCabResponsable responsable) {
         getHibernateTemplate().saveOrUpdate(responsable);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarResponsable(SegCabResponsable responsable) {
         getHibernateTemplate().delete(responsable);
     }

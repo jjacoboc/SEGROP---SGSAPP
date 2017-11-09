@@ -13,11 +13,12 @@ and open the template in the editor.
     <h:head>
         <title>SGSWEB</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
     </h:head>
     <h:body>
         <f:view>
             <p:layout fullPage="true">
-                <p:layoutUnit position="north" size="120" closable="true" collapsible="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
                     <ui:include src="../commons/header.xhtml" />
                 </p:layoutUnit>
                 
@@ -26,10 +27,9 @@ and open the template in the editor.
                 </p:layoutUnit>
                 
                 <p:layoutUnit position="center" style="font-size: 12px;">
-                    <h:panelGrid columns="1" width="100%" style="text-align: center;">
-                        <p:spacer height="150"/>
+                    <h:panelGrid columns="1" width="100%"  style="text-align: center;">
+                        <p:spacer height="100"/>
                         <p:graphicImage library="images" name="sgsweb_logo.png" style="border: 0;" width="219" height="254"/>
-                        <p:spacer height="150"/>
                     </h:panelGrid>
                 </p:layoutUnit>
             </p:layout>

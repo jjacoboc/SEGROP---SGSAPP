@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.CargoDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetCargo;
@@ -102,16 +103,19 @@ public class CargoDaoHibernate extends HibernateDaoSupport implements CargoDao{
     @Override
     public SegDetCargo obtenerCargoByDescripcion(SegDetCargo cargo) {
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetCargo.class);
+        criteria.add(Restrictions.eq("NCodEmpresa", cargo.getNCodEmpresa()));
         criteria.add(Restrictions.eq("VDescripcion", cargo.getVDescripcion()));
         return (SegDetCargo) DataAccessUtils.uniqueResult(getHibernateTemplate().findByCriteria(criteria));
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarCargo(SegDetCargo cargo) {
         getHibernateTemplate().saveOrUpdate(cargo);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void eliminarCargo(SegDetCargo cargo) {
         getHibernateTemplate().delete(cargo);
     }

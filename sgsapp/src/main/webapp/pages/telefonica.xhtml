@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>SGSWEB - Gestión de Inspecciones Telefónicas</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet library="css" name="mycss.css" />
+        <h:outputScript library="js" name="general.js"/>
+    </h:head>
+    <f:loadBundle var="par" basename="pe.com.segrop.sgsapp.resources.parameters"/>
+    <script type="text/javascript">
+        window.onload = function WindowLoad(event) {
+            var value = document.getElementById('hiddenForm:action').value;
+            if (value !== '') {
+                document.getElementById('hiddenForm:invisibleButton').click();
+                document.getElementById('hiddenForm:action').value = '';
+            }
+        };
+        function backToMatrix() {
+            document.getElementById('hiddenForm:hiddenBtn').click();
+        }
+    </script>
+    <h:body>
+        <f:view>
+            <p:layout fullPage="true">
+                <p:layoutUnit position="north" size="82" closable="true" collapsible="true" visible="true" >
+                    <ui:include src="../commons/header.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="south" size="50" closable="true" collapsible="true">
+                    <ui:include src="../commons/footer.xhtml" />
+                </p:layoutUnit>
+
+                <p:layoutUnit position="center" style="font-size: 12px;">
+                    <h:form id="f">
+                        <p:spacer height="15"/>
+                        <p:panel header="GESTION DE INSPECCIONES TELEFÓNICAS" style="font-size: 13px;">
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Criterios de Búsqueda</legend>
+                                <h:panelGrid id="pgSearch" columns="2" width="100%" columnClasses="columnLbl1, columnTxt1">
+                                    <h:outputText value="Pregunta: " styleClass="Etiqueta1" />
+                                    <p:inputText id="searchPregunta" size="150" maxlength="150" value="#{telefonicaMB.searchPregunta}" style="font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Empresa: " styleClass="Etiqueta1" rendered="#{telefonicaMB.flag}"/>
+                                    <p:selectOneMenu value="#{telefonicaMB.searchEmpresa}" style="font-size: 11px" rendered="#{telefonicaMB.flag}"> 
+                                        <f:selectItems value="#{listasSessionMB.listaEmpresaActiva}"/>
+                                        <p:ajax event="change" listener="#{listasSessionMB.obtenerListaLocalByEmpresa}" update=":f:searchLocal"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchLugar" value="#{telefonicaMB.searchLugar}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaLugarActivoByArea}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchResponsable" value="#{telefonicaMB.searchResponsable}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaResponsableActivoByArea}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" />
+                                    <p:selectOneMenu id="searchCargo" value="#{telefonicaMB.searchCargo}" style="font-size: 11px">
+                                        <f:selectItems value="#{listasSessionMB.listaCargoActivoByEmpresa}"/>
+                                    </p:selectOneMenu>
+
+                                    <h:outputText value="Rango Fechas: " styleClass="Etiqueta1" />
+                                    <h:panelGrid columns="5" cellpadding="0" cellspacing="0">
+                                        <p:calendar id="searchFechaInicio" value="#{telefonicaMB.searchFechaInicio}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                        <p:spacer width="10"/>
+                                        <h:outputText value="al" style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <p:spacer width="10"/>
+                                        <p:calendar id="searchFechaFin" value="#{telefonicaMB.searchFechaFin}" pattern="dd/MM/yyyy" locale="es" size="10" style="font-size: 11px"/>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                                <h:panelGrid columns="1">
+                                    <h:panelGroup>
+                                        <p:commandButton id="btnBuscar" value="Buscar" actionListener="#{telefonicaMB.buscarInspeccionTelefonica}" update=":f:tbl" style="font-size: 11px;height: 2em"/>
+                                        <p:commandButton id="btnNuevo" value="Nuevo" actionListener="#{telefonicaMB.toRegistrar}" oncomplete="PF('dlg').show();" style="font-size: 11px;height: 2em"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="font-size: 11px;font-weight: bold;">Listado de Inspecciones Telefónicas</legend>
+                                <p:messages id="tblMsgs" showSummary="true" showDetail="true"/>
+                                <p:dataTable id="tbl" var="row" value="#{telefonicaMB.listaInsTelefonica}" rows="10" rowIndexVar="rowIndexVar" 
+                                             paginator="true" paginatorPosition="top" emptyMessage="No se encontraron registros." style="font-size: 11px;">
+                                    <p:column rendered="#{telefonicaMB.flag}">
+                                        <f:facet name="header">
+                                            <h:outputText value="EMPRESA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.id.NCodEmpresa}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEmpresa"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LUGAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.segCabLugar.NCodLugar}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterLugarInspeccion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="RESPONSABLE" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.segCabResponsable.NCodResponsable}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterResponsableInspeccion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="CARGO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.segCabCargo.NCodCargo}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterCargoInspeccion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="TELÉFONO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VTelefono}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ESTADO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.NEstado}" style="font-size: 11px;font-weight: normal;">
+                                            <f:converter converterId="converterEstadoInspeccion"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;">
+                                        <f:facet name="header">
+                                            <h:outputText value="FECHA CREACIÓN" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.DFecCreacion}" style="font-size: 11px;font-weight: normal;">
+                                            <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                        </h:outputText>
+                                    </p:column>
+                                    <p:column style="text-align: center;width: 5%;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink id="vlink" actionListener="#{telefonicaMB.toVer}" oncomplete="PF('verDlg').show()" update=":verDlgForm:verPanel, :verDlgForm:lstPreguntas">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <h:graphicImage library="images" name="magnifier.png" alt="ver inspección" title="ver inspección"/>
+                                        </p:commandLink>
+                                        <p:spacer/>
+                                        <p:commandLink id="slink" actionListener="#{telefonicaMB.toSeguimiento}" oncomplete="PF('segDlg').show()" update=":segDlgForm:showpnl, :segDlgForm:pgrid">
+                                            <f:param name="rowkey" value="#{rowIndexVar}"/>
+                                            <f:setPropertyActionListener value="#{row}" target="#{telefonicaMB.selectedInsTelefonica}"/>
+                                            <h:graphicImage library="images" name="date_go.png" alt="seguimiento de inspección" title="seguimiento de inspección" rendered="#{row.NSeguimiento != 0}"/>
+                                            <h:graphicImage library="images" name="date_magnify.png" alt="ver seguimiento" title="ver seguimiento" rendered="#{row.NSeguimiento == 0}"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </fieldset>
+                        </p:panel>
+                    </h:form>
+
+                    <p:dialog id="dlg" widgetVar="dlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="70%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="NUEVA INSPECCIÓN TELEFÓNICA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:500px;">
+                            <h:form id="dlgForm">
+                                <p:messages id="dlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                                <h:panelGrid id="pnlPreguntas" columns="1">
+                                    <h:panelGroup>
+                                        <h:outputText value="Pregunta : " style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:inputText id="preg" size="115" maxlength="150" value="#{telefonicaMB.pregunta}" style="font-size: 11px;text-transform: uppercase;"/>
+                                        <p:spacer width="10px;"/>
+                                        <p:commandLink actionListener="#{telefonicaMB.registrarPregunta}" update=":dlgForm:pnlPreguntas, :dlgForm:dlgMsgs">
+                                            <h:graphicImage library="images" name="add.png" alt="añadir pregunta"/>
+                                        </p:commandLink>
+                                    </h:panelGroup>
+                                    <p:spacer/>
+                                    <p:dataTable id="preguntas" var="row" value="#{telefonicaMB.listaPreguntas}" rows="5" rowIndexVar="rowKey" 
+                                                 paginator="true" paginatorPosition="top" emptyMessage="No se encontraron registros." style="width: 100%;">
+                                        <p:column style="text-align: center;width: 5%;">
+                                            <f:facet name="header">
+                                                <h:outputText value="SEL" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox value="#{telefonicaMB.listaSelectedRowKeys[rowKey]}"/>
+                                        </p:column>
+                                        <p:column>
+                                            <f:facet name="header">
+                                                <h:outputText value="PREGUNTA" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:column>
+                                        <p:column style="text-align: center;width: 10%;">
+                                            <f:facet name="header">
+                                                <h:outputText value="ACCIONES" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <p:commandLink onclick="PF('delConfirmDlg').show();">
+                                                <f:setPropertyActionListener value="#{row}" target="#{telefonicaMB.selectedPregunta}"/>
+                                                <h:graphicImage library="images" name="cross.png" alt="eliminar pregunta" title="eliminar pregunta"/>
+                                            </p:commandLink>
+                                            <p:commandLink id="elink" oncomplete="PF('editPreguntaDlg').show();" update=":editPreguntaDlgForm:pnlEditPregunta">
+                                                <f:setPropertyActionListener value="#{row}" target="#{telefonicaMB.selectedPregunta}"/>
+                                                <h:graphicImage library="images" name="pencil.png" alt="editar pregunta" title="editar pregunta"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                    </p:dataTable>
+                                </h:panelGrid>
+                                <h:panelGrid id="pnlTipoCarga" columns="1">
+                                    <p:selectOneRadio id="tipoCarga" value="#{telefonicaMB.tipoCarga}" styleClass="Etiqueta1">
+                                        <f:selectItem itemValue="1" itemLabel="Carga Individual"/>
+                                        <f:selectItem itemValue="2" itemLabel="Carga Masiva"/>
+                                        <p:ajax event="change" listener="#{telefonicaMB.handleChangeTipoCarga}" update=":dlgForm:groupIndividual, :dlgForm:groupMasivo, :dlgForm:groupButton"/>
+                                    </p:selectOneRadio>
+                                </h:panelGrid>
+                                <h:panelGroup id="groupIndividual">
+                                    <h:panelGrid id="idGrid" columns="4" width="50%" rendered="#{telefonicaMB.cargaIndividual}">
+                                        <h:outputText value="Lugar: " style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <h:panelGrid id="groupLugar" columns="2">
+                                            <p:selectOneMenu id="lugar"  value="#{telefonicaMB.lugar}" style="float: left;font-size: 11px">
+                                                <f:selectItems value="#{listasSessionMB.listaLugarInspeccion}"/>
+                                            </p:selectOneMenu>
+                                            <p:commandLink actionListener="#{telefonicaMB.listarLugares}" update=":dlgLugarForm:pnlLugar" oncomplete="PF('dlgLugar').show();">
+                                                <h:graphicImage library="images" name="textfield-add.png" title="añadir lugar" alt="añadir lugar"/>
+                                            </p:commandLink>
+                                        </h:panelGrid>
+
+                                        <h:outputLabel value="Teléfono: " style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <p:inputText value="#{telefonicaMB.telefono}" size="15" maxlength="15" onkeypress="return valida(this, 'tlf');" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                        <h:outputText value="Responsable: " style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <h:panelGrid id="groupResponsable" columns="2">
+                                            <p:selectOneMenu id="responsable" value="#{telefonicaMB.responsable}" style="float: left;font-size: 11px">
+                                                <f:selectItems value="#{listasSessionMB.listaResponsableInspeccion}"/>
+                                            </p:selectOneMenu>
+                                            <p:commandLink actionListener="#{telefonicaMB.listarResponsables}" update=":dlgResponsableForm:pnlResponsable" oncomplete="PF('dlgResponsable').show();">
+                                                <h:graphicImage library="images" name="textfield-add.png" title="añadir responsable" alt="añadir responsable"/>
+                                            </p:commandLink>
+                                        </h:panelGrid>
+
+                                        <h:outputText value="Cargo: " style="font-weight: bold;" styleClass="Etiqueta1" />
+                                        <h:panelGrid id="groupCargo" columns="2">
+                                            <p:selectOneMenu id="cargo" value="#{telefonicaMB.cargo}" style="float: left;font-size: 11px">
+                                                <f:selectItems value="#{listasSessionMB.listaCargoInspeccion}"/>
+                                            </p:selectOneMenu>
+                                            <p:commandLink actionListener="#{telefonicaMB.listarCargos}" update=":dlgCargoForm:pnlCargo" oncomplete="PF('dlgCargo').show();">
+                                                <h:graphicImage library="images" name="textfield-add.png" title="añadir cargo"/>
+                                            </p:commandLink>
+                                        </h:panelGrid>
+                                    </h:panelGrid>
+                                </h:panelGroup>
+                                <h:panelGroup id="groupMasivo">
+                                    <h:panelGrid id="idGridFile" columns="2" rendered="#{telefonicaMB.cargaMasiva}">
+                                        <h:outputLabel value="Archivo:" style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                        <h:panelGrid columns="1">
+                                            <p:fileUpload id="idArchivo" value="#{capacitacionMB.file}" fileUploadListener="#{telefonicaMB.uploadFile}" update=":dlgForm:groupMasivo, :dlgForm:dlgMsgs"
+                                                          cancelLabel="Cancelar" uploadLabel="Cargar" label="Examinar" allowTypes="/(\.|\/)(xls|xlsx)$/" />
+                                            <h:panelGroup id="info">
+                                                <p:commandLink value="Download" rendered="#{telefonicaMB.file != null}" >
+                                                    <h:outputText value="#{telefonicaMB.file.name}" styleClass="Etiqueta1"/>
+                                                    <h:graphicImage value="pdficon.gif" />
+                                                </p:commandLink>
+                                            </h:panelGroup>
+                                        </h:panelGrid>
+                                        <p:spacer width="10px;"/>
+                                        <h:panelGrid columns="2">
+                                            
+                                                <h:graphicImage library="images" name="documentExcel.png" alt="descargar plantilla" title="descargar plantilla"/>
+                                            
+                                            <h:outputText value="Descargar Plantilla de Carga Masiva" styleClass="Etiqueta1" />
+                                        </h:panelGrid>
+                                    </h:panelGrid>
+                                    <p:dataTable id="idSheet" value="#{telefonicaMB.listaInspeccion}" var="row" paginator="true" paginatorPosition="top"
+                                                 rows="10" emptyMessage="No se encontraron registros." rendered="#{telefonicaMB.cargaMasiva}">
+                                        <f:facet name="header">
+                                            <h:outputText value="LISTA DE INSPECCIONES" styleClass="Etiqueta1" />
+                                        </f:facet>
+                                        <p:column style="width:125px">
+                                            <f:facet name="header">
+                                                <h:outputText value="LUGAR" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{row.lugar}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:column>
+                                        <p:column style="width:240px">
+                                            <f:facet name="header">
+                                                <h:outputText value="RESPONSABLE" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{row.responsable}"  style="font-size: 11px;font-weight: normal;"/>
+                                        </p:column>
+                                        <p:column style="width:125px">
+                                            <f:facet name="header">
+                                                <h:outputText value="CARGO" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{row.cargo}" style="font-size: 11px;font-weight: normal;"/>
+                                        </p:column>
+                                        <p:column style="width:99px">
+                                            <f:facet name="header">
+                                                <h:outputText value="TELEFONO" style="font-size: 11px;"/>
+                                            </f:facet>
+                                            <h:outputText value="#{row.telefono}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </h:panelGroup>
+                                <p:spacer height="20"/>
+                                <h:panelGroup id="groupButton">
+                                    <p:commandButton id="btnSave" value="Grabar" onclick="PF('confirmDlg').show();" style="font-size: 11px;height: 2em" rendered="#{telefonicaMB.cargaIndividual}"/>
+                                    <p:commandButton id="btnSaveFile" value="Grabar" update=":f:pgSearch, :dlgForm:groupIndividual" onclick="PF('confirmFileDlg').show();" style="font-size: 11px;height: 2em" rendered="#{telefonicaMB.cargaMasiva}"/>
+                                    <p:commandButton id="btnCancel" value="Cancelar" onclick="PF('dlg').hide();" style="font-size: 11px;height: 2em"/>
+                                </h:panelGroup>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDlg" widgetVar="confirmDlg" header="Confirmación" message="Se procederá a registrar la inspección. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :dlgForm:dlgMsgs" actionListener="#{telefonicaMB.registrarInspeccion}" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="confirmFileDlg" widgetVar="confirmFileDlg" header="Confirmación" message="Se procederá a registrar las inspecciones cargadas. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmFileDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:pgSearch, :dlgForm:groupIndividual, :dlgForm:dlgMsgs" actionListener="#{telefonicaMB.registrarInspeccionMasiva}" oncomplete="PF('confirmFileDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmFileDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="editPreguntaDlg" widgetVar="editPreguntaDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="EDITAR PREGUNTA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="editPreguntaDlgForm">
+                            <h:panelGrid id="pnlEditPregunta" columns="2" width="100%">
+                                <h:outputText value="Pregunta: " style="font-weight: bold;" styleClass="Etiqueta1"/>
+                                <p:inputText id="epreg" size="95" maxlength="150" value="#{telefonicaMB.selectedPregunta.VDescripcion}" style="font-size: 11px;text-transform: uppercase;"/>
+                            </h:panelGrid>
+                            <p:spacer/>
+                            <p:commandButton id="btnSi" value="Grabar" update=":editPreguntaDlgForm:pnlEditPregunta, :dlgForm:pnlPreguntas, :dlgForm:dlgMsgs" actionListener="#{telefonicaMB.editarPregunta}" oncomplete="PF('editPreguntaDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="Cancelar" oncomplete="PF('editPreguntaDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="delConfirmDlg" widgetVar="delConfirmDlg" header="Confirmación" message="Se procederá a eliminar la pregunta. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="delConfirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":dlgForm:pnlPreguntas, :dlgForm:dlgMsgs" actionListener="#{telefonicaMB.eliminarPregunta}" oncomplete="PF('delConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('delConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="verDlg" widgetVar="verDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" >
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="VER INSPECCIÓN TELEFÓNICA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:345px;">
+                            <h:form id="verDlgForm">
+                                <h:panelGrid id="verPanel" columns="4">
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.segCabLugar.NCodLugar}" style="font-size: 11px;font-weight: normal;">
+                                        <f:converter converterId="converterLugarInspeccion"/>
+                                    </h:outputText>
+
+                                    <h:outputLabel value="Teléfono: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.VTelefono}" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.segCabResponsable.NCodResponsable}" style="font-size: 11px;font-weight: normal;">
+                                        <f:converter converterId="converterResponsableInspeccion"/>
+                                    </h:outputText>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.segCabCargo.NCodCargo}" style="font-size: 11px;font-weight: normal;">
+                                        <f:converter converterId="converterCargoInspeccion"/>
+                                    </h:outputText>
+                                    <p:spacer/>
+                                </h:panelGrid>
+                                <p:dataTable id="lstPreguntas" var="row" value="#{telefonicaMB.selectedInsTelefonica.segDetPreguntas}" 
+                                             rows="10" rowIndexVar="index" paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column style="text-align: center;width: 5%">
+                                        <f:facet name="header">
+                                            <h:outputText value="ITEM" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{index+1}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="PREGUNTA" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:dialog id="segDlg" widgetVar="segDlg" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)" width="80%">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="SEGUIMIENTO DE LA INSPECCIÓN TELEFÓNICA"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <div style="overflow-y: auto;height:500px;">
+                            <h:form id="segDlgForm">
+                                <p:messages id="segDlgMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                                <h:panelGrid id="showpnl" columns="4">
+                                    <h:outputText value="Lugar: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.segCabLugar.NCodLugar}" style="font-size: 11px;font-weight: normal;">
+                                        <f:converter converterId="converterLugarInspeccion"/>
+                                    </h:outputText>
+
+                                    <h:outputLabel value="Teléfono: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.VTelefono}" style="float: left;font-size: 11px;text-transform: uppercase;"/>
+
+                                    <h:outputText value="Responsable: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.segCabResponsable.NCodResponsable}" style="font-size: 11px;font-weight: normal;">
+                                        <f:converter converterId="converterResponsableInspeccion"/>
+                                    </h:outputText>
+
+                                    <h:outputText value="Cargo: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                    <h:outputText value="#{telefonicaMB.selectedInsTelefonica.segCabCargo.NCodCargo}" style="font-size: 11px;font-weight: normal;">
+                                        <f:converter converterId="converterCargoInspeccion"/>
+                                    </h:outputText>
+                                    <p:spacer/>
+                                </h:panelGrid>
+                                <h:panelGrid id="pgrid" columns="1" width="100%">
+                                    <p:dataGrid id="dgrid" columns="1" value="#{telefonicaMB.selectedInsTelefonica.segDetPreguntas}" var="row" >
+                                        <p:column>
+                                            <p:panel header="#{row.VDescripcion}" style="font-size: 11px;font-weight: bold;">
+                                                <p:dataTable var="r" value="#{row.segDetRespuestas}" rendered="#{not empty row.segDetRespuestas}">
+                                                    <p:column>
+                                                        <h:panelGroup>
+                                                            <h:outputText value="#{r.DFecCreacion}" style="font-size: 11px;font-weight: bold;">
+                                                                <f:convertDateTime type="date" locale="Locale.SPAIN" dateStyle="SHORT" pattern="dd/MM/yyyy hh:mm:ss"/>
+                                                            </h:outputText>
+                                                            <p:spacer width="5"/>
+                                                            <h:outputText value="#{r.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                                        </h:panelGroup>
+                                                    </p:column>
+                                                </p:dataTable>
+                                                <p:spacer height="5" width="5" rendered="#{telefonicaMB.selectedInsTelefonica.NSeguimiento != 0}"/>
+                                                <p:inputTextarea value="#{row.VRespuesta}" rows="5" cols="130" style="font-size: 11px;font-weight: normal;text-transform: uppercase;" rendered="#{telefonicaMB.selectedInsTelefonica.NSeguimiento != 0}"/>
+                                            </p:panel>
+                                        </p:column>
+                                    </p:dataGrid>
+                                    <h:panelGrid columns="2" rendered="#{telefonicaMB.selectedInsTelefonica.NSeguimiento != 0}">
+                                        <h:outputText value="Necesita Seguimiento: " styleClass="Etiqueta1" style="font-weight: bold;"/>
+                                        <p:selectOneRadio id="sorFollow" value="#{telefonicaMB.seguimiento}" style="font-size: 11px">
+                                            <f:selectItems value="#{listasSessionMB.listaSiNo}"/>
+                                            <p:ajax event="change" listener="#{telefonicaMB.handleChangeReqMonitor}" update=":segDlgForm:pgrid" />
+                                        </p:selectOneRadio>
+                                    </h:panelGrid>
+                                    <h:panelGroup rendered="#{telefonicaMB.selectedInsTelefonica.NSeguimiento != 0}">
+                                        <p:commandButton value="Grabar" oncomplete="PF('segConfirmDlg').show();" rendered="#{!telefonicaMB.cerrar}"/>
+                                        <p:commandButton value="Grabar" oncomplete="PF('segCloseConfirmDlg').show();" rendered="#{telefonicaMB.cerrar}"/>
+                                        <p:spacer/>
+                                        <p:commandButton value="Cancelar" oncomplete="PF('segDlg').hide();"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </h:form>
+                        </div>
+                    </p:dialog>
+
+                    <p:confirmDialog id="segConfirmDlg" widgetVar="segConfirmDlg" header="Confirmación" message="Se procederá a registrar las respuestas. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="segConfirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :segDlgForm:segDlgMsgs" actionListener="#{telefonicaMB.registrarSeguimiento}" oncomplete="PF('segConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('segConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog id="segCloseConfirmDlg" widgetVar="segCloseConfirmDlg" header="Confirmación" message="Se procederá a registrar las respuestas y cerrar la inspección. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="segCloseConfirmDlgForm">
+                            <p:commandButton id="btnSi" value="SI" update=":f:tbl, :segDlgForm:segDlgMsgs" actionListener="#{telefonicaMB.registrarCerrarSeguimiento}" oncomplete="PF('segCloseConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('segCloseConfirmDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgLugar" widgetVar="dlgLugar" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR LUGAR"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgLugarForm">
+                            <p:messages id="dlgLugarMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlLugar" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Lugar : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtlugar" size="95" maxlength="150" value="#{telefonicaMB.descripcionLugar}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{telefonicaMB.registrarLugar}" update=":f:pgSearch, :dlgForm:groupIndividual,  :dlgLugarForm:dlgLugarMsgs, :dlgLugarForm:pnlLugar">
+                                        <h:graphicImage library="images" name="add.png" title="añadir lugar" alt="añadir lugar"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="lugares" var="row" rowIndexVar="rowkey" value="#{telefonicaMB.listaLugares}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="LUGAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center;width:10px;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ELIMINAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink onclick="PF('confirmDelLugarDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{telefonicaMB.selectedLugar}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar lugar" title="eliminar lugar"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelLugarDlg" widgetVar="confirmDelLugarDlg" header="Confirmación" message="Se procederá a eliminar el lugar. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelLugarDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{telefonicaMB.eliminarLugar}" oncomplete="PF('confirmDelLugarDlg').hide();" update=":f:pgSearch, :dlgForm:groupIndividual,  :dlgLugarForm:dlgLugarMsgs, :dlgLugarForm:pnlLugar" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelLugarDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgResponsable" widgetVar="dlgResponsable" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR RESPONSABLE"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgResponsableForm">
+                            <p:messages id="dlgResponsableMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlResponsable" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Responsable : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtnombre" size="48" maxlength="90" value="#{telefonicaMB.nombreResponsable}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:inputText id="txtapellido" size="48" maxlength="90" value="#{telefonicaMB.apellidoResponsable}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{telefonicaMB.registrarResponsable}" update=":f:pgSearch, :dlgForm:groupIndividual,  :dlgResponsableForm:dlgResponsableMsgs, :dlgResponsableForm:pnlResponsable">
+                                        <h:graphicImage library="images" name="add.png" title="añadir responsable" alt="añadir responsable"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="responsables" var="row" rowIndexVar="rowkey" value="#{telefonicaMB.listaResponsables}" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="NOMBRES" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VNombres}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="APELLIDOS" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VApellidos}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center;width:10px;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ELIMINAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink onclick="PF('confirmDelResponsableDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{telefonicaMB.selectedResponsable}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar responsable" title="eliminar responsable"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelResponsableDlg" widgetVar="confirmDelResponsableDlg" header="Confirmación" message="Se procederá a eliminar el responsable. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelResponsableDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{telefonicaMB.eliminarResponsable}" oncomplete="PF('confirmDelResponsableDlg').hide();" update=":f:pgSearch, :dlgForm:groupIndividual,  :dlgResponsableForm:dlgResponsableMsgs, :dlgResponsableForm:pnlResponsable" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelResponsableDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+
+                    <p:dialog id="dlgCargo" widgetVar="dlgCargo" resizable="false" maximizable="false" minimizable="false" modal="true" appendTo="@(body)">
+                        <f:facet name="header">
+                            <h:panelGroup>
+                                <h:outputText value="AÑADIR CARGO"></h:outputText>
+                            </h:panelGroup>
+                        </f:facet>
+                        <h:form id="dlgCargoForm">
+                            <p:messages id="dlgCargoMsgs" showDetail="true" autoUpdate="true" closable="true" />
+                            <h:panelGrid id="pnlCargo" columns="1">
+                                <h:panelGroup>
+                                    <h:outputText value="Cargo : " styleClass="Etiqueta1"/>
+                                    <p:inputText id="txtcargo" size="95" maxlength="150" value="#{telefonicaMB.descripcionCargo}" style="font-size: 11px;text-transform: uppercase;"/>
+                                    <p:spacer width="10px;"/>
+                                    <p:commandLink actionListener="#{telefonicaMB.registrarCargo}" update=":f:pgSearch, :dlgForm:groupIndividual,  :dlgCargoForm:dlgCargoMsgs, :dlgCargoForm:pnlCargo">
+                                        <h:graphicImage library="images" name="add.png" title="añadir cargo" alt="añadir cargo"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:spacer/>
+                                <p:dataTable id="cargos" var="row" rowIndexVar="rowkey" value="#{telefonicaMB.listaCargos}" rows="10" 
+                                             paginator="true" paginatorPosition="top" style="width: 720px;">
+                                    <p:column>
+                                        <f:facet name="header">
+                                            <h:outputText value="CARGO" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <h:outputText value="#{row.VDescripcion}" style="font-size: 11px;font-weight: normal;"/>
+                                    </p:column>
+                                    <p:column style="text-align: center;width:10px;">
+                                        <f:facet name="header">
+                                            <h:outputText value="ELIMINAR" style="font-size: 11px;"/>
+                                        </f:facet>
+                                        <p:commandLink onclick="PF('confirmDelCargoDlg').show();">
+                                            <f:setPropertyActionListener value="#{row}" target="#{telefonicaMB.selectedCargo}"/>
+                                            <h:graphicImage library="images" name="cross.png" alt="eliminar cargo" title="eliminar cargo"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGrid>
+                        </h:form>
+                    </p:dialog>
+
+                    <p:confirmDialog id="confirmDelCargoDlg" widgetVar="confirmDelCargoDlg" header="Confirmación" message="Se procederá a eliminar el cargo. Desea Continuar?" appendTo="@(body)">
+                        <h:form id="confirmDelCargoDlgForm">
+                            <p:commandButton id="btnSi" value="SI" actionListener="#{telefonicaMB.eliminarCargo}" oncomplete="PF('confirmDelCargoDlg').hide();" update=":f:pgSearch, :dlgForm:groupIndividual,  :dlgCargoForm:dlgCargoMsgs, :dlgCargoForm:pnlCargo" style="font-size: 11px;height: 2em"/>
+                            <p:commandButton id="btnNo" value="NO" oncomplete="PF('confirmDelCargoDlg').hide();" style="font-size: 11px;height: 2em"/>
+                        </h:form>
+                    </p:confirmDialog>
+                </p:layoutUnit>
+            </p:layout>
+        </f:view>
+    </h:body>
+</html>

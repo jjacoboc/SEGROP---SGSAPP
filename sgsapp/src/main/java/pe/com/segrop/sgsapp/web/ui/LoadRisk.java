@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import pe.com.segrop.sgsapp.domain.SegDetRiesgo;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 
 /**
  *
@@ -36,7 +36,7 @@ public class LoadRisk extends HttpServlet implements Serializable {
         PrintWriter out = response.getWriter();
         try {
             System.out.println("processRequest...");
-            MatrizMB matrizMB = (MatrizMB) BaseBean.getSessionAttribute("matrizMB");
+            MatrizMB matrizMB = (MatrizMB) JSFUtils.getSessionAttribute("matrizMB");
             List<SegDetRiesgo> listaRiesgo = matrizMB.getListaRiesgo();
             String index = (String) request.getParameter("indice");
             SegDetRiesgo riesgo = (SegDetRiesgo) listaRiesgo.get(Integer.parseInt(index));

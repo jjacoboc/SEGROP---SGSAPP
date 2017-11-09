@@ -10,8 +10,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import org.primefaces.context.RequestContext;
 import pe.com.segrop.sgsapp.dao.InsPresencialDao;
 import pe.com.segrop.sgsapp.dao.InspreEvaluacionDao;
 import pe.com.segrop.sgsapp.dao.InspreEvaluacionDetalleDao;
@@ -35,7 +38,7 @@ import pe.com.segrop.sgsapp.domain.SegDetNovevalDetalle;
 import pe.com.segrop.sgsapp.domain.SegDetNovevalDetalleId;
 import pe.com.segrop.sgsapp.domain.SegDetRiesgo;
 import pe.com.segrop.sgsapp.domain.SegDetRiesgoId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
 
@@ -43,6 +46,8 @@ import pe.com.segrop.sgsapp.web.common.ServiceFinder;
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class RiesgoMB implements Serializable {
 
     private BigDecimal searchTipoRiesgo;
@@ -320,7 +325,7 @@ public class RiesgoMB implements Serializable {
     
     public void buscarRiesgo(ActionEvent actionEvent) {
         try {
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             RiesgoDao riesgoDao = (RiesgoDao) ServiceFinder.findBean("RiesgoDao");
             SegDetRiesgo segDetRiesgo = new SegDetRiesgo();
             SegDetRiesgoId segDetRiesgoId = new SegDetRiesgoId();
@@ -345,7 +350,7 @@ public class RiesgoMB implements Serializable {
     public void toEvaluacion(ActionEvent actionEvent){
         ResourceBundle bundle;
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             SegDetRiesgo segDetRiesgo = this.getListaRiesgo().get(Integer.parseInt(rowKey));
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
             if(segDetRiesgo.getId().getNTipoRiesgo().equals(BigDecimal.ONE)){  //Si el riesgo es una Novedad.
@@ -369,7 +374,7 @@ public class RiesgoMB implements Serializable {
                 }else{
                     this.setNovedadEvaluacion(new SegDetNovEvaluacion());
                 }
-                this.setAction("Richfaces.showModalPanel('evalNovDlg')");
+                RequestContext.getCurrentInstance().execute("PF('evalNovDlg').show();");
             }else{  // Si el riesgo es una Inspección Presencial.
                 InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
                 SegDetInsPresencialId segDetInsPresencialId = new SegDetInsPresencialId();
@@ -391,7 +396,7 @@ public class RiesgoMB implements Serializable {
                 }else{
                     this.setInspeccionEvaluacion(new SegDetInspreEvaluacion());
                 }
-                this.setAction("Richfaces.showModalPanel('evalInsDlg')");
+                RequestContext.getCurrentInstance().execute("PF('evalInsDlg').show();");
             }
         }catch(Exception e){
             e.getMessage();
@@ -408,7 +413,7 @@ public class RiesgoMB implements Serializable {
                     if(this.diagnostico != null && !"".equals(this.diagnostico.trim())){
                         if(this.recomendacion != null && !"".equals(this.recomendacion.trim())){
                             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                             NovedadEvaluacionDao novedadEvaluacionDao =(NovedadEvaluacionDao)ServiceFinder.findBean("NovedadEvaluacionDao");
                             NovedadEvaluacionDetalleDao novedadEvaluacionDetalleDao =(NovedadEvaluacionDetalleDao)ServiceFinder.findBean("NovedadEvaluacionDetalleDao");
                             SegDetNovEvaluacionId segDetNovEvaluacionId = new SegDetNovEvaluacionId();
@@ -416,10 +421,10 @@ public class RiesgoMB implements Serializable {
                             if(this.getNovedadEvaluacion().getDFecCreacion() != null){
                                 this.getNovedadEvaluacion().setDFecModificacion(new Date());
                                 this.getNovedadEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getNovedadEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getNovedadEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 novedadEvaluacionDao.registrarEvaluacion(this.getNovedadEvaluacion());
                             }else{
-                                segDetNovEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(novedadEvaluacionDao.nextSequenceValue().longValue()));
+                                segDetNovEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(novedadEvaluacionDao.nextSequenceValue()));
                                 segDetNovEvaluacionId.setNCodNovedad(this.getSelectedNovedad().getId().getNCodNovedad());
                                 segDetNovEvaluacionId.setNCodEmpresa(this.getSelectedNovedad().getId().getNCodEmpresa());
                                 segDetNovEvaluacion.setId(segDetNovEvaluacionId);
@@ -428,12 +433,12 @@ public class RiesgoMB implements Serializable {
                                 segDetNovEvaluacion.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_EN_EVALUACION"))));
                                 segDetNovEvaluacion.setDFecCreacion(new Date());
                                 segDetNovEvaluacion.setVUsuCreacion(usuarioSession.getVUsuario());
-                                segDetNovEvaluacion.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                segDetNovEvaluacion.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                                 novedadEvaluacionDao.registrarEvaluacion(segDetNovEvaluacion);
                             }
 
                             SegDetNovevalDetalleId segDetNovevalDetalleId = new SegDetNovevalDetalleId();
-                            segDetNovevalDetalleId.setNCodDetalle(BigDecimal.valueOf(novedadEvaluacionDetalleDao.nextSequenceValue().longValue()));
+                            segDetNovevalDetalleId.setNCodDetalle(BigDecimal.valueOf(novedadEvaluacionDetalleDao.nextSequenceValue()));
                             if(this.getNovedadEvaluacion().getDFecCreacion() != null){
                                 segDetNovevalDetalleId.setNCodEvaluacion(this.getNovedadEvaluacion().getNCodEvaluacion());
                                 segDetNovevalDetalleId.setNCodNovedad(this.getNovedadEvaluacion().getNCodNovedad());
@@ -450,11 +455,11 @@ public class RiesgoMB implements Serializable {
                             segDetNovevalDetalle.setVRecomendacion(this.recomendacion != null ? this.recomendacion : null);
                             segDetNovevalDetalle.setDFecCreacion(new Date());
                             segDetNovevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segDetNovevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetNovevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             novedadEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetNovevalDetalle);
                             this.setDiagnostico(null);
                             this.setRecomendacion(null);
-                            this.setAction("Richfaces.hideModalPanel('evalNovDlg')");
+                            RequestContext.getCurrentInstance().execute("PF('evalNovDlg').hide();");
                         }else{
                             message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese una recomendación.");
                             FacesContext.getCurrentInstance().addMessage(null,message);
@@ -486,7 +491,7 @@ public class RiesgoMB implements Serializable {
                     if(this.diagnostico != null && !"".equals(this.diagnostico.trim())){
                         if(this.recomendacion != null && !"".equals(this.recomendacion.trim())){
                             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                             NovedadEvaluacionDao novedadEvaluacionDao =(NovedadEvaluacionDao)ServiceFinder.findBean("NovedadEvaluacionDao");
                             NovedadEvaluacionDetalleDao novedadEvaluacionDetalleDao =(NovedadEvaluacionDetalleDao)ServiceFinder.findBean("NovedadEvaluacionDetalleDao");
                             SegDetNovEvaluacionId segDetNovEvaluacionId = new SegDetNovEvaluacionId();
@@ -494,10 +499,10 @@ public class RiesgoMB implements Serializable {
                             if(this.getNovedadEvaluacion() != null){
                                 this.getNovedadEvaluacion().setDFecModificacion(new Date());
                                 this.getNovedadEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getNovedadEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getNovedadEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 novedadEvaluacionDao.registrarEvaluacion(this.getNovedadEvaluacion());
                             }else{
-                                segDetNovEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(novedadEvaluacionDao.nextSequenceValue().longValue()));
+                                segDetNovEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(novedadEvaluacionDao.nextSequenceValue()));
                                 segDetNovEvaluacionId.setNCodNovedad(this.getSelectedNovedad().getId().getNCodNovedad());
                                 segDetNovEvaluacionId.setNCodEmpresa(this.getSelectedNovedad().getId().getNCodEmpresa());
                                 segDetNovEvaluacion.setId(segDetNovEvaluacionId);
@@ -506,12 +511,12 @@ public class RiesgoMB implements Serializable {
                                 segDetNovEvaluacion.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_SOLUCIONADA"))));
                                 segDetNovEvaluacion.setDFecCreacion(new Date());
                                 segDetNovEvaluacion.setVUsuCreacion(usuarioSession.getVUsuario());
-                                segDetNovEvaluacion.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                segDetNovEvaluacion.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                                 novedadEvaluacionDao.registrarEvaluacion(segDetNovEvaluacion);
                             }
 
                             SegDetNovevalDetalleId segDetNovevalDetalleId = new SegDetNovevalDetalleId();
-                            segDetNovevalDetalleId.setNCodDetalle(BigDecimal.valueOf(novedadEvaluacionDetalleDao.nextSequenceValue().longValue()));
+                            segDetNovevalDetalleId.setNCodDetalle(BigDecimal.valueOf(novedadEvaluacionDetalleDao.nextSequenceValue()));
                             if(this.getNovedadEvaluacion().getDFecCreacion() != null){
                                 segDetNovevalDetalleId.setNCodEvaluacion(this.getNovedadEvaluacion().getNCodEvaluacion());
                                 segDetNovevalDetalleId.setNCodNovedad(this.getNovedadEvaluacion().getNCodNovedad());
@@ -528,11 +533,11 @@ public class RiesgoMB implements Serializable {
                             segDetNovevalDetalle.setVRecomendacion(this.recomendacion != null ? this.recomendacion : null);
                             segDetNovevalDetalle.setDFecCreacion(new Date());
                             segDetNovevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segDetNovevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetNovevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             novedadEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetNovevalDetalle);
                             this.setDiagnostico(null);
                             this.setRecomendacion(null);
-                            this.setAction("Richfaces.hideModalPanel('evalNovDlg')");
+                            RequestContext.getCurrentInstance().execute("PF('evalNovDlg').hide();");
                         }else{
                             message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese una recomendación.");
                             FacesContext.getCurrentInstance().addMessage(null,message);
@@ -564,7 +569,7 @@ public class RiesgoMB implements Serializable {
                     if(this.getDiagnostico() != null && !"".equals(this.diagnostico.trim())){
                         if(this.getRecomendacion() != null && !"".equals(this.recomendacion.trim())){
                             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                             InspreEvaluacionDao inspreEvaluacionDao =(InspreEvaluacionDao)ServiceFinder.findBean("InspreEvaluacionDao");
                             InspreEvaluacionDetalleDao inspreEvaluacionDetalleDao =(InspreEvaluacionDetalleDao)ServiceFinder.findBean("InspreEvaluacionDetalleDao");
                             SegDetInspreEvaluacionId segDetInspreEvaluacionId = new SegDetInspreEvaluacionId();
@@ -572,10 +577,10 @@ public class RiesgoMB implements Serializable {
                             if(this.getInspeccionEvaluacion().getDFecCreacion() != null){
                                 this.getInspeccionEvaluacion().setDFecModificacion(new Date());
                                 this.getInspeccionEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getInspeccionEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getInspeccionEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(this.getInspeccionEvaluacion());
                             }else{
-                                segDetInspreEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(inspreEvaluacionDao.nextSequenceValue().longValue()));
+                                segDetInspreEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(inspreEvaluacionDao.nextSequenceValue()));
                                 segDetInspreEvaluacionId.setNCodInspresencial(this.getSelectedInsPresencial().getId().getNCodInspresencial());
                                 segDetInspreEvaluacionId.setNCodEmpresa(this.getSelectedInsPresencial().getId().getNCodEmpresa());
                                 segDetInspreEvaluacion.setId(segDetInspreEvaluacionId);
@@ -584,12 +589,12 @@ public class RiesgoMB implements Serializable {
                                 segDetInspreEvaluacion.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_EN_EVALUACION"))));
                                 segDetInspreEvaluacion.setDFecCreacion(new Date());
                                 segDetInspreEvaluacion.setVUsuCreacion(usuarioSession.getVUsuario());
-                                segDetInspreEvaluacion.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                segDetInspreEvaluacion.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(segDetInspreEvaluacion);
                             }
 
                             SegDetInspreevalDetalleId segDetInspreevalDetalleId = new SegDetInspreevalDetalleId();
-                            segDetInspreevalDetalleId.setNCodDetalle(BigDecimal.valueOf(inspreEvaluacionDetalleDao.nextSequenceValue().longValue()));
+                            segDetInspreevalDetalleId.setNCodDetalle(BigDecimal.valueOf(inspreEvaluacionDetalleDao.nextSequenceValue()));
                             if(this.getInspeccionEvaluacion().getDFecCreacion() != null){
                                 segDetInspreevalDetalleId.setNCodEvaluacion(this.getInspeccionEvaluacion().getNCodEvaluacion());
                                 segDetInspreevalDetalleId.setNCodInspresencial(this.getInspeccionEvaluacion().getNCodInspresencial());
@@ -606,11 +611,11 @@ public class RiesgoMB implements Serializable {
                             segDetInspreevalDetalle.setVRecomendacion(this.getRecomendacion() != null ? this.getRecomendacion() : null);
                             segDetInspreevalDetalle.setDFecCreacion(new Date());
                             segDetInspreevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segDetInspreevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetInspreevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             inspreEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetInspreevalDetalle);
                             this.setDiagnostico(null);
                             this.setRecomendacion(null);
-                            this.setAction("Richfaces.hideModalPanel('evalInsDlg')");
+                            RequestContext.getCurrentInstance().execute("PF('evalInsDlg').hide();");
                         }else{
                             message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese una recomendación.");
                             FacesContext.getCurrentInstance().addMessage(null,message);
@@ -642,7 +647,7 @@ public class RiesgoMB implements Serializable {
                     if(this.getDiagnostico() != null && !"".equals(this.diagnostico.trim())){
                         if(this.getRecomendacion() != null && !"".equals(this.recomendacion.trim())){
                             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                             InspreEvaluacionDao inspreEvaluacionDao =(InspreEvaluacionDao)ServiceFinder.findBean("InspreEvaluacionDao");
                             InspreEvaluacionDetalleDao inspreEvaluacionDetalleDao =(InspreEvaluacionDetalleDao)ServiceFinder.findBean("InspreEvaluacionDetalleDao");
                             SegDetInspreEvaluacionId segDetInspreEvaluacionId = new SegDetInspreEvaluacionId();
@@ -650,10 +655,10 @@ public class RiesgoMB implements Serializable {
                             if(this.getInspeccionEvaluacion().getDFecCreacion() != null){
                                 this.getInspeccionEvaluacion().setDFecModificacion(new Date());
                                 this.getInspeccionEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getInspeccionEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getInspeccionEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(this.getInspeccionEvaluacion());
                             }else{
-                                segDetInspreEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(inspreEvaluacionDao.nextSequenceValue().longValue()));
+                                segDetInspreEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(inspreEvaluacionDao.nextSequenceValue()));
                                 segDetInspreEvaluacionId.setNCodInspresencial(this.getSelectedInsPresencial().getId().getNCodInspresencial());
                                 segDetInspreEvaluacionId.setNCodEmpresa(this.getSelectedInsPresencial().getId().getNCodEmpresa());
                                 segDetInspreEvaluacion.setId(segDetInspreEvaluacionId);
@@ -662,12 +667,12 @@ public class RiesgoMB implements Serializable {
                                 segDetInspreEvaluacion.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_SOLUCIONADA"))));
                                 segDetInspreEvaluacion.setDFecCreacion(new Date());
                                 segDetInspreEvaluacion.setVUsuCreacion(usuarioSession.getVUsuario());
-                                segDetInspreEvaluacion.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                segDetInspreEvaluacion.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(segDetInspreEvaluacion);
                             }
 
                             SegDetInspreevalDetalleId segDetInspreevalDetalleId = new SegDetInspreevalDetalleId();
-                            segDetInspreevalDetalleId.setNCodDetalle(BigDecimal.valueOf(inspreEvaluacionDetalleDao.nextSequenceValue().longValue()));
+                            segDetInspreevalDetalleId.setNCodDetalle(BigDecimal.valueOf(inspreEvaluacionDetalleDao.nextSequenceValue()));
                             if(this.getInspeccionEvaluacion().getDFecCreacion() != null){
                                 segDetInspreevalDetalleId.setNCodEvaluacion(this.getInspeccionEvaluacion().getNCodEvaluacion());
                                 segDetInspreevalDetalleId.setNCodInspresencial(this.getInspeccionEvaluacion().getNCodInspresencial());
@@ -684,11 +689,11 @@ public class RiesgoMB implements Serializable {
                             segDetInspreevalDetalle.setVRecomendacion(this.getRecomendacion() != null ? this.getRecomendacion() : null);
                             segDetInspreevalDetalle.setDFecCreacion(new Date());
                             segDetInspreevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segDetInspreevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetInspreevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             inspreEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetInspreevalDetalle);
                             this.setDiagnostico(null);
                             this.setRecomendacion(null);
-                            this.setAction("Richfaces.hideModalPanel('evalInsDlg')");
+                            RequestContext.getCurrentInstance().execute("PF('evalInsDlg').hide();");
                         }else{
                             message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Ingrese una recomendación.");
                             FacesContext.getCurrentInstance().addMessage(null,message);
@@ -714,10 +719,10 @@ public class RiesgoMB implements Serializable {
     public void reabrirEvaluacion(ActionEvent actionEvent){
         ResourceBundle bundle;
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             SegDetRiesgo segDetRiesgo = this.getListaRiesgo().get(Integer.parseInt(rowKey));
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             if(segDetRiesgo.getId().getNTipoRiesgo().equals(BigDecimal.ONE)){
                 NovedadDao novedadDao =(NovedadDao)ServiceFinder.findBean("NovedadDao");
                 SegDetNovedadId segDetNovedadId = new SegDetNovedadId();
@@ -737,10 +742,10 @@ public class RiesgoMB implements Serializable {
                 this.getNovedadEvaluacion().setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_EN_EVALUACION"))));
                 this.getNovedadEvaluacion().setDFecModificacion(new Date());
                 this.getNovedadEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                this.getNovedadEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                this.getNovedadEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 novedadEvaluacionDao.registrarEvaluacion(this.getNovedadEvaluacion());
                 SegDetNovevalDetalleId segDetNovevalDetalleId = new SegDetNovevalDetalleId();
-                segDetNovevalDetalleId.setNCodDetalle(BigDecimal.valueOf(novedadEvaluacionDetalleDao.nextSequenceValue().longValue()));
+                segDetNovevalDetalleId.setNCodDetalle(BigDecimal.valueOf(novedadEvaluacionDetalleDao.nextSequenceValue()));
                 segDetNovevalDetalleId.setNCodEvaluacion(this.getNovedadEvaluacion().getId().getNCodEvaluacion());
                 segDetNovevalDetalleId.setNCodNovedad(this.getNovedadEvaluacion().getId().getNCodNovedad());
                 segDetNovevalDetalleId.setNCodEmpresa(this.getNovedadEvaluacion().getId().getNCodEmpresa());
@@ -751,7 +756,7 @@ public class RiesgoMB implements Serializable {
                 segDetNovevalDetalle.setVRecomendacion("NINGUNA RECOMENDACIÓN");
                 segDetNovevalDetalle.setDFecCreacion(new Date());
                 segDetNovevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                segDetNovevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                segDetNovevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 novedadEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetNovevalDetalle);
             }else{
                 InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
@@ -772,10 +777,10 @@ public class RiesgoMB implements Serializable {
                 this.getInspeccionEvaluacion().setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_EN_EVALUACION"))));
                 this.getInspeccionEvaluacion().setDFecModificacion(new Date());
                 this.getInspeccionEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                this.getInspeccionEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                this.getInspeccionEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 inspreEvaluacionDao.registrarEvaluacion(this.getInspeccionEvaluacion());
                 SegDetInspreevalDetalleId segDetInspreevalDetalleId = new SegDetInspreevalDetalleId();
-                segDetInspreevalDetalleId.setNCodDetalle(BigDecimal.valueOf(inspreEvaluacionDetalleDao.nextSequenceValue().longValue()));
+                segDetInspreevalDetalleId.setNCodDetalle(BigDecimal.valueOf(inspreEvaluacionDetalleDao.nextSequenceValue()));
                 segDetInspreevalDetalleId.setNCodEvaluacion(this.getInspeccionEvaluacion().getId().getNCodEvaluacion());
                 segDetInspreevalDetalleId.setNCodInspresencial(this.getInspeccionEvaluacion().getId().getNCodInspresencial());
                 segDetInspreevalDetalleId.setNCodEmpresa(this.getInspeccionEvaluacion().getId().getNCodEmpresa());
@@ -786,7 +791,7 @@ public class RiesgoMB implements Serializable {
                 segDetInspreevalDetalle.setVRecomendacion("NINGUNA RECOMENDACIÓN");
                 segDetInspreevalDetalle.setDFecCreacion(new Date());
                 segDetInspreevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                segDetInspreevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                segDetInspreevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 inspreEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetInspreevalDetalle);
             }
         }catch(Exception e){

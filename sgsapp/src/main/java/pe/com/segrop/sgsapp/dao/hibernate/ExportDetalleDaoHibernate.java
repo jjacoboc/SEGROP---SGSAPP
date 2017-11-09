@@ -14,6 +14,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.ExportDetalleDao;
 import pe.com.segrop.sgsapp.domain.SegDetExport;
 import pe.com.segrop.sgsapp.domain.SegDetExportdetalle;
@@ -51,11 +52,13 @@ public class ExportDetalleDaoHibernate extends HibernateDaoSupport implements Ex
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void registrarDetalleConfiguracion(SegDetExportdetalle export) {
         getHibernateTemplate().saveOrUpdate(export);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarDetalleConfiguracionById(SegDetExport export) {
         StringBuilder sql = new StringBuilder();
         Query query;

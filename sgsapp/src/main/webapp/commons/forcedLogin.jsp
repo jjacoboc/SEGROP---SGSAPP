@@ -76,7 +76,7 @@
                         <td colspan="2">&nbsp;</td>
                     </tr>
                     <tr align="left">
-                        <td colspan="2">Click <a href="http://190.40.111.184:8084/SGS/" target="_blank">aquí</a> para ir a la ventana de login.</td>
+                        <td colspan="2">Click <a href="http://190.40.111.184:8084/sgsapp/" target="_self">aquí</a> para ir a la ventana de login.</td>
                     </tr>
                     <tr align="left">
                         <td colspan="2">Click <a href="javascript: window.close();" >aquí</a> para cerrar la ventana del navegador.</td>
@@ -87,7 +87,7 @@
             <table style="width: 100%;height: 30px;" class="footer">
                 <tr>
                     <td style="font-size: 11px;color: white;"> © Copyright 2014. Todos los Derechos Reservados.</td>
-                    <td style="font-size: 11px;float: right;color: white;"><a href="http://www.segrop.com" target="_self" style="color: white;">www.segrop.com</a></td>
+                    <td style="font-size: 11px;float: right;color: white;"><a href="http://www.segrop.com" target="_blank" style="color: white;">www.segrop.com</a></td>
                 </tr>
             </table>
         </center>

@@ -10,43 +10,52 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.servlet.http.HttpSession;
+import org.primefaces.context.RequestContext;
 import pe.com.segrop.sgsapp.dao.CargoDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegDetCargo;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
+import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
 
 /**
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class CargoMB implements Serializable{
 
-    private String searchEmpresa;
+    private BigDecimal searchEmpresa;
     private String searchDescripcion;
-    private String empresa;
+    private BigDecimal empresa;
     private String descripcion;
     private List<SegDetCargo> listaCargo;
     private List<SelectItem> itemsDescripcion;
     private SegDetCargo selectedItem;
     private String action;
+    private Boolean flag;
     
     /** Creates a new instance of CargoMB */
     public CargoMB() {
     }
 
-    public String getSearchEmpresa() {
+    public BigDecimal getSearchEmpresa() {
         return searchEmpresa;
     }
 
-    public void setSearchEmpresa(String searchEmpresa) {
+    public void setSearchEmpresa(BigDecimal searchEmpresa) {
         this.searchEmpresa = searchEmpresa;
     }
 
@@ -58,11 +67,11 @@ public class CargoMB implements Serializable{
         this.searchDescripcion = searchDescripcion;
     }
 
-    public String getEmpresa() {
+    public BigDecimal getEmpresa() {
         return empresa;
     }
 
-    public void setEmpresa(String empresa) {
+    public void setEmpresa(BigDecimal empresa) {
         this.empresa = empresa;
     }
 
@@ -109,13 +118,55 @@ public class CargoMB implements Serializable{
     public void setAction(String action) {
         this.action = action;
     }
+
+    /**
+     * @return the flag
+     */
+    public Boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * @param flag the flag to set
+     */
+    public void setFlag(Boolean flag) {
+        this.flag = flag;
+    }
+    
+    @PostConstruct
+    public void init() {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            if(rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                this.setFlag(true);
+            } else {
+                this.setFlag(false);
+            }
+        } catch(Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
     
     public void buscarCargo(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try {
-            CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetCargo segDetCargo = new SegDetCargo();
-            segDetCargo.setNCodEmpresa(this.getSearchEmpresa() != null ? BigDecimal.valueOf(Long.parseLong(this.getSearchEmpresa())) : null);
+            if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                segDetCargo.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+            }else{
+                segDetCargo.setNCodEmpresa(this.getSearchEmpresa());
+            }
             segDetCargo.setVDescripcion(this.getSearchDescripcion() != null ? this.getSearchDescripcion().toUpperCase().trim() : null);
+            CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
             setListaCargo(cargoDao.buscarCargos(segDetCargo));
         } catch (Exception e) {
             e.getMessage();
@@ -155,13 +206,19 @@ public class CargoMB implements Serializable{
     
     public void registrarCargo(ActionEvent actionEvent) {
         FacesMessage message = null;
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try {
-            SegCabUsuario segCabUsuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabUsuario segCabUsuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                this.setEmpresa(segCabEmpresa.getNCodEmpresa());
+            }
             SegDetCargo segDetCargo = new SegDetCargo();
-            //segDetCargo.setNCodEmpresa(this.empresa != null ? BigDecimal.valueOf(Long.parseLong(this.empresa)) : null);
-            segDetCargo.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
-            segDetCargo.setVDescripcion(this.descripcion != null ? this.descripcion.toUpperCase().trim() : null);
+            segDetCargo.setNCodEmpresa(this.getEmpresa() != null ? this.getEmpresa() : null);
+            segDetCargo.setVDescripcion(this.getDescripcion() != null ? this.getDescripcion().toUpperCase().trim() : null);
             if(!errorValidation(segDetCargo)){
                 CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
                 SegDetCargo cargo = cargoDao.obtenerCargoByDescripcion(segDetCargo); //validando si existe un cargo con la misma descripción
@@ -169,14 +226,18 @@ public class CargoMB implements Serializable{
                     message = new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "El cargo ingresada ya se encuentra registrado.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
                 }else{
-                    segDetCargo.setNCodCargo(BigDecimal.valueOf(cargoDao.nextSequenceValue().longValue()));
+                    segDetCargo.setNCodCargo(BigDecimal.valueOf(cargoDao.nextSequenceValue()));
                     segDetCargo.setNFlgActivo(BigDecimal.ONE);
                     segDetCargo.setDFecCreacion(new Date());
                     segDetCargo.setVUsuCreacion(segCabUsuario.getVUsuario());
-                    segDetCargo.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetCargo.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     cargoDao.registrarCargo(segDetCargo);
-                    setListaCargo(cargoDao.obtenerListaCargos());
-                    this.action = "Richfaces.hideModalPanel('dlg')";
+                    if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                        setListaCargo(cargoDao.obtenerListaCargosByEmpresa(segCabEmpresa));
+                    }else{
+                        setListaCargo(cargoDao.obtenerListaCargos());
+                    }
+                    RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
                 }
             }
         } catch (Exception e) {
@@ -187,11 +248,18 @@ public class CargoMB implements Serializable{
     
     public void editarCargo(ActionEvent actionEvent) {
         FacesMessage message = null;
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try {
-            SegCabUsuario segCabUsuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabUsuario segCabUsuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetCargo segDetCargo = this.getSelectedItem();
-            //segDetCargo.setNCodEmpresa(segDetCargo.getNCodEmpresa() != null ? segDetCargo.getNCodEmpresa() : null);
+            if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                segDetCargo.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+            }
+            segDetCargo.setNCodEmpresa(segDetCargo.getNCodEmpresa() != null ? segDetCargo.getNCodEmpresa() : null);
             segDetCargo.setVDescripcion(segDetCargo.getVDescripcion() != null ? segDetCargo.getVDescripcion().toUpperCase().trim() : null);
             if(!errorValidation(segDetCargo)){
                 CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
@@ -202,10 +270,14 @@ public class CargoMB implements Serializable{
                 }else{
                     segDetCargo.setDFecModificacion(new Date());
                     segDetCargo.setVUsuModificacion(segCabUsuario.getVUsuario());
-                    segDetCargo.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetCargo.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                     cargoDao.registrarCargo(segDetCargo);
-                    setListaCargo(cargoDao.obtenerListaCargos());
-                    this.action = "Richfaces.hideModalPanel('dlgEdit')";
+                    if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                        setListaCargo(cargoDao.obtenerListaCargosByEmpresa(segCabEmpresa));
+                    }else{
+                        setListaCargo(cargoDao.obtenerListaCargos());
+                    }
+                    RequestContext.getCurrentInstance().execute("PF('dlgEdit').hide();");
                 }
             }
         } catch (Exception e) {
@@ -216,15 +288,24 @@ public class CargoMB implements Serializable{
     
     /**
      * Desactiva el local seleccionado.
-     * @return destino Página a la que redirecciona el método.
+     * @param actionEvent
      */
     public void desactivar(ActionEvent actionEvent){
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
             getSelectedItem().setNFlgActivo(BigDecimal.ZERO); //INACTIVO = 0
             cargoDao.registrarCargo(getSelectedItem());
-            setListaCargo(cargoDao.obtenerListaCargos());
+            if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                setListaCargo(cargoDao.obtenerListaCargosByEmpresa(segCabEmpresa));
+            }else{
+                setListaCargo(cargoDao.obtenerListaCargos());
+            }
             session.setAttribute("listasSessionMB", new ListasSessionMB());
         }catch(Exception e){
             e.getMessage();
@@ -234,15 +315,24 @@ public class CargoMB implements Serializable{
     
     /**
      * Activa el local seleccionado.
-     * @return destino Página a la que redirecciona el método.
+     * @param actionEvent
      */
     public void activar(ActionEvent actionEvent){
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try{
-            HttpSession session = BaseBean.getSession();
+            HttpSession session = JSFUtils.getSession();
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
             getSelectedItem().setNFlgActivo(BigDecimal.ONE); //ACTIVO = 1
             cargoDao.registrarCargo(getSelectedItem());
-            setListaCargo(cargoDao.obtenerListaCargos());
+            if(!rucSegrop.equals(segCabEmpresa.getVRuc())){
+                setListaCargo(cargoDao.obtenerListaCargosByEmpresa(segCabEmpresa));
+            }else{
+                setListaCargo(cargoDao.obtenerListaCargos());
+            }
             session.setAttribute("listasSessionMB", new ListasSessionMB());
         }catch(Exception e){
             e.getMessage();

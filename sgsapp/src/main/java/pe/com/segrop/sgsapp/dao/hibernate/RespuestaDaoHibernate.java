@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.RespuestaDao;
 import pe.com.segrop.sgsapp.domain.SegDetInsTelefonica;
 import pe.com.segrop.sgsapp.domain.SegDetPregunta;
@@ -64,11 +65,13 @@ public class RespuestaDaoHibernate extends HibernateDaoSupport implements Respue
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarRespuesta(SegDetRespuesta respuesta) {
         getHibernateTemplate().saveOrUpdate(respuesta);
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void eliminarRespuesta(SegDetRespuesta respuesta) {
         getHibernateTemplate().delete(respuesta);
     }

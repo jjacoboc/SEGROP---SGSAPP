@@ -9,8 +9,12 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
+import org.primefaces.component.selectonemenu.SelectOneMenu;
 import pe.com.segrop.sgsapp.dao.AreaDao;
 import pe.com.segrop.sgsapp.dao.CargoDao;
 import pe.com.segrop.sgsapp.dao.CargoInspeccionDao;
@@ -32,9 +36,7 @@ import pe.com.segrop.sgsapp.domain.SegDetArea;
 import pe.com.segrop.sgsapp.domain.SegDetAreaId;
 import pe.com.segrop.sgsapp.domain.SegDetLocal;
 import pe.com.segrop.sgsapp.domain.SegDetLocalId;
-import pe.com.segrop.sgsapp.domain.SegDetPerfil;
-import pe.com.segrop.sgsapp.domain.SegDetPerfilId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
@@ -43,6 +45,8 @@ import pe.com.segrop.sgsapp.web.common.ServiceFinder;
  *
  * @author JJ
  */
+@ManagedBean
+@SessionScoped
 public class ListasSessionMB implements Serializable{
     private static final long serialVersionUID = 1L;
 
@@ -57,13 +61,17 @@ public class ListasSessionMB implements Serializable{
     private List<SelectItem> listaAfectado;
     private List<SelectItem> listaEmpresa;
     private List<SelectItem> listaEmpresaActiva;
+    private List<SelectItem> listaLocalByEmpresa;
     private List<SelectItem> listaLocalActivoByEmpresa;
     private List<SelectItem> listaAreaActivaByLocal;
     private List<SelectItem> listaLugarActivoByArea;
     private List<SelectItem> listaResponsableActivoByArea;
     private List<SelectItem> listaCargoActivoByEmpresa;
     private List<SelectItem> listaPerfilActivo;
+    private List<SelectItem> listaLocal;
+    private List<SelectItem> listaLocalActivo;
     private List<SelectItem> listaArea;
+    private List<SelectItem> listaAreaActiva;
     private List<SelectItem> listaLugar;
     private List<SelectItem> listaResponsable;
     private List<SelectItem> listaTipoInspeccion;
@@ -149,7 +157,7 @@ public class ListasSessionMB implements Serializable{
             SegCabEmpresa owner = new SegCabEmpresa();
             owner.setNCodEmpresa(BigDecimal.valueOf(Long.parseLong(bundle.getString("COD_OWNER"))));
             listaTipoDocumento =  new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(owner), Items.FIRST_ITEM_SELECT, "NCodTipoDocumento","VDescripcion").getItems();
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             if(!bundle.getString("COD_OWNER").equals(empresaSession.getNCodEmpresa().toString())){
                 listaTipoDocumento.addAll(new Items(tipoDocumentoDao.obtenerListaTiposDocumentoByEmpresa(empresaSession), null, "NCodTipoDocumento","VDescripcion").getItems());
             }
@@ -268,9 +276,28 @@ public class ListasSessionMB implements Serializable{
         this.listaEmpresaActiva = listaEmpresaActiva;
     }
 
+    /**
+     * @return the listaLocalByEmpresa
+     */
+    public List<SelectItem> getListaLocalByEmpresa() {
+        if(this.listaLocalByEmpresa==null){
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
+            listaLocalByEmpresa = new Items(localDao.obtenerListaLocalesByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems();
+        }
+        return listaLocalByEmpresa;
+    }
+
+    /**
+     * @param listaLocalByEmpresa the listaLocalByEmpresa to set
+     */
+    public void setListaLocalByEmpresa(List<SelectItem> listaLocalByEmpresa) {
+        this.listaLocalByEmpresa = listaLocalByEmpresa;
+    }
+
     public List<SelectItem> getListaLocalActivoByEmpresa() {
         if(this.listaLocalActivoByEmpresa==null){
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
             listaLocalActivoByEmpresa = new Items(localDao.obtenerListaLocalesActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems();
         }
@@ -279,6 +306,23 @@ public class ListasSessionMB implements Serializable{
 
     public void setListaLocalActivoByEmpresa(List<SelectItem> listaLocalActivoByEmpresa) {
         this.listaLocalActivoByEmpresa = listaLocalActivoByEmpresa;
+    }
+    
+    /**
+     * Devuelve la lista de locales de una empresa seleccionada.
+     * @param e Evento producido al seleccionar una empresa.
+     * @return listaLocalActivoByEmpresa Lista de locales.
+     */
+    public void obtenerListaLocalByEmpresa(AjaxBehaviorEvent e) {
+        if(e!=null){
+            BigDecimal value = (BigDecimal) ((SelectOneMenu) e.getSource()).getValue();
+            SegCabEmpresa segCabEmpresa = new SegCabEmpresa();            
+            segCabEmpresa.setNCodEmpresa(value);
+            LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
+            listaLocalActivoByEmpresa =  new Items(localDao.obtenerListaLocalesActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLocal","VDescripcion").getItems();
+        }else{
+            listaLocalActivoByEmpresa =  new Items(null, Items.FIRST_ITEM_SELECT, "NCodLocal","VDescripcion").getItems();
+        }
     }
 
     public List<SelectItem> getListaAreaActivaByLocal() {
@@ -295,12 +339,11 @@ public class ListasSessionMB implements Serializable{
     /**
      * Devuelve la lista de areas de un local seleccionado.
      * @param e Evento producido al seleccionar un local.
-     * @return listaAreaActivaByLocal Lista de areas.
      */
-    public void obtenerListaAreaByLocal(ValueChangeEvent e) {
+    public void obtenerListaAreaByLocal(AjaxBehaviorEvent e) {
         if(e!=null){
             SegDetLocalId segDetLocalId = new SegDetLocalId();
-            segDetLocalId.setNCodLocal((BigDecimal)e.getNewValue());
+            segDetLocalId.setNCodLocal((BigDecimal)((SelectOneMenu) e.getSource()).getValue());
             SegDetLocal segDetLocal = new SegDetLocal();            
             segDetLocal.setId(segDetLocalId);
             AreaDao areaDao =(AreaDao)ServiceFinder.findBean("AreaDao");
@@ -324,12 +367,11 @@ public class ListasSessionMB implements Serializable{
     /**
      * Devuelve la lista de lugares de un area seleccionado.
      * @param e Evento producido al seleccionar un area.
-     * @return listaAreaActivaByLocal Lista de lugares.
      */
-    public void obtenerListaLugarByArea(ValueChangeEvent e) {
+    public void obtenerListaLugarByArea(AjaxBehaviorEvent e) {
         if(e!=null){
             SegDetAreaId segDetAreaId = new SegDetAreaId();
-            segDetAreaId.setNCodArea((BigDecimal)e.getNewValue());
+            segDetAreaId.setNCodArea((BigDecimal)((SelectOneMenu) e.getSource()).getValue());
             SegDetArea segDetArea = new SegDetArea();
             segDetArea.setId(segDetAreaId);
             LugarDao lugarDao =(LugarDao)ServiceFinder.findBean("LugarDao");
@@ -339,7 +381,7 @@ public class ListasSessionMB implements Serializable{
         }
         if(e!=null){
             SegDetAreaId segDetAreaId = new SegDetAreaId();
-            segDetAreaId.setNCodArea((BigDecimal)e.getNewValue());
+            segDetAreaId.setNCodArea((BigDecimal)((SelectOneMenu) e.getSource()).getValue());
             SegDetArea segDetArea = new SegDetArea();
             segDetArea.setId(segDetAreaId);
             ResponsableDao responsableDao =(ResponsableDao)ServiceFinder.findBean("ResponsableDao");
@@ -381,7 +423,7 @@ public class ListasSessionMB implements Serializable{
 
     public List<SelectItem> getListaCargoActivoByEmpresa() {
         if(this.listaCargoActivoByEmpresa==null){
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
             listaCargoActivoByEmpresa = new Items(cargoDao.obtenerListaCargosActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems();
         }
@@ -410,23 +452,56 @@ public class ListasSessionMB implements Serializable{
      */
     public List<SelectItem> obtenerListaPerfilByEmpresa(ValueChangeEvent e) {
         if(e!=null){
-            SegDetPerfilId segDetPerfilId = new SegDetPerfilId();
-            segDetPerfilId.setNCodEmpresa((BigDecimal)e.getNewValue());
-            SegDetPerfil segDetPerfil = new SegDetPerfil();
-            segDetPerfil.setId(segDetPerfilId);
+            SegCabEmpresa segCabEmpresa = new SegCabEmpresa();
+            segCabEmpresa.setNCodEmpresa((BigDecimal)e.getNewValue());
             PerfilDao perfilDao =(PerfilDao)ServiceFinder.findBean("PerfilDao");
-            listaPerfilActivo =  new Items(perfilDao.obtenerListaPerfilesActivosByEmpresa(segDetPerfil), Items.FIRST_ITEM_SELECT, "NCodPerfil","VNombre").getItems();
+            listaPerfilActivo =  new Items(perfilDao.obtenerListaPerfilesActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodPerfil","VNombre").getItems();
         }else{
             listaPerfilActivo =  new Items(null, Items.FIRST_ITEM_SELECT, "NCodPerfil","VNombre").getItems();
         }
         return listaPerfilActivo;
     }
 
+    /**
+     * @return the listaLocal
+     */
+    public List<SelectItem> getListaLocal() {
+        if(this.listaLocal==null){
+            LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
+            listaLocal = new Items(localDao.obtenerListaLocales(), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems();
+        }
+        return listaLocal;
+    }
+
+    /**
+     * @param listaLocal the listaLocal to set
+     */
+    public void setListaLocal(List<SelectItem> listaLocal) {
+        this.listaLocal = listaLocal;
+    }
+
+    /**
+     * @return the listaLocalActivo
+     */
+    public List<SelectItem> getListaLocalActivo() {
+        if(this.listaLocalActivo==null){
+            LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
+            listaLocalActivo = new Items(localDao.obtenerListaLocalesActivos(), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems();
+        }
+        return listaLocalActivo;
+    }
+
+    /**
+     * @param listaLocalActivo the listaLocalActivo to set
+     */
+    public void setListaLocalActivo(List<SelectItem> listaLocalActivo) {
+        this.listaLocalActivo = listaLocalActivo;
+    }
+
     public List<SelectItem> getListaArea() {
         if(this.listaArea==null){
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
             AreaDao areaDao = (AreaDao) ServiceFinder.findBean("AreaDao");
-            listaArea = new Items(areaDao.obtenerListaAreasActivasByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems();
+            listaArea = new Items(areaDao.obtenerListaAreas(), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems();
         }
         return listaArea;
     }
@@ -435,9 +510,27 @@ public class ListasSessionMB implements Serializable{
         this.listaArea = listaArea;
     }
 
+    /**
+     * @return the listaAreaActiva
+     */
+    public List<SelectItem> getListaAreaActiva() {
+        if(this.listaAreaActiva==null){
+            AreaDao areaDao = (AreaDao) ServiceFinder.findBean("AreaDao");
+            listaAreaActiva = new Items(areaDao.obtenerListaAreasActivas(), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems();
+        }
+        return listaAreaActiva;
+    }
+
+    /**
+     * @param listaAreaActiva the listaAreaActiva to set
+     */
+    public void setListaAreaActiva(List<SelectItem> listaAreaActiva) {
+        this.listaAreaActiva = listaAreaActiva;
+    }
+
     public List<SelectItem> getListaLugar() {
         if(this.listaLugar==null){
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LugarDao lugarDao = (LugarDao) ServiceFinder.findBean("LugarDao");
             listaLugar = new Items(lugarDao.obtenerListaLugaresActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems();
         }
@@ -450,7 +543,7 @@ public class ListasSessionMB implements Serializable{
 
     public List<SelectItem> getListaResponsable() {
         if(this.listaResponsable==null){
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             ResponsableDao responsableDao =(ResponsableDao)ServiceFinder.findBean("ResponsableDao");
             listaResponsable = new Items(responsableDao.obtenerListaResponsablesActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems();
         }
@@ -490,10 +583,6 @@ public class ListasSessionMB implements Serializable{
     }
 
     public List<SelectItem> getListaNovedad() {
-        if(this.listaNovedad==null){
-            NovedadDao novedadDao = (NovedadDao) ServiceFinder.findBean("NovedadDao");
-            listaNovedad = new Items(novedadDao.obtenerListaNovedadesNoCerradas(), Items.FIRST_ITEM_SELECT, "NCodNovedad", "VDescBreve").getItems();
-        }
         return listaNovedad;
     }
 
@@ -741,7 +830,7 @@ public class ListasSessionMB implements Serializable{
 
     public List<SelectItem> getListaLugarCapacitacion() {
         if(this.listaLugarCapacitacion==null){
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LugarCapacitacionDao lugarCapacitacionDao = (LugarCapacitacionDao) ServiceFinder.findBean("LugarCapacitacionDao");
             listaLugarCapacitacion = new Items(lugarCapacitacionDao.obtenerListaLugaresCapacitacionByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLugarCapacitacion", "VDescripcion").getItems();
         }

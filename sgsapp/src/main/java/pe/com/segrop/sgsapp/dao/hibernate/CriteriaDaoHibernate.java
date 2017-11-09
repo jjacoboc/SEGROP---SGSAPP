@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.CriteriaDao;
 import pe.com.segrop.sgsapp.domain.SegDetCriteria;
 import pe.com.segrop.sgsapp.domain.SegDetExport;
@@ -50,11 +51,13 @@ public class CriteriaDaoHibernate extends HibernateDaoSupport implements Criteri
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void registrarCriteria(SegDetCriteria criteria) {
         getHibernateTemplate().saveOrUpdate(criteria);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarCriteriaById(SegDetExport export) {
         StringBuilder sql = new StringBuilder();
         Query query;

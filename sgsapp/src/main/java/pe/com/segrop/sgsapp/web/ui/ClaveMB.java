@@ -8,20 +8,24 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import pe.com.segrop.sgsapp.dao.ClaveDao;
 import pe.com.segrop.sgsapp.dao.UsuarioDao;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegDetClave;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
-import pe.com.segrop.sgsapp.web.common.SHA1BASE64;
+import pe.com.segrop.sgsapp.util.JSFUtils;
+import pe.com.segrop.sgsapp.util.SHA1BASE64;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
 
 /**
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class ClaveMB implements Serializable{
 
     private String claveActual;
@@ -60,7 +64,7 @@ public class ClaveMB implements Serializable{
         String clave = null;
         String destino = null;
         try{
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             ClaveDao claveDao = (ClaveDao) ServiceFinder.findBean("ClaveDao");
             UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
             if(this.getClaveActual()!=null && !"".equals(this.getClaveActual())){
@@ -74,13 +78,13 @@ public class ClaveMB implements Serializable{
                                     segDetClave.setVClave(SHA1BASE64.encriptar(this.getNuevaClave()));
                                     segDetClave.setDFecModificacion(new Date());
                                     segDetClave.setVUsuModificacion(usuario.getVUsuario());
-                                    segDetClave.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                    segDetClave.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                     claveDao.registrarClave(segDetClave);
                                     
                                     usuario.setNFlgCambioclave(BigDecimal.ZERO);
                                     usuario.setDFecModificacion(new Date());
                                     usuario.setVUsuModificacion(usuario.getVUsuario());
-                                    usuario.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                    usuario.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                     usuarioDao.registrarUsuario(usuario);
                                     
                                     this.setClaveActual("");
@@ -89,7 +93,7 @@ public class ClaveMB implements Serializable{
 
                                     FacesContext.getCurrentInstance().addMessage(null,
                                         new FacesMessage(FacesMessage.SEVERITY_INFO,"INFO.", "Su nueva clave se actualizó con éxito."));
-                                    destino = "bienvenida";
+                                    destino = "/pages/bienvenida";
                                 }else{
                                     FacesContext.getCurrentInstance().addMessage(null,
                                         new FacesMessage(FacesMessage.SEVERITY_ERROR,"ERROR.", "Confirme su nueva clave correctamente."));
@@ -130,7 +134,7 @@ public class ClaveMB implements Serializable{
     public void cambioClave(ActionEvent event){
         String clave = null;
         try{
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
             ClaveDao claveDao = (ClaveDao) ServiceFinder.findBean("ClaveDao");
             UsuarioDao usuarioDao = (UsuarioDao) ServiceFinder.findBean("UsuarioDao");
             if(this.getClaveActual()!=null && !"".equals(this.getClaveActual())){
@@ -144,13 +148,13 @@ public class ClaveMB implements Serializable{
                                     segDetClave.setVClave(SHA1BASE64.encriptar(this.getNuevaClave()));
                                     segDetClave.setDFecModificacion(new Date());
                                     segDetClave.setVUsuModificacion(usuario.getVUsuario());
-                                    segDetClave.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                    segDetClave.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                     claveDao.registrarClave(segDetClave);
                                     
                                     usuario.setNFlgCambioclave(BigDecimal.ZERO);
                                     usuario.setDFecModificacion(new Date());
                                     usuario.setVUsuModificacion(usuario.getVUsuario());
-                                    usuario.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                    usuario.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                     usuarioDao.registrarUsuario(usuario);
 
                                     this.setClaveActual("");

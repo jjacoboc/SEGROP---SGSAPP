@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.EmpresaDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 
@@ -102,6 +103,7 @@ public class EmpresaDaoHibernate extends HibernateDaoSupport implements EmpresaD
      * @param empresa Datos del empresa a registrar.
      */
     @Override
+    @Transactional(readOnly = false)
     public void registrarEmpresa(SegCabEmpresa empresa) {
         getHibernateTemplate().saveOrUpdate(empresa);
     }

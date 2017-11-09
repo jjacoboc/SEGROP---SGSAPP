@@ -15,41 +15,84 @@ and open the template in the editor.
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <h:outputStylesheet name="css/mycss.css" />
     </h:head>
+    <style>
+        .valign-bottom tr td {
+            vertical-align: bottom
+        }
+    </style>
+    <f:loadBundle var="msgs" basename="pe.com.segrop.sgsapp.resources.messages"/>
     <h:body>
-        <f:view>
-            <h:form>
-                <h:panelGrid columns="1" width="100%" cellpadding="0" cellspacing="0">
+        <h:form>
+            <h:panelGrid columns="1" cellpadding="0" cellspacing="0" width="100%">
+                <h:panelGrid columns="2" width="100%" cellpadding="0" cellspacing="0" style="vertical-align: bottom;">
                     <h:panelGroup>
-                        <h:panelGrid columns="2" width="100%" cellpadding="0" cellspacing="0" >
-                            <p:graphicImage value="#{loginMB.file}"  />
-                            <p:graphicImage library="images" name="norton_secured.png" style="border: 0;float: right" alt="VeriSign Secured" title="VeriSign Secured"/>
-                        </h:panelGrid>
-                        <h:panelGrid columns="2" width="100%" cellpadding="0" cellspacing="0" >
-                            <h:panelGroup>
-                                <h:outputText value="Bienvenido " style="font-size: 11px;font-weight: bold;"/>
-                                <h:outputText value="#{loginMB.usuarioSession.VNombres} " style="font-size: 11px;font-weight: bold;"/>
-                                <h:outputText value="#{loginMB.usuarioSession.VApellidos}" style="font-size: 11px;font-weight: bold;"/>
-                                <h:outputText value=" - " style="font-size: 11px;font-weight: bold;"/>
-                                <h:outputText value="#{loginMB.perfilSession.VNombre} " style="font-size: 11px;font-weight: bold;"/>
-                            </h:panelGroup>
-                            <h:panelGroup style="float: right;">
-                                <h:commandLink action="bienvenida">
-                                    <p:graphicImage library="images" name="house.png" style="border: 0;" alt="ir a inicio" title="ir a inicio"/>
-                                </h:commandLink>
-                                <p:spacer width="10"/>
-                                <p:commandLink id="keyLink" >
-                                    <p:graphicImage library="images" name="key_go.png" style="border: 0;" alt="cambio de contraseña" title="cambio de contraseña"/>
-                                </p:commandLink>
-                                <p:spacer width="10"/>
-                                <h:commandLink action="#{loginMB.cerrarSesion}">
-                                    <p:graphicImage library="images" name="power.png" style="border: 0;" alt="cerrar sesión" title="cerrar sesión"/>
-                                </h:commandLink>
-                                <p:spacer width="10"/>
-                            </h:panelGroup>
-                        </h:panelGrid>
+                        <p:graphicImage cache="false" value="#{imageLogo.image}" style="max-height: 36px; max-width: 210px;">
+                            <f:param name="ruc" value="#{loginMB.empresaSession.VRuc}" />
+                        </p:graphicImage>
+                        <p:spacer width="5"/>
+                        <h:panelGroup>
+                            <h:outputText value="#{msgs.welcome} #{loginMB.usuarioSession.VNombres} " style="font-size: 11px;font-weight: bold;"/>
+                            <h:outputText value="#{loginMB.usuarioSession.VApellidos}" style="font-size: 11px;font-weight: bold;"/>
+                            <h:outputText value=" (#{loginMB.perfilSession.VNombre})" style="font-size: 9px;font-weight: bold;"/>
+                        </h:panelGroup>
                     </h:panelGroup>
+                    <h:panelGrid columns="5" style="float: right;" styleClass="valign-bottom">
+                        <h:commandLink action="/pages/bienvenida.xhtml">
+                            <p:graphicImage library="images" name="house.png" style="border: 0;" alt="ir a inicio" title="ir a inicio"/>
+                        </h:commandLink>
+                        <h:commandLink action="/pages/cambioClaveHeader.xhtml">
+                            <p:graphicImage library="images" name="key_go.png" style="border: 0;" alt="cambio de contraseña" title="cambio de contraseña"/>
+                        </h:commandLink>
+                        <h:commandLink action="#{loginMB.cerrarSesion}">
+                            <p:graphicImage library="images" name="power.png" style="border: 0;" alt="cerrar sesión" title="cerrar sesión"/>
+                        </h:commandLink>
+                        <p:spacer width="5"/>
+                        <p:graphicImage library="images" name="norton_secured.png" style="border: 0;float: right" alt="VeriSign Secured" title="VeriSign Secured"/>
+                    </h:panelGrid>
                 </h:panelGrid>
-            </h:form>
-        </f:view>
+
+                <p:menubar style="font-size: 12px" >
+                    <p:submenu label="#{msgs.submenu1}" icon="ui-icon-document">
+                        <p:submenu label="#{msgs.submenu11}" icon="ui-icon-contact">
+                            <p:menuitem value="#{msgs.menuitem111}" actionListener="#{menuMB.toGestionLocal}" outcome="/pages/local.xhtml" />
+                            <p:menuitem value="#{msgs.menuitem112}" actionListener="#{menuMB.toGestionArea}" outcome="/pages/area.xhtml" />
+                            <p:menuitem value="#{msgs.menuitem113}" actionListener="#{menuMB.toGestionLugar}" outcome="/pages/lugar.xhtml" />
+                            <p:menuitem value="#{msgs.menuitem114}" actionListener="#{menuMB.toGestionResponsable}" outcome="/pages/responsable.xhtml" />
+                            <p:menuitem value="#{msgs.menuitem115}" actionListener="#{menuMB.toGestionCargo}" outcome="/pages/cargo.xhtml" />
+                        </p:submenu>
+                        <p:menuitem value="#{msgs.menuitem11}" actionListener="#{menuMB.toGestionEmpresa}" outcome="/pages/empresa.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem12}" actionListener="#{menuMB.toGestionUsuario}" outcome="/pages/usuario.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem13}" actionListener="#{menuMB.toGestionPerfil}" outcome="/pages/perfil.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem14}" actionListener="#{menuMB.toGestionAsignarPerfil}" outcome="/pages/asignarPerfil.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem15}" actionListener="#{menuMB.toGestionAsignarPermiso}" outcome="/pages/asignarPermisos.xhtml" />
+                        <p:separator />
+                        <p:menuitem value="#{msgs.menuitem16}" action="#{loginMB.cerrarSesion}" ajax="false"/>
+                    </p:submenu>
+                    <p:submenu label="#{msgs.submenu2}" icon="ui-icon-document">
+                        <p:menuitem value="#{msgs.menuitem21}" actionListener="#{menuMB.toGestionInspeccionPresencial}" outcome="/pages/presencial.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem22}" actionListener="#{menuMB.toGestionInspeccionTelefonica}" outcome="/pages/telefonica.xhtml" />
+                    </p:submenu>
+                    <p:submenu label="#{msgs.submenu3}" icon="ui-icon-document">
+                        <p:menuitem value="#{msgs.menuitem31}" actionListener="#{menuMB.toGestionDocumento}" outcome="/pages/documento.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem32}" url="#" />
+                        <p:menuitem value="#{msgs.menuitem33}" url="#" />
+                    </p:submenu>
+                    <p:submenu label="#{msgs.submenu4}" icon="ui-icon-document">
+                        <p:menuitem value="#{msgs.menuitem41}" actionListener="#{menuMB.toGestionNovedad}" outcome="/pages/novedad.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem42}" actionListener="#{menuMB.toGestionCapacitacion}" outcome="/pages/capacitacion.xhtml" />
+                    </p:submenu>
+                    <p:submenu label="#{msgs.submenu5}" icon="ui-icon-document">
+                        <p:menuitem value="#{msgs.menuitem51}" actionListener="#{menuMB.toEvaluacionRiesgo}" outcome="/pages/riesgo.xhtml" />
+                        <p:menuitem value="#{msgs.menuitem52}" url="#" />
+                    </p:submenu>
+                </p:menubar>
+            </h:panelGrid>
+        </h:form>
+        
+        <p:ajaxStatus onstart="PF('statusDialog').show();" onsuccess="PF('statusDialog').hide();" />
+
+        <p:dialog widgetVar="statusDialog" modal="true" appendTo="@(body)" draggable="false" closable="false" resizable="false" showHeader="false">
+            <h:graphicImage library="images" name="156.gif" style="border: 0;" />
+        </p:dialog>
     </h:body>
 </html>

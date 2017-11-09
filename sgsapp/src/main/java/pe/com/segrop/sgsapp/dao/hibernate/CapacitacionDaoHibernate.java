@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.CapacitacionDao;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetCapacitacion;
@@ -58,7 +59,9 @@ public class CapacitacionDaoHibernate extends HibernateDaoSupport implements Cap
         SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         DetachedCriteria criteria = DetachedCriteria.forClass(SegDetCapacitacion.class);
-        criteria.add(Restrictions.eq("NCodEmpresa", capacitacion.getNCodEmpresa()));
+        if(capacitacion.getNCodEmpresa()!=null && !"-1".equals(capacitacion.getNCodEmpresa().toString())){
+            criteria.add(Restrictions.eq("NCodEmpresa", capacitacion.getNCodEmpresa()));
+        }
         if(capacitacion.getNModalidad()!=null && !"-1".equals(capacitacion.getNModalidad().toString())){
             criteria.add(Restrictions.eq("NModalidad", capacitacion.getNModalidad()));
         }
@@ -100,6 +103,7 @@ public class CapacitacionDaoHibernate extends HibernateDaoSupport implements Cap
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarCapacitacion(SegDetCapacitacion capacitacion) {
         getHibernateTemplate().saveOrUpdate(capacitacion);
     }

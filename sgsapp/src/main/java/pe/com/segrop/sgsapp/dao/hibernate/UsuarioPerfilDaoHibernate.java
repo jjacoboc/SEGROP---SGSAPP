@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.UsuarioPerfilDao;
 import pe.com.segrop.sgsapp.domain.SegCabUsuario;
 import pe.com.segrop.sgsapp.domain.SegDetPerfil;
@@ -146,11 +147,13 @@ public class UsuarioPerfilDaoHibernate extends HibernateDaoSupport implements Us
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarAsignacion(SegRelUsuarioperfil usuarioPerfil){
         getHibernateTemplate().delete(usuarioPerfil);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void registrarAsignacion(SegRelUsuarioperfil usuarioPerfil){
         getHibernateTemplate().saveOrUpdate(usuarioPerfil);
     }

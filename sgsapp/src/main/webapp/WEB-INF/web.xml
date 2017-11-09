@@ -18,6 +18,22 @@
         <param-name>primefaces.THEME</param-name>
         <param-value>redmond</param-value>
     </context-param>
+    <context-param>
+        <param-name>javax.faces.PARTIAL_STATE_SAVING</param-name>
+        <param-value>false</param-value>
+    </context-param>
+    <context-param>
+        <param-name>javax.faces.FULL_STATE_SAVING_VIEW_IDS</param-name>
+        <param-value>/commons/login.xhtml</param-value>
+    </context-param>
+    <context-param>
+        <param-name>javax.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.UPLOADER</param-name>
+        <param-value>commons</param-value>
+    </context-param>
   
     <error-page>
         <exception-type>404</exception-type>
@@ -32,6 +48,15 @@
         <exception-type>javax.faces.application.ViewExpiredException</exception-type>
         <location>/commons/sessionexpired.jsp</location>
     </error-page>
+    
+    <filter>
+        <filter-name>PrimeFaces FileUpload Filter</filter-name>
+        <filter-class>org.primefaces.webapp.filter.FileUploadFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>PrimeFaces FileUpload Filter</filter-name>
+        <servlet-name>Faces Servlet</servlet-name>
+    </filter-mapping>
     <!--
     <filter>
         <filter-name>ForcedLoginFilter</filter-name>

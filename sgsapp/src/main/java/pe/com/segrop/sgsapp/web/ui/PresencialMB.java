@@ -11,11 +11,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
-import javax.faces.component.html.HtmlSelectOneMenu;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
+import javax.faces.event.AjaxBehaviorEvent;
 import javax.faces.event.ValueChangeEvent;
+import org.primefaces.component.selectonemenu.SelectOneMenu;
+import org.primefaces.component.selectoneradio.SelectOneRadio;
+import org.primefaces.context.RequestContext;
 import pe.com.segrop.sgsapp.dao.AreaDao;
 import pe.com.segrop.sgsapp.dao.CargoDao;
 import pe.com.segrop.sgsapp.dao.InsPreAccionDao;
@@ -47,7 +53,7 @@ import pe.com.segrop.sgsapp.domain.SegDetNovedad;
 import pe.com.segrop.sgsapp.domain.SegDetNovedadId;
 import pe.com.segrop.sgsapp.domain.SegDetResponsable;
 import pe.com.segrop.sgsapp.domain.SegDetResponsableId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Items;
 import pe.com.segrop.sgsapp.web.common.Parameters;
 import pe.com.segrop.sgsapp.web.common.ServiceFinder;
@@ -56,8 +62,11 @@ import pe.com.segrop.sgsapp.web.common.ServiceFinder;
  *
  * @author JJ
  */
+@ManagedBean
+@ViewScoped
 public class PresencialMB implements Serializable{
 
+    private BigDecimal searchEmpresa;
     private BigDecimal searchTipoInspeccion;
     private BigDecimal searchNovedad;
     private BigDecimal searchLocal;
@@ -69,6 +78,7 @@ public class PresencialMB implements Serializable{
     private Boolean activo;
     private Boolean proceso;
     private BigDecimal tipoInspeccion;
+    private BigDecimal empresa;
     private BigDecimal novedad;
     private boolean disabledNovedad;
     private Date fechaHora;
@@ -121,18 +131,25 @@ public class PresencialMB implements Serializable{
     private String action;
     private String actionOnLoad;
     private boolean fromMatrix;
+    private Boolean flag;
     
     /** Creates a new instance of PresencialMB */
     public PresencialMB() {
-        this.selectedInsPresencial = new SegDetInsPresencial();
-        this.inspeccionEvaluacion = new SegDetInspreEvaluacion();
-        this.disabledArea = true;
-        this.renderedArea = false;
-        this.disabledLugar = true;
-        this.renderedLugar = false;
-        this.disabledResponsable = true;
-        this.renderedResponsable = false;
-        this.fromMatrix = false;
+        
+    }
+
+    /**
+     * @return the searchEmpresa
+     */
+    public BigDecimal getSearchEmpresa() {
+        return searchEmpresa;
+    }
+
+    /**
+     * @param searchEmpresa the searchEmpresa to set
+     */
+    public void setSearchEmpresa(BigDecimal searchEmpresa) {
+        this.searchEmpresa = searchEmpresa;
     }
 
     public BigDecimal getSearchTipoInspeccion() {
@@ -229,6 +246,20 @@ public class PresencialMB implements Serializable{
 
     public void setTipoInspeccion(BigDecimal tipoInspeccion) {
         this.tipoInspeccion = tipoInspeccion;
+    }
+
+    /**
+     * @return the empresa
+     */
+    public BigDecimal getEmpresa() {
+        return empresa;
+    }
+
+    /**
+     * @param empresa the empresa to set
+     */
+    public void setEmpresa(BigDecimal empresa) {
+        this.empresa = empresa;
     }
 
     public BigDecimal getNovedad() {
@@ -638,14 +669,56 @@ public class PresencialMB implements Serializable{
     public void setFromMatrix(boolean fromMatrix) {
         this.fromMatrix = fromMatrix;
     }
+
+    /**
+     * @return the flag
+     */
+    public Boolean getFlag() {
+        return flag;
+    }
+
+    /**
+     * @param flag the flag to set
+     */
+    public void setFlag(Boolean flag) {
+        this.flag = flag;
+    }
     
-    public void handleSelectControlAdicional(ValueChangeEvent event){
+    @PostConstruct
+    public void init() {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
+        try {
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            if (rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                this.setFlag(true);
+            } else {
+                this.setFlag(false);
+            }
+            this.setSelectedInsPresencial(new SegDetInsPresencial());
+            this.setInspeccionEvaluacion(new SegDetInspreEvaluacion());
+            this.setDisabledArea(true);
+            this.setRenderedArea(false);
+            this.setDisabledLugar(true);
+            this.setRenderedLugar(false);
+            this.setDisabledResponsable(true);
+            this.setRenderedResponsable(false);
+            this.setFromMatrix(false);
+        } catch (Exception e) {
+            e.getMessage();
+            e.printStackTrace();
+        }
+    }
+    
+    public void handleSelectControlAdicional(AjaxBehaviorEvent event){
         ResourceBundle bundle;
         String ctrlAdicional = null;
         try{
-            if(event != null && event.getNewValue() != null){
+            if(event != null){
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                ctrlAdicional = event.getNewValue().toString();
+                ctrlAdicional = (String) ((SelectOneRadio) event.getSource()).getValue();
                 if(ctrlAdicional.equals(bundle.getString("ONE"))){
                     this.setVisualizar(true);
                 }else{
@@ -658,12 +731,12 @@ public class PresencialMB implements Serializable{
         }
     }
     
-    public void handleSelectTipoInspeccion(ValueChangeEvent event){
+    public void handleSelectTipoInspeccion(AjaxBehaviorEvent event){
         ResourceBundle bundle;
         try{
             if(event != null){
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                String value = event.getNewValue().toString();
+                String value = (String) ((SelectOneMenu) event.getSource()).getValue().toString();
                 if(value.equals(bundle.getString("TIPO_INSPECCION_ESPECIFICA"))){
                     this.setDisabledNovedad(false);
                 }else{
@@ -684,21 +757,40 @@ public class PresencialMB implements Serializable{
             }
         }catch(Exception e){
             e.getMessage();
-            
         }
     }
     
-    public void handleSelectNovedad(ValueChangeEvent event){
+    public void handleChangeEmpresa(AjaxBehaviorEvent event){
         try{
+            if(event != null){
+                ListasSessionMB listasSessionMB = (ListasSessionMB) JSFUtils.getSessionAttribute("listasSessionMB");
+                listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
+                BigDecimal value = (BigDecimal) ((SelectOneMenu) event.getSource()).getValue();
+                SegCabEmpresa segCabEmpresa = new SegCabEmpresa();            
+                segCabEmpresa.setNCodEmpresa(value);
+                LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
+                listasSessionMB.setListaLocalActivoByEmpresa(new Items(localDao.obtenerListaLocalesActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLocal","VDescripcion").getItems());
+                NovedadDao novedadDao = (NovedadDao) ServiceFinder.findBean("NovedadDao");
+                listasSessionMB.setListaNovedad(new Items(novedadDao.obtenerListaNovedadesNoCerradasByEmpresa(value), Items.FIRST_ITEM_SELECT, "NCodNovedad", "VDescBreve").getItems());
+                JSFUtils.setSessionAttribute("listasSessionMB", listasSessionMB);
+            }
+        }catch(Exception e){
+            e.getMessage();
+        }
+    }
+    
+    public void handleSelectNovedad(AjaxBehaviorEvent event){
+        try{
+            BigDecimal value = (BigDecimal) ((SelectOneMenu) event.getSource()).getValue();
             NovedadDao novedadDao = (NovedadDao) ServiceFinder.findBean("NovedadDao");
             SegDetNovedadId segDetNovedadId = new SegDetNovedadId();
-            segDetNovedadId.setNCodNovedad(BigDecimal.valueOf(Long.parseLong(event.getNewValue().toString())));
+            segDetNovedadId.setNCodNovedad(value);
             SegDetNovedad segDetNovedad = new SegDetNovedad();
             segDetNovedad.setId(segDetNovedadId);
             segDetNovedad = novedadDao.obtenerNovedadById(segDetNovedad);
             
             if(segDetNovedad != null){
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
 
                 SegDetLocalId segDetLocalId = new SegDetLocalId();
                 segDetLocalId.setNCodLocal(segDetNovedad.getNLocal());
@@ -756,20 +848,27 @@ public class PresencialMB implements Serializable{
         }
     }
     
-    public void handleChangeLocalValue(ActionEvent actionEvent){
+    public void handleChangeLocalValue(AjaxBehaviorEvent event){
         try{
-            if(actionEvent != null){
-//                HtmlAjaxSupport ajaxSupport = (HtmlAjaxSupport)actionEvent.getSource();
-//                HtmlSelectOneMenu selectOneMenu = (HtmlSelectOneMenu)ajaxSupport.getParent();
-//                BigDecimal codLocal = (BigDecimal)selectOneMenu.getValue();
-//                if("-1".equals(codLocal.toString())){
-//                    this.setDisabledArea(true);
-//                    this.setRenderedArea(false);
-//                }else{
-//                    this.setDisabledArea(false);
-//                    this.setRenderedArea(true);
-//                }
-//                this.setLocal(codLocal);
+            if(event != null){
+                ListasSessionMB listasSessionMB = (ListasSessionMB) JSFUtils.getSessionAttribute("listasSessionMB");
+                listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
+                BigDecimal codLocal = (BigDecimal) ((SelectOneMenu) event.getSource()).getValue();
+                SegDetLocalId segDetLocalId = new SegDetLocalId();
+                segDetLocalId.setNCodLocal(codLocal);
+                SegDetLocal segDetLocal = new SegDetLocal();            
+                segDetLocal.setId(segDetLocalId);
+                AreaDao areaDao =(AreaDao)ServiceFinder.findBean("AreaDao");
+                listasSessionMB.setListaAreaActivaByLocal(new Items(areaDao.obtenerListaAreasActivasByLocal(segDetLocal), Items.FIRST_ITEM_SELECT, "NCodArea","VDescripcion").getItems());
+                JSFUtils.setSessionAttribute("listasSessionMB", listasSessionMB);
+                if("".equals(codLocal.toString())){
+                    this.setDisabledArea(true);
+                    this.setRenderedArea(false);
+                }else{
+                    this.setDisabledArea(false);
+                    this.setRenderedArea(true);
+                }
+                this.setLocal(codLocal);
             }
         }catch(Exception e){
             e.getMessage();
@@ -777,24 +876,33 @@ public class PresencialMB implements Serializable{
         }
     }
     
-    public void handleChangeAreaValue(ActionEvent actionEvent){
+    public void handleChangeAreaValue(AjaxBehaviorEvent event){
         try{
-            if(actionEvent != null){
-//                HtmlAjaxSupport ajaxSupport = (HtmlAjaxSupport)actionEvent.getSource();
-//                HtmlSelectOneMenu selectOneMenu = (HtmlSelectOneMenu)ajaxSupport.getParent();
-//                BigDecimal codArea = (BigDecimal)selectOneMenu.getValue();
-//                if("-1".equals(codArea.toString())){
-//                    this.setDisabledLugar(true);
-//                    this.setRenderedLugar(false);
-//                    this.setDisabledResponsable(true);
-//                    this.setRenderedResponsable(false);
-//                }else{
-//                    this.setDisabledLugar(false);
-//                    this.setRenderedLugar(true);
-//                    this.setDisabledResponsable(false);
-//                    this.setRenderedResponsable(true);
-//                }
-//                this.setArea(codArea);
+            if(event != null){
+                ListasSessionMB listasSessionMB = (ListasSessionMB) JSFUtils.getSessionAttribute("listasSessionMB");
+                listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
+                BigDecimal codArea = (BigDecimal) ((SelectOneMenu) event.getSource()).getValue();
+                SegDetAreaId segDetAreaId = new SegDetAreaId();
+                segDetAreaId.setNCodArea(codArea);
+                SegDetArea segDetArea = new SegDetArea();
+                segDetArea.setId(segDetAreaId);
+                LugarDao lugarDao =(LugarDao)ServiceFinder.findBean("LugarDao");
+                listasSessionMB.setListaLugarActivoByArea(new Items(lugarDao.obtenerListaLugaresActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodLugar","VDescripcion").getItems());
+                ResponsableDao responsableDao =(ResponsableDao)ServiceFinder.findBean("ResponsableDao");
+                listasSessionMB.setListaResponsableActivoByArea(new Items(responsableDao.obtenerListaResponsablesActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodResponsable","VNombrecompleto").getItems());
+                JSFUtils.setSessionAttribute("listasSessionMB", listasSessionMB);
+                if("".equals(codArea.toString())){
+                    this.setDisabledLugar(true);
+                    this.setRenderedLugar(false);
+                    this.setDisabledResponsable(true);
+                    this.setRenderedResponsable(false);
+                }else{
+                    this.setDisabledLugar(false);
+                    this.setRenderedLugar(true);
+                    this.setDisabledResponsable(false);
+                    this.setRenderedResponsable(true);
+                }
+                this.setArea(codArea);
             }
         }catch(Exception e){
             e.getMessage();
@@ -803,11 +911,18 @@ public class PresencialMB implements Serializable{
     }
     
     public void buscarInspeccionPresencial(ActionEvent actionEvent) {
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try {
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-            InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
             SegDetInsPresencialId segDetInsPresencialId = new SegDetInsPresencialId();
-            segDetInsPresencialId.setNCodEmpresa(empresaSession.getNCodEmpresa());
+            if (!rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                segDetInsPresencialId.setNCodEmpresa(segCabEmpresa.getNCodEmpresa());
+            } else {
+                segDetInsPresencialId.setNCodEmpresa(this.getSearchEmpresa());
+            }
             SegDetInsPresencial segDetInsPresencial = new SegDetInsPresencial();
             segDetInsPresencial.setId(segDetInsPresencialId);
             segDetInsPresencial.setNCodEmpresa(segDetInsPresencialId.getNCodEmpresa());
@@ -818,6 +933,7 @@ public class PresencialMB implements Serializable{
             segDetInsPresencial.setNLugar(this.getSearchLugar() != null ? this.getSearchLugar() : null);
             segDetInsPresencial.setNResponsable(this.getSearchResponsable() != null ? this.getSearchResponsable() : null);
             segDetInsPresencial.setNCargo(this.getSearchCargo() != null ? this.getSearchCargo() : null);
+            InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
             setListaInsPresencial(insPresencialDao.buscarInspeccionesPresenciales(segDetInsPresencial));
         } catch (Exception e) {
             e.getMessage();
@@ -826,7 +942,24 @@ public class PresencialMB implements Serializable{
     }
     
     public void toRegistrar(ActionEvent actionEvent){
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try{
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa) JSFUtils.getSessionAttribute("empresa");
+            bundle = ResourceBundle.getBundle(Parameters.getParameters());
+            rucSegrop = bundle.getString("rucSegrop");
+            ListasSessionMB listasSessionMB = (ListasSessionMB) JSFUtils.getSessionAttribute("listasSessionMB");
+            listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
+            if (rucSegrop.equals(segCabEmpresa.getVRuc())) {
+                listasSessionMB.setListaLocalActivoByEmpresa(new Items(null, Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems());
+                listasSessionMB.setListaNovedad(new Items(null, Items.FIRST_ITEM_SELECT, "NCodNovedad", "VDescBreve").getItems());
+            } else {
+                LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
+                listasSessionMB.setListaLocalActivoByEmpresa(new Items(localDao.obtenerListaLocalesActivosByEmpresa(segCabEmpresa), Items.FIRST_ITEM_SELECT, "NCodLocal","VDescripcion").getItems());
+                NovedadDao novedadDao = (NovedadDao) ServiceFinder.findBean("NovedadDao");
+                listasSessionMB.setListaNovedad(new Items(novedadDao.obtenerListaNovedadesNoCerradasByEmpresa(segCabEmpresa.getNCodEmpresa()), Items.FIRST_ITEM_SELECT, "NCodNovedad", "VDescBreve").getItems());
+            }
+            JSFUtils.setSessionAttribute("listasSessionMB", listasSessionMB);
             Iterator<FacesMessage> iter= FacesContext.getCurrentInstance().getMessages();
             if(iter.hasNext() == true){
                 iter.remove();
@@ -835,8 +968,8 @@ public class PresencialMB implements Serializable{
             this.setPersona(null);
             this.setActivo(null);
             this.setProceso(null);
-            this.setTipoInspeccion(null);
-            this.setNovedad(null);
+            this.setTipoInspeccion(BigDecimal.valueOf(-1));
+            this.setNovedad(BigDecimal.valueOf(-1));
             this.setDisabledNovedad(true);
             this.setFechaHora(null);
             this.setDescBreve(null);
@@ -866,14 +999,19 @@ public class PresencialMB implements Serializable{
     }
     
     public void registrarInspeccionPresencial(ActionEvent actionEvent) {
-        ResourceBundle bundle;
+        ResourceBundle bundle = null;
+        String rucSegrop = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+            if (!rucSegrop.equals(empresaSession.getVRuc())) {
+                this.setEmpresa(empresaSession.getNCodEmpresa());
+            }
             InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
             SegDetInsPresencialId segDetInsPresencialId = new SegDetInsPresencialId();
-            segDetInsPresencialId.setNCodEmpresa(empresaSession.getNCodEmpresa());
+            segDetInsPresencialId.setNCodEmpresa(this.getEmpresa() != null ? this.getEmpresa() : null);
             SegDetInsPresencial segDetInsPresencial = new SegDetInsPresencial();
             segDetInsPresencial.setId(segDetInsPresencialId);
             segDetInsPresencial.setNCodNovedad(segDetInsPresencialId.getNCodInspresencial());
@@ -906,6 +1044,8 @@ public class PresencialMB implements Serializable{
                 }else if(segDetInsPresencial.getNSeguimiento().equals(BigDecimal.ZERO)){
                     segDetInsPresencial.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_CERRADA"))));
                 }
+            } else {
+                segDetInsPresencial.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_CERRADA"))));
             }
 //            }else{
 //                segDetInsPresencial.setNCumpleControl(BigDecimal.ONE);
@@ -919,9 +1059,9 @@ public class PresencialMB implements Serializable{
                 segDetInsPresencial.getId().setNCodInspresencial(BigDecimal.valueOf(insPresencialDao.nextSequenceValue()));
                 segDetInsPresencial.setDFecCreacion(new Date());
                 segDetInsPresencial.setVUsuCreacion(usuarioSession.getVUsuario());
-                segDetInsPresencial.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                segDetInsPresencial.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 insPresencialDao.registrarInspeccionPresencial(segDetInsPresencial);
-                this.setAction("Richfaces.hideModalPanel('dlg')");
+                RequestContext.getCurrentInstance().execute("PF('dlg').hide();");
             }
         }catch(Exception e){
             e.getMessage();
@@ -934,8 +1074,8 @@ public class PresencialMB implements Serializable{
         String rowkey = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-            rowkey = BaseBean.getRequestParameter("rowkey");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+            rowkey = JSFUtils.getRequestParameter("rowkey");
             SegDetInsPresencial segDetInsPresencial = this.getListaInsPresencial().get(Integer.parseInt(rowkey));
             this.setSelectedInsPresencial(segDetInsPresencial);
             
@@ -983,11 +1123,17 @@ public class PresencialMB implements Serializable{
     
     public void editarInspeccionPresencial(ActionEvent actionEvent) {
         ResourceBundle bundle;
+        String rucSegrop = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
+            rucSegrop = bundle.getString("rucSegrop");
+            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetInsPresencial segDetInsPresencial = this.getSelectedInsPresencial();
+            if (!rucSegrop.equals(empresaSession.getVRuc())) {
+                segDetInsPresencial.getId().setNCodEmpresa(empresaSession.getNCodEmpresa());
+            }
+            InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
             segDetInsPresencial.setBPersona(segDetInsPresencial.getBPersona() != null ? segDetInsPresencial.getBPersona() : null);
             segDetInsPresencial.setBActivo(segDetInsPresencial.getBActivo() != null ? segDetInsPresencial.getBActivo() : null);
             segDetInsPresencial.setBProceso(segDetInsPresencial.getBProceso() != null ? segDetInsPresencial.getBProceso() : null);
@@ -1015,6 +1161,8 @@ public class PresencialMB implements Serializable{
                 }else if(segDetInsPresencial.getNSeguimiento().equals(BigDecimal.ZERO)){
                     segDetInsPresencial.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_CERRADA"))));
                 }
+            } else {
+                segDetInsPresencial.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_CERRADA"))));
             }
 //            }else{
 //                segDetInsPresencial.setNCumpleControl(BigDecimal.ONE);
@@ -1027,9 +1175,9 @@ public class PresencialMB implements Serializable{
             if(!errorValidation(segDetInsPresencial)){
                 segDetInsPresencial.setDFecModificacion(new Date());
                 segDetInsPresencial.setVUsuModificacion(usuarioSession.getVUsuario());
-                segDetInsPresencial.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetInsPresencial.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 insPresencialDao.registrarInspeccionPresencial(segDetInsPresencial);
-                this.action = "Richfaces.hideModalPanel('editDlg')";
+                RequestContext.getCurrentInstance().execute("PF('editDlg').hide();");
             }
         }catch(Exception e){
             e.getMessage();
@@ -1040,7 +1188,7 @@ public class PresencialMB implements Serializable{
     public void toVer(ActionEvent actionEvent){
         String rowkey = null;
         try{
-            rowkey = BaseBean.getRequestParameter("rowkey");
+            rowkey = JSFUtils.getRequestParameter("rowkey");
             SegDetInsPresencial segDetInsPresencial = this.getListaInsPresencial().get(Integer.parseInt(rowkey));
             this.setSelectedInsPresencial(segDetInsPresencial);
             
@@ -1075,7 +1223,7 @@ public class PresencialMB implements Serializable{
     public void toSeguimiento(ActionEvent actionEvent){
         String rowkey = null;
         try{
-            rowkey = BaseBean.getRequestParameter("rowkey");
+            rowkey = JSFUtils.getRequestParameter("rowkey");
             SegDetInsPresencial segDetInsPresencial = this.getListaInsPresencial().get(Integer.parseInt(rowkey));
             this.setSelectedInsPresencial(segDetInsPresencial);
             
@@ -1105,7 +1253,7 @@ public class PresencialMB implements Serializable{
         try{
             if(this.accionTomada != null && !"".equals(this.accionTomada.trim())){
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
                 InsPreAccionDao insPreAccionDao =(InsPreAccionDao)ServiceFinder.findBean("InsPreAccionDao");
                 SegDetInspreAccionesId segDetInspreAccionesId = new SegDetInspreAccionesId();
@@ -1121,7 +1269,7 @@ public class PresencialMB implements Serializable{
                 segDetInspreAcciones.setVDescripcion(this.accionTomada != null ? this.accionTomada.toUpperCase().trim() : null);
                 segDetInspreAcciones.setDFecCreacion(new Date());
                 segDetInspreAcciones.setVUsuCreacion(usuarioSession.getVUsuario());
-                segDetInspreAcciones.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                segDetInspreAcciones.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 insPreAccionDao.registrarAccion(segDetInspreAcciones);
                 
                 if(this.getListaInsPresencial().contains(this.getSelectedInsPresencial())){
@@ -1130,15 +1278,15 @@ public class PresencialMB implements Serializable{
                     this.getSelectedInsPresencial().setNSeguimiento(BigDecimal.ONE);
                     this.getSelectedInsPresencial().setDFecModificacion(new Date());
                     this.getSelectedInsPresencial().setVUsuModificacion(usuarioSession.getVUsuario());
-                    this.getSelectedInsPresencial().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    this.getSelectedInsPresencial().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                     insPresencialDao.registrarInspeccionPresencial(this.getSelectedInsPresencial());
                     this.getListaInsPresencial().set(index, this.getSelectedInsPresencial());
                 }
                 this.setAccionTomada(null);
                 if(this.isFromMatrix()){
-                    this.setAction("document.getElementById('hiddenForm:hiddenBtn').click();");
+                    RequestContext.getCurrentInstance().execute("document.getElementById('hiddenForm:hiddenBtn').click();");
                 }else{
-                    this.setAction("Richfaces.hideModalPanel('segDlg')");
+                    RequestContext.getCurrentInstance().execute("PF('segDlg').hide();");
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la nueva acción a tomar.");
@@ -1156,7 +1304,7 @@ public class PresencialMB implements Serializable{
         try{
             if(this.accionTomada != null && !"".equals(this.accionTomada.trim())){
                 bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 InsPresencialDao insPresencialDao = (InsPresencialDao) ServiceFinder.findBean("InsPresencialDao");
                 InsPreAccionDao insPreAccionDao =(InsPreAccionDao)ServiceFinder.findBean("InsPreAccionDao");
                 SegDetInspreAccionesId segDetInspreAccionesId = new SegDetInspreAccionesId();
@@ -1172,7 +1320,7 @@ public class PresencialMB implements Serializable{
                 segDetInspreAcciones.setVDescripcion(this.accionTomada != null ? this.accionTomada.toUpperCase().trim() : null);
                 segDetInspreAcciones.setDFecCreacion(new Date());
                 segDetInspreAcciones.setVUsuCreacion(usuarioSession.getVUsuario());
-                segDetInspreAcciones.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                segDetInspreAcciones.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                 insPreAccionDao.registrarAccion(segDetInspreAcciones);
                 
                 if(this.getListaInsPresencial().contains(this.getSelectedInsPresencial())){
@@ -1181,15 +1329,15 @@ public class PresencialMB implements Serializable{
                     this.getSelectedInsPresencial().setNSeguimiento(BigDecimal.ZERO);
                     this.getSelectedInsPresencial().setDFecModificacion(new Date());
                     this.getSelectedInsPresencial().setVUsuModificacion(usuarioSession.getVUsuario());
-                    this.getSelectedInsPresencial().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    this.getSelectedInsPresencial().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                     insPresencialDao.registrarInspeccionPresencial(this.getSelectedInsPresencial());
                     this.getListaInsPresencial().set(index, this.getSelectedInsPresencial());
                 }
                 this.setAccionTomada(null);
                 if(this.isFromMatrix()){
-                    this.setAction("document.getElementById('hiddenForm:hiddenBtn').click();");
+                    RequestContext.getCurrentInstance().execute("document.getElementById('hiddenForm:hiddenBtn').click();");
                 }else{
-                    this.setAction("Richfaces.hideModalPanel('segDlg')");
+                    RequestContext.getCurrentInstance().execute("PF('segDlg').hide();");
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la nueva acción a tomar.");
@@ -1210,7 +1358,7 @@ public class PresencialMB implements Serializable{
         String rowkey = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            rowkey = BaseBean.getRequestParameter("rowkey");
+            rowkey = JSFUtils.getRequestParameter("rowkey");
             SegDetInsPresencial segDetInsPresencial = this.getListaInsPresencial().get(Integer.parseInt(rowkey));
             this.setSelectedInsPresencial(segDetInsPresencial);
             
@@ -1249,7 +1397,7 @@ public class PresencialMB implements Serializable{
                     if(this.getDiagnostico() != null && !"".equals(this.diagnostico.trim())){
                         if(this.getRecomendacion() != null && !"".equals(this.recomendacion.trim())){
                             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                             InspreEvaluacionDao inspreEvaluacionDao =(InspreEvaluacionDao)ServiceFinder.findBean("InspreEvaluacionDao");
                             InspreEvaluacionDetalleDao inspreEvaluacionDetalleDao =(InspreEvaluacionDetalleDao)ServiceFinder.findBean("InspreEvaluacionDetalleDao");
                             SegDetInspreEvaluacionId segDetInspreEvaluacionId = new SegDetInspreEvaluacionId();
@@ -1257,7 +1405,7 @@ public class PresencialMB implements Serializable{
                             if(this.getInspeccionEvaluacion().getDFecCreacion() != null){
                                 this.getInspeccionEvaluacion().setDFecModificacion(new Date());
                                 this.getInspeccionEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getInspeccionEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getInspeccionEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(this.getInspeccionEvaluacion());
                             }else{
                                 segDetInspreEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(inspreEvaluacionDao.nextSequenceValue()));
@@ -1271,7 +1419,7 @@ public class PresencialMB implements Serializable{
                                 segDetInspreEvaluacion.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_EN_EVALUACION"))));
                                 segDetInspreEvaluacion.setDFecCreacion(new Date());
                                 segDetInspreEvaluacion.setVUsuCreacion(usuarioSession.getVUsuario());
-                                segDetInspreEvaluacion.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                segDetInspreEvaluacion.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(segDetInspreEvaluacion);
                             }
 
@@ -1293,15 +1441,15 @@ public class PresencialMB implements Serializable{
                             segDetInspreevalDetalle.setVRecomendacion(this.getRecomendacion() != null ? this.getRecomendacion().toUpperCase().trim() : null);
                             segDetInspreevalDetalle.setDFecCreacion(new Date());
                             segDetInspreevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segDetInspreevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetInspreevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             inspreEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetInspreevalDetalle);
                             
                             this.setDiagnostico(null);
                             this.setRecomendacion(null);
                             if(this.isFromMatrix()){
-                                this.setAction("document.getElementById('hiddenForm:hiddenBtn').click();");
+                                RequestContext.getCurrentInstance().execute("document.getElementById('hiddenForm:hiddenBtn').click();");
                             }else{
-                                this.setAction("Richfaces.hideModalPanel('evalDlg')");
+                                RequestContext.getCurrentInstance().execute("PF('evalDlg').hide();");
                             }
                         }else{
                             message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese una recomendación.");
@@ -1334,7 +1482,7 @@ public class PresencialMB implements Serializable{
                     if(this.getDiagnostico() != null && !"".equals(this.diagnostico.trim())){
                         if(this.getRecomendacion() != null && !"".equals(this.recomendacion.trim())){
                             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-                            SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                            SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                             InsPresencialDao insPresencialDao =(InsPresencialDao)ServiceFinder.findBean("InsPresencialDao");
                             InspreEvaluacionDao inspreEvaluacionDao =(InspreEvaluacionDao)ServiceFinder.findBean("InspreEvaluacionDao");
                             InspreEvaluacionDetalleDao inspreEvaluacionDetalleDao =(InspreEvaluacionDetalleDao)ServiceFinder.findBean("InspreEvaluacionDetalleDao");
@@ -1343,7 +1491,7 @@ public class PresencialMB implements Serializable{
                             if(this.getInspeccionEvaluacion().getDFecCreacion() != null){
                                 this.getInspeccionEvaluacion().setDFecModificacion(new Date());
                                 this.getInspeccionEvaluacion().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getInspeccionEvaluacion().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getInspeccionEvaluacion().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(this.getInspeccionEvaluacion());
                             }else{
                                 segDetInspreEvaluacionId.setNCodEvaluacion(BigDecimal.valueOf(inspreEvaluacionDao.nextSequenceValue()));
@@ -1357,7 +1505,7 @@ public class PresencialMB implements Serializable{
                                 segDetInspreEvaluacion.setNEstado(BigDecimal.valueOf(Long.parseLong(bundle.getString("ESTADO_SOLUCIONADA"))));
                                 segDetInspreEvaluacion.setDFecCreacion(new Date());
                                 segDetInspreEvaluacion.setVUsuCreacion(usuarioSession.getVUsuario());
-                                segDetInspreEvaluacion.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                                segDetInspreEvaluacion.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                                 inspreEvaluacionDao.registrarEvaluacion(segDetInspreEvaluacion);
                             }
 
@@ -1379,7 +1527,7 @@ public class PresencialMB implements Serializable{
                             segDetInspreevalDetalle.setVRecomendacion(this.getRecomendacion() != null ? this.getRecomendacion().toUpperCase().trim() : null);
                             segDetInspreevalDetalle.setDFecCreacion(new Date());
                             segDetInspreevalDetalle.setVUsuCreacion(usuarioSession.getVUsuario());
-                            segDetInspreevalDetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                            segDetInspreevalDetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                             inspreEvaluacionDetalleDao.registrarEvaluacionDetalle(segDetInspreevalDetalle);
                             
                             if(this.getListaInsPresencial().contains(this.getSelectedInsPresencial())){
@@ -1387,16 +1535,16 @@ public class PresencialMB implements Serializable{
                                 this.getSelectedInsPresencial().setNAnalisis(BigDecimal.ZERO);
                                 this.getSelectedInsPresencial().setDFecModificacion(new Date());
                                 this.getSelectedInsPresencial().setVUsuModificacion(usuarioSession.getVUsuario());
-                                this.getSelectedInsPresencial().setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                                this.getSelectedInsPresencial().setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                                 insPresencialDao.registrarInspeccionPresencial(this.getSelectedInsPresencial());
                                 this.getListaInsPresencial().set(index, this.getSelectedInsPresencial());
                             }
                             this.setDiagnostico(null);
                             this.setRecomendacion(null);
                             if(this.isFromMatrix()){
-                                this.setAction("document.getElementById('hiddenForm:hiddenBtn').click();");
+                                RequestContext.getCurrentInstance().execute("document.getElementById('hiddenForm:hiddenBtn').click();");
                             }else{
-                                this.setAction("Richfaces.hideModalPanel('evalDlg')");
+                                RequestContext.getCurrentInstance().execute("PF('evalDlg').hide();");
                             }
                         }else{
                             message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese una recomendación.");
@@ -1416,7 +1564,7 @@ public class PresencialMB implements Serializable{
             }
         }catch(Exception e){
             e.getMessage();
-            
+            e.printStackTrace();
         }
     }
     
@@ -1523,7 +1671,7 @@ public class PresencialMB implements Serializable{
     
     public void listarLocales(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
             this.setListaLocales(localDao.obtenerListaLocalesActivosByEmpresa(empresaSession));
             this.setDescripcionLocal(null);
@@ -1537,9 +1685,9 @@ public class PresencialMB implements Serializable{
         FacesMessage message = null;
         try{
             if(this.getDescripcionLocal() != null && !"".equals(this.getDescripcionLocal().trim())){
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
                 SegDetLocalId segDetLocalId = new SegDetLocalId();
                 segDetLocalId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -1557,7 +1705,7 @@ public class PresencialMB implements Serializable{
                     segDetLocal.setNFlgActivo(BigDecimal.ONE);
                     segDetLocal.setDFecCreacion(new Date());
                     segDetLocal.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetLocal.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetLocal.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     localDao.registrarLocal(segDetLocal);
                     if(this.getListaLocales() == null)
                         this.setListaLocales(new ArrayList<SegDetLocal>());
@@ -1565,7 +1713,7 @@ public class PresencialMB implements Serializable{
                     this.setDescripcionLocal(null);
                     listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                     listasSessionMB.setListaLocalActivoByEmpresa(new Items(localDao.obtenerListaLocalesActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del local.");
@@ -1580,20 +1728,20 @@ public class PresencialMB implements Serializable{
     public void editarLocal(ActionEvent actionEvent){
         FacesMessage message = null;
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetLocal segDetLocal = (SegDetLocal) actionEvent.getSource();
             if(segDetLocal.getVDescripcion() != null && !"".equals(segDetLocal.getVDescripcion().trim())){
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segDetLocal.setVDescripcion(segDetLocal.getVDescripcion().toUpperCase().trim());
                 segDetLocal.setDFecModificacion(new Date());
                 segDetLocal.setVUsuModificacion(usuarioSession.getVUsuario());
-                segDetLocal.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetLocal.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
                 localDao.registrarLocal(segDetLocal);
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaLocalActivoByEmpresa(new Items(localDao.obtenerListaLocalesActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del local.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
@@ -1606,14 +1754,14 @@ public class PresencialMB implements Serializable{
     
     public void eliminarLocal(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LocalDao localDao = (LocalDao) ServiceFinder.findBean("LocalDao");
             localDao.eliminarLocal(this.getSelectedLocal());
             this.getListaLocales().remove(this.getSelectedLocal());
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
             listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
             listasSessionMB.setListaLocalActivoByEmpresa(new Items(localDao.obtenerListaLocalesActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodLocal", "VDescripcion").getItems());
-            BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+            JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
         }catch(Exception e){
             e.getMessage();
             
@@ -1622,7 +1770,7 @@ public class PresencialMB implements Serializable{
     
     public void listarAreas(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             AreaDao areaDao = (AreaDao) ServiceFinder.findBean("AreaDao");
             SegDetLocalId segDetLocalId = new SegDetLocalId();
             segDetLocalId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -1641,9 +1789,9 @@ public class PresencialMB implements Serializable{
         FacesMessage message = null;
         try{
             if(this.getDescripcionArea() != null && !"".equals(this.getDescripcionArea().trim())){
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 AreaDao areaDao = (AreaDao) ServiceFinder.findBean("AreaDao");
                 SegDetAreaId segDetAreaId = new SegDetAreaId();
                 segDetAreaId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -1664,7 +1812,7 @@ public class PresencialMB implements Serializable{
                     segDetArea.setNFlgActivo(BigDecimal.ONE);
                     segDetArea.setDFecCreacion(new Date());
                     segDetArea.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetArea.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetArea.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     areaDao.registrarArea(segDetArea);
                     if(this.getListaAreas() == null)
                         this.setListaAreas(new ArrayList<SegDetArea>());
@@ -1677,7 +1825,7 @@ public class PresencialMB implements Serializable{
                     listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                     listasSessionMB.setListaAreaActivaByLocal(new Items(areaDao.obtenerListaAreasActivasByLocal(segDetLocal), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems());
                     listasSessionMB.setListaArea(new Items(areaDao.obtenerListaAreasActivasByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del área.");
@@ -1692,15 +1840,15 @@ public class PresencialMB implements Serializable{
     public void editarArea(ActionEvent actionEvent){
         FacesMessage message = null;
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetArea segDetArea = (SegDetArea) actionEvent.getSource();
             if(segDetArea.getVDescripcion() != null && !"".equals(segDetArea.getVDescripcion().trim())){
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segDetArea.setVDescripcion(segDetArea.getVDescripcion().toUpperCase().trim());
                 segDetArea.setDFecModificacion(new Date());
                 segDetArea.setVUsuModificacion(usuarioSession.getVUsuario());
-                segDetArea.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetArea.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 AreaDao areaDao = (AreaDao) ServiceFinder.findBean("AreaDao");
                 areaDao.registrarArea(segDetArea);
                 SegDetLocalId segDetLocalId = new SegDetLocalId();
@@ -1710,7 +1858,7 @@ public class PresencialMB implements Serializable{
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaAreaActivaByLocal(new Items(areaDao.obtenerListaAreasActivasByLocal(segDetLocal), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems());
                 listasSessionMB.setListaArea(new Items(areaDao.obtenerListaAreasActivasByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del área.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
@@ -1723,11 +1871,11 @@ public class PresencialMB implements Serializable{
     
     public void eliminarArea(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             AreaDao areaDao = (AreaDao) ServiceFinder.findBean("AreaDao");
             areaDao.eliminarArea(this.getSelectedArea());
             this.getListaAreas().remove(this.getSelectedArea());
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
             listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
             SegDetLocalId segDetLocalId = new SegDetLocalId();
             segDetLocalId.setNCodLocal(this.getLocal());
@@ -1735,7 +1883,7 @@ public class PresencialMB implements Serializable{
             segDetLocal.setId(segDetLocalId);
             listasSessionMB.setListaAreaActivaByLocal(new Items(areaDao.obtenerListaAreasActivasByLocal(segDetLocal), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems());
             listasSessionMB.setListaArea(new Items(areaDao.obtenerListaAreasActivasByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodArea", "VDescripcion").getItems());
-            BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+            JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
         }catch(Exception e){
             e.getMessage();
             
@@ -1761,9 +1909,9 @@ public class PresencialMB implements Serializable{
         FacesMessage message = null;
         try{
             if(this.getDescripcionLugar() != null && !"".equals(this.getDescripcionLugar().trim())){
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 LugarDao lugarDao = (LugarDao) ServiceFinder.findBean("LugarDao");
                 SegDetLugarId segDetLugarId = new SegDetLugarId();
                 segDetLugarId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -1787,7 +1935,7 @@ public class PresencialMB implements Serializable{
                     segDetLugar.setNFlgActivo(BigDecimal.ONE);
                     segDetLugar.setDFecCreacion(new Date());
                     segDetLugar.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetLugar.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetLugar.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     lugarDao.registrarLugar(segDetLugar);
                     if(this.getListaLugares() == null)
                         this.setListaLugares(new ArrayList<SegDetLugar>());
@@ -1800,7 +1948,7 @@ public class PresencialMB implements Serializable{
                     listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                     listasSessionMB.setListaLugarActivoByArea(new Items(lugarDao.obtenerListaLugaresActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
                     listasSessionMB.setListaLugar(new Items(lugarDao.obtenerListaLugaresActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del lugar.");
@@ -1817,13 +1965,13 @@ public class PresencialMB implements Serializable{
         try{
             SegDetLugar segDetLugar = (SegDetLugar) actionEvent.getSource();
             if(segDetLugar.getVDescripcion() != null && !"".equals(segDetLugar.getVDescripcion().trim())){
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segDetLugar.setVDescripcion(segDetLugar.getVDescripcion().toUpperCase().trim());
                 segDetLugar.setDFecModificacion(new Date());
                 segDetLugar.setVUsuModificacion(usuarioSession.getVUsuario());
-                segDetLugar.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetLugar.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 LugarDao lugarDao = (LugarDao) ServiceFinder.findBean("LugarDao");
                 lugarDao.registrarLugar(segDetLugar);
                 SegDetAreaId segDetAreaId = new SegDetAreaId();
@@ -1833,7 +1981,7 @@ public class PresencialMB implements Serializable{
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaLugarActivoByArea(new Items(lugarDao.obtenerListaLugaresActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
                 listasSessionMB.setListaLugar(new Items(lugarDao.obtenerListaLugaresActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del lugar.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
@@ -1846,7 +1994,7 @@ public class PresencialMB implements Serializable{
     
     public void eliminarLugar(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             LugarDao lugarDao = (LugarDao) ServiceFinder.findBean("LugarDao");
             lugarDao.eliminarLugar(this.getSelectedLugar());
             this.getListaLugares().remove(this.getSelectedLugar());
@@ -1854,11 +2002,11 @@ public class PresencialMB implements Serializable{
             segDetAreaId.setNCodArea(this.getArea());
             SegDetArea segDetArea = new SegDetArea();
             segDetArea.setId(segDetAreaId);
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
             listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
             listasSessionMB.setListaLugarActivoByArea(new Items(lugarDao.obtenerListaLugaresActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
             listasSessionMB.setListaLugar(new Items(lugarDao.obtenerListaLugaresActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodLugar", "VDescripcion").getItems());
-            BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+            JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
         }catch(Exception e){
             e.getMessage();
             
@@ -1886,9 +2034,9 @@ public class PresencialMB implements Serializable{
         try{
             if(this.getNombreResponsable() != null && !"".equals(this.getNombreResponsable().trim())){
                 if(this.getApellidoResponsable() != null && !"".equals(this.getApellidoResponsable().trim())){
-                    SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                    ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                    SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                    ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                     ResponsableDao responsableDao = (ResponsableDao) ServiceFinder.findBean("ResponsableDao");
                     SegDetResponsableId segDetResponsableId = new SegDetResponsableId();
                     segDetResponsableId.setNCodEmpresa(empresaSession.getNCodEmpresa());
@@ -1914,7 +2062,7 @@ public class PresencialMB implements Serializable{
                         segDetResponsable.setNFlgActivo(BigDecimal.ONE);
                         segDetResponsable.setDFecCreacion(new Date());
                         segDetResponsable.setVUsuCreacion(usuarioSession.getVUsuario());
-                        segDetResponsable.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                        segDetResponsable.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                         responsableDao.registrarResponsable(segDetResponsable);
                         if(this.getListaResponsables() == null)
                             this.setListaResponsables(new ArrayList<SegDetResponsable>());
@@ -1928,7 +2076,7 @@ public class PresencialMB implements Serializable{
                         listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                         listasSessionMB.setListaResponsableActivoByArea(new Items(responsableDao.obtenerListaResponsablesActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems());
                         listasSessionMB.setListaResponsable(new Items(responsableDao.obtenerListaResponsablesActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems());
-                        BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                        JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                     }
                 }else{
                     message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese los apellidos del responsable.");
@@ -1950,15 +2098,15 @@ public class PresencialMB implements Serializable{
             SegDetResponsable segDetResponsable = (SegDetResponsable) actionEvent.getSource();
             if(segDetResponsable.getVNombres() != null && !"".equals(segDetResponsable.getVNombres().trim())){
                 if(segDetResponsable.getVApellidos() != null && !"".equals(segDetResponsable.getVApellidos().trim())){
-                    SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                    ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                    SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                    SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                    ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                    SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                     segDetResponsable.setVNombres(segDetResponsable.getVNombres().toUpperCase().trim());
                     segDetResponsable.setVApellidos(segDetResponsable.getVApellidos().toUpperCase().trim());
                     segDetResponsable.setVNombrecompleto(segDetResponsable.getVNombres()+" "+segDetResponsable.getVApellidos());
                     segDetResponsable.setDFecModificacion(new Date());
                     segDetResponsable.setVUsuModificacion(usuarioSession.getVUsuario());
-                    segDetResponsable.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetResponsable.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                     ResponsableDao responsableDao = (ResponsableDao) ServiceFinder.findBean("ResponsableDao");
                     responsableDao.registrarResponsable(segDetResponsable);
                     SegDetAreaId segDetAreaId = new SegDetAreaId();
@@ -1968,7 +2116,7 @@ public class PresencialMB implements Serializable{
                     listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                     listasSessionMB.setListaResponsableActivoByArea(new Items(responsableDao.obtenerListaResponsablesActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems());
                     listasSessionMB.setListaResponsable(new Items(responsableDao.obtenerListaResponsablesActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }else{
                     message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese los apellidos del responsable.");
                     FacesContext.getCurrentInstance().addMessage(null,message);
@@ -1985,7 +2133,7 @@ public class PresencialMB implements Serializable{
     
     public void eliminarResponsable(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             ResponsableDao responsableDao = (ResponsableDao) ServiceFinder.findBean("ResponsableDao");
             responsableDao.eliminarResponsable(this.getSelectedResponsable());
             this.getListaResponsables().remove(this.getSelectedResponsable());
@@ -1993,11 +2141,11 @@ public class PresencialMB implements Serializable{
             segDetAreaId.setNCodArea(this.getArea());
             SegDetArea segDetArea = new SegDetArea();
             segDetArea.setId(segDetAreaId);
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
             listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
             listasSessionMB.setListaResponsableActivoByArea(new Items(responsableDao.obtenerListaResponsablesActivosByArea(segDetArea), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems());
             listasSessionMB.setListaResponsable(new Items(responsableDao.obtenerListaResponsablesActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodResponsable", "VNombrecompleto").getItems());
-            BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+            JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
         }catch(Exception e){
             e.getMessage();
             
@@ -2006,7 +2154,7 @@ public class PresencialMB implements Serializable{
     
     public void listarCargos(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
             this.setListaCargos(cargoDao.obtenerListaCargosActivosByEmpresa(empresaSession));
             this.setDescripcionCargo(null);
@@ -2020,9 +2168,9 @@ public class PresencialMB implements Serializable{
         FacesMessage message = null;
         try{
             if(this.getDescripcionCargo() != null && !"".equals(this.getDescripcionCargo().trim())){
-                SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
                 SegDetCargo segDetCargo = new SegDetCargo();
                 segDetCargo.setVDescripcion(this.getDescripcionCargo().toUpperCase().trim());
@@ -2034,7 +2182,7 @@ public class PresencialMB implements Serializable{
                     segDetCargo.setNFlgActivo(BigDecimal.ONE);
                     segDetCargo.setDFecCreacion(new Date());
                     segDetCargo.setVUsuCreacion(usuarioSession.getVUsuario());
-                    segDetCargo.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetCargo.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                     cargoDao.registrarCargo(segDetCargo);
                     if(this.getListaCargos() == null)
                         this.setListaCargos(new ArrayList<SegDetCargo>());
@@ -2042,7 +2190,7 @@ public class PresencialMB implements Serializable{
                     this.setDescripcionCargo(null);
                     listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                     listasSessionMB.setListaCargoActivoByEmpresa(new Items(cargoDao.obtenerListaCargosActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems());
-                    BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                    JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
                 }
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del cargo.");
@@ -2057,20 +2205,20 @@ public class PresencialMB implements Serializable{
     public void editarCargo(ActionEvent actionEvent){
         FacesMessage message = null;
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetCargo segDetCargo = (SegDetCargo) actionEvent.getSource();
             if(segDetCargo.getVDescripcion() != null && !"".equals(segDetCargo.getVDescripcion().trim())){
-                ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
-                SegCabUsuario usuarioSession = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
+                ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
+                SegCabUsuario usuarioSession = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
                 segDetCargo.setVDescripcion(segDetCargo.getVDescripcion().toUpperCase().trim());
                 segDetCargo.setDFecModificacion(new Date());
                 segDetCargo.setVUsuModificacion(usuarioSession.getVUsuario());
-                segDetCargo.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetCargo.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
                 cargoDao.registrarCargo(segDetCargo);
                 listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
                 listasSessionMB.setListaCargoActivoByEmpresa(new Items(cargoDao.obtenerListaCargosActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems());
-                BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+                JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
             }else{
                 message = new FacesMessage(FacesMessage.SEVERITY_ERROR," ERROR. ", "Ingrese la descripción del cargo.");
                 FacesContext.getCurrentInstance().addMessage(null,message);
@@ -2083,14 +2231,14 @@ public class PresencialMB implements Serializable{
     
     public void eliminarCargo(ActionEvent actionEvent){
         try{
-            SegCabEmpresa empresaSession = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa empresaSession = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             CargoDao cargoDao = (CargoDao) ServiceFinder.findBean("CargoDao");
             cargoDao.eliminarCargo(this.getSelectedCargo());
             this.getListaCargos().remove(this.getSelectedCargo());
-            ListasSessionMB listasSessionMB = (ListasSessionMB)BaseBean.getSessionAttribute("listasSessionMB");
+            ListasSessionMB listasSessionMB = (ListasSessionMB)JSFUtils.getSessionAttribute("listasSessionMB");
             listasSessionMB = listasSessionMB != null ? listasSessionMB : new ListasSessionMB();
             listasSessionMB.setListaCargoActivoByEmpresa(new Items(cargoDao.obtenerListaCargosActivosByEmpresa(empresaSession), Items.FIRST_ITEM_SELECT, "NCodCargo", "VDescripcion").getItems());
-            BaseBean.getSession().setAttribute("listasSessionMB", listasSessionMB);
+            JSFUtils.getSession().setAttribute("listasSessionMB", listasSessionMB);
         }catch(Exception e){
             e.getMessage();
             

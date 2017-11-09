@@ -18,6 +18,7 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.CargoInspeccionDao;
 import pe.com.segrop.sgsapp.domain.SegCabCargo;
 
@@ -78,11 +79,13 @@ public class CargoInspeccionDaoHibernate extends HibernateDaoSupport implements 
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarCargo(SegCabCargo cargo) {
         getHibernateTemplate().saveOrUpdate(cargo);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarCargo(SegCabCargo cargo) {
         getHibernateTemplate().delete(cargo);
     }

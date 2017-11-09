@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import pe.com.segrop.sgsapp.dao.HistorialDao;
 import pe.com.segrop.sgsapp.domain.SegDetDocumento;
 import pe.com.segrop.sgsapp.domain.SegDetHistorial;
@@ -51,7 +52,8 @@ public class HistorialDaoHibernate extends HibernateDaoSupport implements Histor
     
     @Override
     public Integer obtenerMaximoVersionDocumento(SegDetDocumento segDetDocumento){
-        final String sql = "select max(n_version) as version from seg_det_historial where n_cod_documento = ".concat(segDetDocumento.getId().getNCodDocumento().toString());
+        //final String sql = "select NVL(max(n_version),0) as version from seg_det_historial where n_cod_documento = ".concat(segDetDocumento.getId().getNCodDocumento().toString());
+        final String sql = "SELECT COALESCE(MAX(n_version),0) as version FROM seg_det_historial WHERE n_cod_documento = ".concat(segDetDocumento.getId().getNCodDocumento().toString());
         return (Integer)getHibernateTemplate().execute(
             new HibernateCallback() {
                 @Override
@@ -62,11 +64,13 @@ public class HistorialDaoHibernate extends HibernateDaoSupport implements Histor
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void registrarHistorial(SegDetHistorial historial) {
         getHibernateTemplate().saveOrUpdate(historial);
     }
     
     @Override
+    @Transactional(readOnly = false)
     public void eliminarHistorial(SegDetHistorial historial) {
         getHibernateTemplate().delete(historial);
     }

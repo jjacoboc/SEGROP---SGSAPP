@@ -4,6 +4,7 @@
  */
 package pe.com.segrop.sgsapp.dao;
 
+import java.math.BigDecimal;
 import java.util.List;
 import pe.com.segrop.sgsapp.domain.SegCabEmpresa;
 import pe.com.segrop.sgsapp.domain.SegDetNovedad;
@@ -14,11 +15,12 @@ import pe.com.segrop.sgsapp.domain.SegDetNovedad;
  */
 public interface NovedadDao {
     
-    public Long nextSequenceValue();
-    public List<SegDetNovedad> buscarNovedades(SegDetNovedad novedad);
-    public SegDetNovedad obtenerNovedadById(SegDetNovedad novedad);
-    public List<SegDetNovedad> obtenerListaNovedades();
-    public List<SegDetNovedad> obtenerListaNovedadesNoCerradas();
-    public List<SegDetNovedad> obtenerListaNovedadesByEmpresa(SegCabEmpresa empresa);
-    public void registrarNovedad(SegDetNovedad novedad);
+    Long nextSequenceValue();
+    List<SegDetNovedad> buscarNovedades(SegDetNovedad novedad);
+    SegDetNovedad obtenerNovedadById(SegDetNovedad novedad);
+    List<SegDetNovedad> obtenerListaNovedades();
+    List<SegDetNovedad> obtenerListaNovedadesNoCerradas();
+    List<SegDetNovedad> obtenerListaNovedadesNoCerradasByEmpresa(BigDecimal idEmpresa);
+    List<SegDetNovedad> obtenerListaNovedadesByEmpresa(SegCabEmpresa empresa);
+    void registrarNovedad(SegDetNovedad novedad);
 }

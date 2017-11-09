@@ -46,7 +46,7 @@ import pe.com.segrop.sgsapp.domain.SegDetExport;
 import pe.com.segrop.sgsapp.domain.SegDetExportId;
 import pe.com.segrop.sgsapp.domain.SegDetExportdetalle;
 import pe.com.segrop.sgsapp.domain.SegDetExportdetalleId;
-import pe.com.segrop.sgsapp.web.common.BaseBean;
+import pe.com.segrop.sgsapp.util.JSFUtils;
 import pe.com.segrop.sgsapp.web.common.Criteria;
 import pe.com.segrop.sgsapp.web.common.Data;
 import pe.com.segrop.sgsapp.web.common.GeneralBean;
@@ -219,7 +219,7 @@ public class ExportMB implements Serializable{
     
     public void obtenerAtributosByEntidad(ActionEvent event){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             this.setSelectedEntidad(this.getListaEntidades().get(Integer.parseInt(rowKey)));
             ExportDao exportDao = (ExportDao) ServiceFinder.findBean("ExportDao");
             this.setListaAtributos(exportDao.obtenerListaAtributosByEntidad(this.getSelectedEntidad()));
@@ -237,7 +237,7 @@ public class ExportMB implements Serializable{
     
     public void handleAttributeSelection(ActionEvent event){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             this.setSelectedAtributo(this.getListaAtributos().get(Integer.parseInt(rowKey)));
             if(this.getSelectedAtributoList() == null){
                 this.setSelectedAtributoList(new ArrayList<SegDetAtributo>());
@@ -251,7 +251,7 @@ public class ExportMB implements Serializable{
     
     public void handleOrderedAttributeSelection(ActionEvent event){
         try{
-            String rowKey = BaseBean.getRequestParameter("rowKey");
+            String rowKey = JSFUtils.getRequestParameter("rowKey");
             this.setSelectedAtributo(this.getSelectedAtributoList().get(Integer.parseInt(rowKey)));
             if(this.getListaAtributos() == null){
                 this.setListaAtributos(new ArrayList<SegDetAtributo>());
@@ -270,7 +270,7 @@ public class ExportMB implements Serializable{
         Criteria criteria = null;
         List<GeneralBean> lista = null;
         try{
-            rowKey = BaseBean.getRequestParameter("rowKey");
+            rowKey = JSFUtils.getRequestParameter("rowKey");
             criteria = this.getListaCriteria().get(Integer.parseInt(rowKey));
             table = this.getSelectedEntidad().getVNombreApp();
             column = criteria.getColumn();
@@ -459,7 +459,7 @@ public class ExportMB implements Serializable{
         String rowKey = null;
         Criteria criteria = null;
         try{
-            rowKey = BaseBean.getRequestParameter("rowKey");
+            rowKey = JSFUtils.getRequestParameter("rowKey");
             criteria = this.getListaCriteria().get(Integer.parseInt(rowKey));
             if(criteria.getFlagSelectOneMenu()){
                 criteria.setPrefijo(" ");
@@ -495,7 +495,7 @@ public class ExportMB implements Serializable{
     public void handleDeleteCriteria(ActionEvent event){
         String rowKey = null;
         try{
-            rowKey = BaseBean.getRequestParameter("rowKey");
+            rowKey = JSFUtils.getRequestParameter("rowKey");
             if(this.getListaCriteria().size() > 1){
                 this.getListaCriteria().remove(Integer.parseInt(rowKey));
             }
@@ -597,8 +597,8 @@ public class ExportMB implements Serializable{
             ExportDao exportDao = (ExportDao) ServiceFinder.findBean("ExportDao");
             CriteriaDao criteriaDao = (CriteriaDao) ServiceFinder.findBean("CriteriaDao");
             ExportDetalleDao exportDetalleDao = (ExportDetalleDao) ServiceFinder.findBean("ExportDetalleDao");
-            SegCabUsuario usuario = (SegCabUsuario)BaseBean.getSessionAttribute("usuario");
-            SegCabEmpresa empresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabUsuario usuario = (SegCabUsuario)JSFUtils.getSessionAttribute("usuario");
+            SegCabEmpresa empresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             SegDetExportId segDetExportId = new SegDetExportId();
             SegDetExport segDetExport = new SegDetExport();
             if(this.getSelectedExport() != null){
@@ -612,7 +612,7 @@ public class ExportMB implements Serializable{
                 segDetExport.setVDescripcion(this.getDescripcion().toUpperCase().trim());
                 segDetExport.setDFecModificacion(new Date());
                 segDetExport.setVUsuModificacion(usuario.getVUsuario());
-                segDetExport.setVIpModificacion(BaseBean.getRequest().getRemoteAddr());
+                segDetExport.setVIpModificacion(JSFUtils.getRequest().getRemoteAddr());
                 exportDetalleDao.eliminarDetalleConfiguracionById(segDetExport);
                 criteriaDao.eliminarCriteriaById(segDetExport);
             }else{
@@ -626,7 +626,7 @@ public class ExportMB implements Serializable{
                 segDetExport.setVDescripcion(this.getDescripcion().toUpperCase().trim());
                 segDetExport.setDFecCreacion(new Date());
                 segDetExport.setVUsuCreacion(usuario.getVUsuario());
-                segDetExport.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                segDetExport.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
             }
             exportDao.registrarConfiguracion(segDetExport);
             
@@ -644,7 +644,7 @@ public class ExportMB implements Serializable{
                     segDetExportdetalle.setNOrden(BigDecimal.valueOf(i+1));
                     segDetExportdetalle.setDFecCreacion(new Date());
                     segDetExportdetalle.setVUsuCreacion(usuario.getVUsuario());
-                    segDetExportdetalle.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                    segDetExportdetalle.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
 
                     exportDetalleDao.registrarDetalleConfiguracion(segDetExportdetalle);
                 }
@@ -671,7 +671,7 @@ public class ExportMB implements Serializable{
                         criteria.setVSufijo(su);
                         criteria.setDFecCreacion(new Date());
                         criteria.setVUsuCreacion(usuario.getVUsuario());
-                        criteria.setVIpCreacion(BaseBean.getRequest().getRemoteAddr());
+                        criteria.setVIpCreacion(JSFUtils.getRequest().getRemoteAddr());
                         criteriaDao.registrarCriteria(criteria);
                     }
                 }
@@ -701,7 +701,7 @@ public class ExportMB implements Serializable{
         List<SegDetExportdetalle> listaDetalle = null;
         List<SegDetCriteria> listaSegDetCriteria = null;
         try{
-            rowKey = BaseBean.getRequestParameter("rowKey");
+            rowKey = JSFUtils.getRequestParameter("rowKey");
             this.setSelectedExport(this.getListaExport().get(Integer.parseInt(rowKey)));
             this.setNombre(this.getSelectedExport().getVNombre());
             this.setDescripcion(this.getSelectedExport().getVDescripcion());
@@ -770,7 +770,7 @@ public class ExportMB implements Serializable{
         String filename = null;
         try{
             bundle = ResourceBundle.getBundle(Parameters.getParameters());
-            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)BaseBean.getSessionAttribute("empresa");
+            SegCabEmpresa segCabEmpresa = (SegCabEmpresa)JSFUtils.getSessionAttribute("empresa");
             filepath = bundle.getString("filePath").concat(segCabEmpresa.getVRuc()).concat("\\"); //Para WINDOWS
             //filepath = bundle.getString("filepath").concat(segCabEmpresa.getVRuc()).concat("/"); //Para LINUX
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
